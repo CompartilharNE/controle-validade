@@ -1983,21 +1983,17 @@ function entrarNoApp(user) {
   const promInputWrap = document.getElementById('f_promotor_input_wrap');
   const promCard      = document.getElementById('f_promotor_card');
   if (user.role === 'promotor') {
-    // Promotor: mostrar card fixo, ocultar busca
-    if (promInputWrap) promInputWrap.style.display = 'none';
-    if (promCard) {
-      document.getElementById('f_promotor_card_nome').textContent = user.nome;
-      document.getElementById('f_promotor_card_info').textContent = user.uf ? `Promotor cadastrado · ${user.uf}` : 'Promotor cadastrado';
-      promCard.style.display = 'flex';
-      // Sem botão de limpar para promotor
-      const xBtn = promCard.querySelector('button');
-      if (xBtn) xBtn.style.display = 'none';
+    // Promotor: campo travado igual à UF (sem card verde)
+    if (promInputWrap) promInputWrap.style.display = '';
+    if (promCard) promCard.style.display = 'none';
+    const buscaInp = document.getElementById('f_promotor_busca');
+    if (buscaInp) {
+      buscaInp.value = user.nome;
+      buscaInp.readOnly = true;
+      buscaInp.classList.add('campo-bloqueado');
     }
     promotorInput.disabled = true;
     promotorInput.classList.add('campo-bloqueado');
-    promotorInput.style.opacity = '';
-    promotorInput.style.cursor = '';
-    promotorInput.title = '';
     if (labelProm) labelProm.innerHTML = 'Promotor *';
     if (hintProm)  hintProm.classList.add('hidden');
   } else {
