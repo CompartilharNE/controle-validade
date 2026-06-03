@@ -1252,7 +1252,7 @@
           <span id="hContador" class="text-xs text-slate-400">0 registros</span>
         </div>
         <div class="overflow-x-auto">
-          <table><thead><tr id="hTableHead"><th>Data</th><th>Tipo</th><th>Qtde</th><th>Estoque</th><th>Produto</th><th>Loja</th><th>UF</th><th>Promotor</th></tr></thead><tbody id="hTableBody"></tbody></table>
+          <table><thead><tr id="hTableHead"><th>Data</th><th>Ação</th><th>Tipo</th><th>Qtde</th><th>Estoque</th><th>Produto</th><th>Vencimento</th><th>Loja</th><th>UF</th><th>Promotor</th></tr></thead><tbody id="hTableBody"></tbody></table>
         </div>
         <div id="hSemDados" class="hidden text-center py-10 text-slate-400 text-sm">Nenhuma movimentação registrada ainda.</div>
       </div>
@@ -3342,7 +3342,7 @@ document.getElementById('prodForm').addEventListener('submit', (e) => {
   produtos.push(novoProduto);
   FS_PRODUTOS.doc(String(novoProduto.id)).set(novoProduto); renderTabela();
   // Registrar ENTRADA no histórico
-  _registrarMovimento('entrada', novoProduto.quantidade, novoProduto);
+  _registrarMovimento('entrada', novoProduto.quantidade, novoProduto, 'novo');
   _abrirPopupMesmaLoja();
 });
 
@@ -3530,6 +3530,8 @@ function deletar(id) {
 }
 function confirmarDeleteSIM() {
   if (!_deletandoId) return;
+  const _pExcluido = produtos.find(p => p.id === _deletandoId);
+  if (_pExcluido) _registrarMovimento('saida', _pExcluido.quantidade || 1, _pExcluido, 'exclusao');
   FS_PRODUTOS.doc(String(_deletandoId)).delete();
   produtos = produtos.filter(p => p.id !== _deletandoId);
   renderTabela();
@@ -5800,17 +5802,27 @@ function renderHistorico() {
   if (cnt) cnt.textContent = dados.length+' registros';
   if (!dados.length) { tbody.innerHTML=''; semEl.classList.remove('hidden'); return; }
   semEl.classList.add('hidden');
-  tbody.innerHTML = [...dados].reverse().map(m=>`<tr class="${m.tipo==='saida'?'row-expired':''}">
+  const _acaoBadge = (m) => {
+    const a = m.acao || (m.tipo === 'saida_vencimento' ? 'vencimento' : 'alteracao');
+    if (a === 'novo')       return `<span style="background:#bbf7d0;color:#14532d;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">NOVO</span>`;
+    if (a === 'alteracao')  return `<span style="background:#fef08a;color:#713f12;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">ALTERAÇÃO</span>`;
+    if (a === 'exclusao')   return `<span style="background:#fecaca;color:#7f1d1d;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">EXCLUSÃO</span>`;
+    if (a === 'vencimento') return `<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-clock-off" style="font-size:10px"></i>VENCIDO</span>`;
+    return `<span style="background:#e2e8f0;color:#475569;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">${esc(a)}</span>`;
+  };
+  tbody.innerHTML = [...dados].reverse().map(m=>`<tr class="${m.tipo==='saida'||m.acao==='exclusao'?'row-expired':''}">
     <td>${fmtData(m.data)}</td>
+    <td>${_acaoBadge(m)}</td>
     <td>${m.tipo==='entrada'
       ? `<span style="background:#dcfce7;color:#166534;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">ENTRADA</span>`
       : m.tipo==='saida_vencimento'
-        ? `<span style="background:#fef3c7;color:#854d0e;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-clock-off" style="font-size:10px"></i>SAÍDA VENCIDO</span>`
+        ? `<span style="background:#fef3c7;color:#854d0e;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">SAÍDA AUTO</span>`
         : `<span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">SAÍDA</span>`
     }</td>
     <td style="font-weight:700;color:${m.tipo==='entrada'?'#16a34a':m.tipo==='saida_vencimento'?'#d97706':'#dc2626'}">${m.tipo==='entrada'?'+':'-'}${m.qtde} ${esc(m.und)}</td>
     <td>${m.estoqueApos} ${esc(m.und)}</td>
     <td>${esc(m.produto)}</td>
+    <td style="${m.tipo==='saida_vencimento'?'color:#dc2626;font-weight:600':''}">${fmtData(m.validade)||'—'}</td>
     <td>${esc(m.loja)}</td>
     <td style="text-align:center">${esc(m.uf)}</td>
     <td>${esc(m.promotor)}</td>
@@ -5837,7 +5849,8 @@ function verificarSaidasPorVencimento() {
     const mov = {
       id:            Date.now() + Math.random(),
       data:          hoje,
-      tipo:          'saida_vencimento',  // tipo especial
+      tipo:          'saida_vencimento',
+      acao:          'vencimento',
       qtde,
       produto:       p.produto  || '',
       loja:          p.loja     || '',
@@ -5855,21 +5868,23 @@ function verificarSaidasPorVencimento() {
 }
 
 // ── Registro de movimentações ────────────────
-function _registrarMovimento(tipo, qtde, produto) {
+function _registrarMovimento(tipo, qtde, produto, acao) {
   if (!produto || !qtde) return;
   const lojaObj = lojas.find(l => normTxt(l.nome) === normTxt(produto.loja));
   const mov = {
-    id:        Date.now() + Math.random(),
-    data:      new Date().toISOString().slice(0,10),
-    tipo,                          // 'entrada' | 'saida'
-    qtde:      Math.abs(qtde),
-    produto:   produto.produto || '',
-    loja:      produto.loja    || '',
-    rede:      lojaObj?.rede   || '',
-    uf:        produto.uf      || '',
-    fabrica:   produto.fabrica || '',
-    und:       produto.und     || '',
-    promotor:  produto.promotor|| '',
+    id:          Date.now() + Math.random(),
+    data:        new Date().toISOString().slice(0,10),
+    tipo,        // 'entrada' | 'saida'
+    acao:        acao || 'alteracao', // 'novo' | 'alteracao' | 'exclusao'
+    qtde:        Math.abs(qtde),
+    produto:     produto.produto  || '',
+    validade:    produto.validade || '',
+    loja:        produto.loja     || '',
+    rede:        lojaObj?.rede    || '',
+    uf:          produto.uf       || '',
+    fabrica:     produto.fabrica  || '',
+    und:         produto.und      || '',
+    promotor:    produto.promotor || '',
     estoqueApos: Number(produto.quantidade) || 0,
   };
   historico.push(mov);
@@ -6077,7 +6092,7 @@ function salvarEdicao() {
   produtos[idx].dataAtualizacao = new Date().toISOString().slice(0,10);
   // Registrar movimentação se quantidade mudou
   const diff = qtdeNova - qtdeAnterior;
-  if (diff !== 0) _registrarMovimento(diff > 0 ? 'entrada' : 'saida', Math.abs(diff), produtos[idx]);
+  if (diff !== 0) _registrarMovimento(diff > 0 ? 'entrada' : 'saida', Math.abs(diff), produtos[idx], 'alteracao');
   FS_PRODUTOS.doc(String(id)).set(produtos[idx]); renderTabela();
   document.getElementById('editModal').classList.add('hidden');
   showToast('✅ Produto atualizado!','#166534');
