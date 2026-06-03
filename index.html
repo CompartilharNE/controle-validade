@@ -3849,9 +3849,12 @@ function renderTabela() {
     if (col===sortCol) th.querySelector('.sort-arrow').textContent=sortAsc?' ▲':' ▼';
   });
 
-  const exp  =produtos.filter(p=>diasRestantes(p.validade)<0).length;
-  const warn =produtos.filter(p=>{const d=diasRestantes(p.validade);return d>=0&&d<=20;}).length;
-  const ok   =produtos.filter(p=>diasRestantes(p.validade)>20).length;
+  let _baseCnt = produtos;
+  if (sessao?.role === 'promotor') _baseCnt = produtos.filter(p => p.promotor === sessao.nome);
+  if (sessao?.role === 'vendedor') _baseCnt = produtos.filter(p => sessao.ufs && sessao.ufs.includes(p.uf));
+  const exp  = _baseCnt.filter(p=>diasRestantes(p.validade)<0).length;
+  const warn = _baseCnt.filter(p=>{const d=diasRestantes(p.validade);return d>=0&&d<=20;}).length;
+  const ok   = _baseCnt.filter(p=>diasRestantes(p.validade)>20).length;
   document.getElementById('cntExp').textContent  = `${exp} Vencido${exp!==1?'s':''}`;
   document.getElementById('cntWarn').textContent = `${warn} Atenção`;
   document.getElementById('cntOk').textContent   = `${ok} OK`;
