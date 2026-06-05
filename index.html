@@ -2935,23 +2935,41 @@ function abrirModalImportFotos() {
 
 async function processarImportFotos(input) {
   const fabrica = document.getElementById('importFotosFabrica').value;
+  const resEl = document.getElementById('importFotosResultado');
+  resEl.classList.remove('hidden');
+
   if (!fabrica) {
-    showToast('⚠️ Selecione a fábrica primeiro.', '#92400e');
-    input.value = '';
-    return;
+    resEl.style.background = '#fef3c7'; resEl.style.color = '#92400e';
+    resEl.textContent = '⚠️ Selecione a fábrica antes de escolher a pasta.';
+    input.value = ''; return;
   }
-  const files = Array.from(input.files).filter(f => /\.(jpe?g|png|webp|gif)$/i.test(f.name));
+
+  const todosArquivos = Array.from(input.files);
+  const files = todosArquivos.filter(f => /\.(jpe?g|png|webp|gif)$/i.test(f.name));
+
+  if (!todosArquivos.length) {
+    resEl.style.background = '#fee2e2'; resEl.style.color = '#991b1b';
+    resEl.textContent = '❌ Nenhum arquivo encontrado. Verifique se selecionou a pasta correta.';
+    input.value = ''; return;
+  }
   if (!files.length) {
-    showToast('⚠️ Nenhuma imagem encontrada na pasta.', '#92400e');
-    input.value = '';
-    return;
+    resEl.style.background = '#fee2e2'; resEl.style.color = '#991b1b';
+    resEl.textContent = `❌ ${todosArquivos.length} arquivo(s) encontrado(s) mas nenhum é imagem (JPG, PNG, WEBP). Arquivos: ${todosArquivos.slice(0,3).map(f=>f.name).join(', ')}`;
+    input.value = ''; return;
   }
+
+  const produtosFabrica = catalogo.filter(p => (p.fabrica||'').toLowerCase() === fabrica.toLowerCase() && p.codigo);
+
+  if (!produtosFabrica.length) {
+    resEl.style.background = '#fef3c7'; resEl.style.color = '#92400e';
+    resEl.textContent = `⚠️ Nenhum produto com Código cadastrado para a fábrica "${fabrica}". Preencha o campo Código nos produtos antes de importar fotos.`;
+    input.value = ''; return;
+  }
+
   let vinculados = 0, naoEncontrados = [];
-  const produtosFabrica = catalogo.filter(p => (p.fabrica||'') === fabrica && p.codigo);
 
   for (const file of files) {
     const nomeSemExt = file.name.replace(/\.[^.]+$/, '').trim();
-    // Reconhece se o nome do arquivo começa com o código (ex: "1505 - Qj Provolone Quatá")
     const prod = produtosFabrica.find(p => {
       const cod = p.codigo.trim().toLowerCase();
       const arq = nomeSemExt.toLowerCase();
@@ -2970,16 +2988,19 @@ async function processarImportFotos(input) {
       vinculados++;
     }
   }
+
   renderCatalogo();
-  const resEl = document.getElementById('importFotosResultado');
-  resEl.classList.remove('hidden');
+
   if (vinculados > 0) {
     resEl.style.background = '#dcfce7'; resEl.style.color = '#166534';
-    resEl.textContent = `✅ ${vinculados} foto(s) vinculada(s)` +
-      (naoEncontrados.length ? ` · ${naoEncontrados.length} arquivo(s) sem correspondência` : '');
+    resEl.textContent = `✅ ${vinculados} foto(s) vinculada(s) de ${files.length} imagem(ns) encontrada(s)` +
+      (naoEncontrados.length ? `. Sem correspondência: ${naoEncontrados.join(', ')}` : '');
   } else {
     resEl.style.background = '#fee2e2'; resEl.style.color = '#991b1b';
-    resEl.textContent = `❌ Nenhum produto encontrado. Verifique se os arquivos têm o mesmo nome do Código.`;
+    const codigos = produtosFabrica.map(p=>p.codigo).join(', ');
+    resEl.innerHTML = `❌ ${files.length} imagem(ns) encontrada(s) mas nenhuma casou com os códigos.<br>
+      <span style="font-size:10px">Códigos cadastrados para ${esc(fabrica)}: <strong>${esc(codigos||'nenhum')}</strong><br>
+      Arquivos testados: <strong>${files.slice(0,5).map(f=>f.name).join(', ')}${files.length>5?'...':''}</strong></span>`;
   }
   input.value = '';
 }
