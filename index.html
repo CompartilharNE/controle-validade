@@ -2951,7 +2951,12 @@ async function processarImportFotos(input) {
 
   for (const file of files) {
     const nomeSemExt = file.name.replace(/\.[^.]+$/, '').trim();
-    const prod = produtosFabrica.find(p => p.codigo.trim().toLowerCase() === nomeSemExt.toLowerCase());
+    // Reconhece se o nome do arquivo começa com o código (ex: "1505 - Qj Provolone Quatá")
+    const prod = produtosFabrica.find(p => {
+      const cod = p.codigo.trim().toLowerCase();
+      const arq = nomeSemExt.toLowerCase();
+      return arq === cod || arq.startsWith(cod + ' ') || arq.startsWith(cod + '-') || arq.startsWith(cod + '_');
+    });
     if (!prod) { naoEncontrados.push(nomeSemExt); continue; }
     const b64 = await new Promise(resolve => {
       const reader = new FileReader();
