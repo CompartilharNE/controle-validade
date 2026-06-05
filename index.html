@@ -1599,19 +1599,39 @@
   </div>
 </div>
 
-<!-- Modal Mesma Loja -->
-<div id="modalMesmaLoja" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl text-center">
-    <div style="font-size:32px;margin-bottom:8px">🏪</div>
-    <h3 class="font-semibold text-slate-700 text-base mb-1">Produto adicionado!</h3>
-    <p class="text-sm text-slate-500 mb-3">Deseja incluir outro item para a mesma loja?</p>
-    <div id="modalMesmaLoja_nomeLoja" style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;padding:4px 12px;font-size:12px;color:#1d4ed8;font-weight:500;margin-bottom:16px">
-      <i class="ti ti-building-store" style="font-size:13px" aria-hidden="true"></i>
-      <span id="modalMesmaLoja_lojaTexto"></span>
+<!-- Modal Confirmar Lançamento -->
+<div id="modalConfirmarLancamento" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+    <div class="px-5 py-4 flex items-center gap-3" style="background:#1e40af;">
+      <i class="ti ti-clipboard-check" style="font-size:20px;color:#fff" aria-hidden="true"></i>
+      <div>
+        <p class="text-white font-semibold text-sm mb-0">Confirmar lançamento</p>
+        <p class="text-xs" style="color:#bfdbfe;margin:0">Verifique os dados antes de salvar</p>
+      </div>
     </div>
-    <div class="flex flex-col gap-2">
-      <button onclick="_mesmaLojaSim()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2.5 text-sm transition">Sim, mesma loja</button>
-      <button onclick="_mesmaLojaNao()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg px-4 py-2.5 text-sm transition">Não, nova loja</button>
+    <div class="p-4 flex flex-col gap-3">
+      <div class="bg-slate-50 rounded-xl text-sm divide-y divide-slate-100">
+        <div class="flex justify-between px-4 py-2"><span class="text-slate-400 text-xs">Promotor</span><span id="conf_promotor" class="font-medium text-slate-700"></span></div>
+        <div class="flex justify-between px-4 py-2"><span class="text-slate-400 text-xs">UF</span><span id="conf_uf" class="font-medium text-slate-700"></span></div>
+        <div class="flex justify-between px-4 py-2"><span class="text-slate-400 text-xs">Fábrica</span><span id="conf_fabrica" class="font-medium text-slate-700"></span></div>
+        <div class="flex justify-between px-4 py-2"><span class="text-slate-400 text-xs">Produto</span><span id="conf_produto" class="font-medium text-slate-700 text-right max-w-[60%]"></span></div>
+        <div class="flex justify-between px-4 py-2"><span class="text-slate-400 text-xs">Loja</span><span id="conf_loja" class="font-medium text-slate-700 text-right max-w-[60%]"></span></div>
+        <div class="flex justify-between px-4 py-2"><span class="text-slate-400 text-xs">Vencimento</span><span id="conf_validade" class="font-semibold" style="color:#dc2626"></span></div>
+        <div class="flex justify-between px-4 py-2 items-center"><span class="text-slate-400 text-xs">Quantidade</span><span id="conf_quantidade" class="text-xs font-semibold bg-blue-100 text-blue-800 rounded-full px-2 py-0.5"></span></div>
+        <div class="flex justify-between px-4 py-2"><span class="text-slate-400 text-xs">Preço</span><span id="conf_preco" class="font-medium text-slate-700"></span></div>
+      </div>
+      <div class="rounded-lg px-3 py-2 flex items-center gap-2 text-xs" style="background:#f0fdf4;color:#166534">
+        <i class="ti ti-building-store" style="font-size:14px;flex-shrink:0" aria-hidden="true"></i>
+        <span>Ao confirmar, a loja ficará preenchida para o próximo cadastro.</span>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="_confirmarLancamentoSIM()" class="flex-1 text-white font-semibold text-sm rounded-xl py-3 transition flex items-center justify-center gap-2" style="background:#16a34a">
+          <i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i> Sim, salvar
+        </button>
+        <button onclick="_confirmarLancamentoNAO()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-xl py-3 transition flex items-center justify-center gap-2">
+          <i class="ti ti-edit" style="font-size:16px" aria-hidden="true"></i> Não, corrigir
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -1926,6 +1946,49 @@
       </div>
     </div>
     <button onclick="document.getElementById('modalInstalarApp').classList.add('hidden')" class="mt-4 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg py-2 transition">Fechar</button>
+  </div>
+</div>
+
+<!-- Modal Produto de Outro Promotor -->
+<div id="modalOutroPromotor" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+    <div class="px-5 py-4 flex items-center gap-3" style="background:#b45309;">
+      <i class="ti ti-users" style="font-size:20px;color:#fff" aria-hidden="true"></i>
+      <span class="text-white font-semibold text-sm">Produto já lançado por outro promotor</span>
+    </div>
+    <div class="p-5 flex flex-col gap-3">
+      <input type="hidden" id="op_id" />
+      <div class="rounded-xl px-4 py-3 flex items-center gap-3" style="background:#fef3c7;border:1px solid #fde68a">
+        <i class="ti ti-user-circle" style="font-size:22px;color:#92400e" aria-hidden="true"></i>
+        <div>
+          <p class="text-xs text-yellow-700 mb-0.5">Lançado por</p>
+          <p id="op_promotor_nome" class="font-semibold text-sm" style="color:#451a03"></p>
+        </div>
+      </div>
+      <div class="bg-slate-50 rounded-xl px-4 py-2 text-sm divide-y divide-slate-100">
+        <div class="flex justify-between py-2"><span class="text-slate-400 text-xs">Produto</span><span id="op_produto" class="font-medium text-slate-700 text-right max-w-[60%]"></span></div>
+        <div class="flex justify-between py-2"><span class="text-slate-400 text-xs">Loja</span><span id="op_loja" class="font-medium text-slate-700 text-right max-w-[60%]"></span></div>
+        <div class="flex justify-between py-2"><span class="text-slate-400 text-xs">Vencimento</span><span id="op_validade" class="font-medium text-slate-700"></span></div>
+        <div class="flex justify-between py-2"><span class="text-slate-400 text-xs">Qtde atual</span><span id="op_qtde_atual" class="text-xs font-semibold bg-blue-100 text-blue-800 rounded-full px-2 py-0.5"></span></div>
+      </div>
+      <p class="text-xs text-slate-500">Informe a nova quantidade e preço para atualizar:</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-slate-600">Nova Qtde</label>
+          <input id="op_qtde" type="number" min="0" class="border border-blue-300 rounded-lg px-3 py-2 text-sm text-center font-semibold" style="background:#eff6ff;color:#1e40af" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-slate-600">Preço (R$)</label>
+          <input id="op_preco" type="number" min="0" step="0.01" placeholder="0,00" class="border border-slate-300 rounded-lg px-3 py-2 text-sm text-center" />
+        </div>
+      </div>
+      <div class="rounded-lg px-3 py-2 flex items-start gap-2 text-xs" style="background:#fef9c3;color:#713f12">
+        <i class="ti ti-info-circle" style="font-size:14px;flex-shrink:0;margin-top:1px" aria-hidden="true"></i>
+        <span>A atualização será visível para o promotor original e para todos os perfis.</span>
+      </div>
+      <button onclick="confirmarAtualizacaoOutroPromotor()" class="w-full text-white font-semibold text-sm rounded-xl py-3 transition" style="background:#b45309">✅ Atualizar registro</button>
+      <button onclick="document.getElementById('modalOutroPromotor').classList.add('hidden')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium text-sm rounded-xl py-2.5 transition">Cancelar</button>
+    </div>
   </div>
 </div>
 
@@ -3402,6 +3465,22 @@ document.getElementById('prodForm').addEventListener('submit', (e) => {
       abrirEditModal(duplic.id, true);
       return;
     }
+
+    // Checar se OUTRO promotor já lançou o mesmo produto na mesma loja
+    const fabrica  = document.getElementById('f_fabrica').value.trim();
+    const produto  = document.getElementById('f_produto').value.trim();
+    const loja     = document.getElementById('f_loja').value.trim();
+    const duplicOutro = produtos.find(p =>
+      normTxt(p.promotor) !== normTxt(sessao.nome) &&
+      normTxt(p.fabrica)  === normTxt(fabrica) &&
+      normTxt(p.produto)  === normTxt(produto) &&
+      normTxt(p.loja)     === normTxt(loja) &&
+      p.validade === isoDate
+    );
+    if (duplicOutro) {
+      abrirModalOutroPromotor(duplicOutro);
+      return;
+    }
   }
 
   const novoProduto = {
@@ -3418,11 +3497,9 @@ document.getElementById('prodForm').addEventListener('submit', (e) => {
     preco:      Number(document.getElementById('f_preco').value) || 0,
   };
 
-  produtos.push(novoProduto);
-  FS_PRODUTOS.doc(String(novoProduto.id)).set(novoProduto); renderTabela();
-  // Registrar ENTRADA no histórico
-  _registrarMovimento('entrada', novoProduto.quantidade, novoProduto, 'novo');
-  _abrirPopupMesmaLoja();
+  // Mostrar confirmação antes de salvar
+  _pendingConfirmacao = novoProduto;
+  _abrirConfirmacaoLancamento(novoProduto);
 });
 
 // Limpar destaque vermelho ao preencher campo obrigatório
@@ -3553,10 +3630,65 @@ function _mesmaLojaSim() {
 }
 
 function _mesmaLojaNao() {
-  document.getElementById('modalMesmaLoja').classList.add('hidden');
+  document.getElementById('modalMesmaLoja')?.classList.add('hidden');
   limparForm();
   _lojaSnapshot = null;
   showToast('✅ Produto adicionado!','#166534');
+}
+
+// ── Confirmação de Lançamento ─────────────────
+let _pendingConfirmacao = null;
+
+function _abrirConfirmacaoLancamento(p) {
+  const nomeLoja = document.getElementById('f_loja').value || '';
+  const busca    = document.getElementById('f_loja_busca');
+  _lojaSnapshot = {
+    nome:     nomeLoja,
+    buscaVal: busca ? busca.value : nomeLoja,
+    cardNome: document.getElementById('f_loja_card_nome').textContent,
+    cardInfo: document.getElementById('f_loja_card_info').textContent,
+  };
+  const undFmt = p.und ? ' ' + p.und.charAt(0).toUpperCase() + p.und.slice(1).toLowerCase() : '';
+  document.getElementById('conf_promotor').textContent   = p.promotor || '—';
+  document.getElementById('conf_uf').textContent         = p.uf       || '—';
+  document.getElementById('conf_fabrica').textContent    = p.fabrica  || '—';
+  document.getElementById('conf_produto').textContent    = p.produto  || '—';
+  document.getElementById('conf_loja').textContent       = p.loja     || '—';
+  document.getElementById('conf_validade').textContent   = fmtData(p.validade);
+  document.getElementById('conf_quantidade').textContent = (p.quantidade || 0) + undFmt;
+  document.getElementById('conf_preco').textContent      = p.preco ? fmtPreco(p.preco) : '—';
+  document.getElementById('modalConfirmarLancamento').classList.remove('hidden');
+}
+
+function _confirmarLancamentoSIM() {
+  if (!_pendingConfirmacao) return;
+  const p = _pendingConfirmacao;
+  produtos.push(p);
+  FS_PRODUTOS.doc(String(p.id)).set(p);
+  renderTabela();
+  _registrarMovimento('entrada', p.quantidade, p, 'novo');
+  document.getElementById('modalConfirmarLancamento').classList.add('hidden');
+  limparForm();
+  if (_lojaSnapshot && _lojaSnapshot.nome) {
+    document.getElementById('f_loja').value = _lojaSnapshot.nome;
+    const busca = document.getElementById('f_loja_busca');
+    if (busca) { busca.value = _lojaSnapshot.buscaVal; busca.readOnly = true; busca.style.borderColor = ''; }
+    document.getElementById('f_loja_input_wrap').style.display = 'none';
+    document.getElementById('f_loja_card_nome').textContent = _lojaSnapshot.cardNome;
+    document.getElementById('f_loja_card_info').textContent = _lojaSnapshot.cardInfo;
+    document.getElementById('f_loja_card').style.display = 'flex';
+    document.getElementById('f_loja_icon').className = 'ti ti-search';
+  }
+  _pendingConfirmacao = null;
+  _lojaSnapshot = null;
+  showToast('✅ Produto salvo!', '#166534');
+  setTimeout(() => { const b = document.getElementById('f_produto_busca'); if (b) b.focus(); }, 100);
+}
+
+function _confirmarLancamentoNAO() {
+  document.getElementById('modalConfirmarLancamento').classList.add('hidden');
+  _pendingConfirmacao = null;
+  _lojaSnapshot = null;
 }
 
 function limparForm() {
@@ -5885,11 +6017,12 @@ function renderHistorico() {
     const a = m.acao || (m.tipo === 'saida_vencimento' ? 'vencimento' : 'alteracao');
     if (a === 'novo')       return `<span style="background:#bbf7d0;color:#14532d;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">NOVO</span>`;
     if (a === 'alteracao')  return `<span style="background:#fef08a;color:#713f12;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">ALTERAÇÃO</span>`;
+    if (a === 'atualizacao_promotor') return `<span style="background:#fde68a;color:#78350f;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">ATUALIZAÇÃO</span>`;
     if (a === 'exclusao')   return `<span style="background:#fecaca;color:#7f1d1d;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">EXCLUSÃO</span>`;
     if (a === 'vencimento') return `<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-clock-off" style="font-size:10px"></i>VENCIDO</span>`;
     return `<span style="background:#e2e8f0;color:#475569;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">${esc(a)}</span>`;
   };
-  tbody.innerHTML = [...dados].reverse().map(m=>`<tr class="${m.tipo==='saida'||m.acao==='exclusao'?'row-expired':''}">
+  tbody.innerHTML = [...dados].reverse().map(m=>`<tr class="${m.tipo==='saida'||m.acao==='exclusao'?'row-expired':m.acao==='atualizacao_promotor'?'row-warning':''}">
     <td>${fmtData(m.data)}</td>
     <td>${_acaoBadge(m)}</td>
     <td>${m.tipo==='entrada'
@@ -5947,14 +6080,14 @@ function verificarSaidasPorVencimento() {
 }
 
 // ── Registro de movimentações ────────────────
-function _registrarMovimento(tipo, qtde, produto, acao) {
+function _registrarMovimento(tipo, qtde, produto, acao, atualizadoPor) {
   if (!produto || !qtde) return;
   const lojaObj = lojas.find(l => normTxt(l.nome) === normTxt(produto.loja));
   const mov = {
     id:          Date.now() + Math.random(),
     data:        new Date().toISOString().slice(0,10),
     tipo,        // 'entrada' | 'saida'
-    acao:        acao || 'alteracao', // 'novo' | 'alteracao' | 'exclusao'
+    acao:        acao || 'alteracao',
     qtde:        Math.abs(qtde),
     produto:     produto.produto  || '',
     validade:    produto.validade || '',
@@ -5963,11 +6096,50 @@ function _registrarMovimento(tipo, qtde, produto, acao) {
     uf:          produto.uf       || '',
     fabrica:     produto.fabrica  || '',
     und:         produto.und      || '',
-    promotor:    produto.promotor || '',
+    promotor:    atualizadoPor || produto.promotor || '',
     estoqueApos: Number(produto.quantidade) || 0,
   };
   historico.push(mov);
   FS_HISTORICO.add(mov);
+}
+
+function abrirModalOutroPromotor(p) {
+  document.getElementById('op_id').value = p.id;
+  document.getElementById('op_promotor_nome').textContent = p.promotor;
+  document.getElementById('op_produto').textContent  = p.produto;
+  document.getElementById('op_loja').textContent     = p.loja;
+  document.getElementById('op_validade').textContent = fmtData(p.validade);
+  const undFmt = p.und ? ' ' + p.und.charAt(0).toUpperCase() + p.und.slice(1).toLowerCase() : '';
+  document.getElementById('op_qtde_atual').textContent = (p.quantidade || 0) + undFmt;
+  document.getElementById('op_qtde').value  = p.quantidade || '';
+  document.getElementById('op_preco').value = p.preco || '';
+  document.getElementById('modalOutroPromotor').classList.remove('hidden');
+}
+
+function confirmarAtualizacaoOutroPromotor() {
+  const id  = Number(document.getElementById('op_id').value);
+  const idx = produtos.findIndex(p => p.id === id);
+  if (idx < 0) return;
+  const qtdeAnterior = Number(produtos[idx].quantidade) || 0;
+  const qtdeNova     = Number(document.getElementById('op_qtde').value) || qtdeAnterior;
+  const precoNovo    = Number(document.getElementById('op_preco').value) || 0;
+  produtos[idx].quantidade     = qtdeNova;
+  produtos[idx].preco          = precoNovo;
+  produtos[idx].dataAtualizacao = new Date().toISOString().slice(0,10);
+  const diff = qtdeNova - qtdeAnterior;
+  if (diff !== 0) {
+    _registrarMovimento(
+      diff > 0 ? 'entrada' : 'saida',
+      Math.abs(diff),
+      produtos[idx],
+      'atualizacao_promotor',
+      sessao.nome   // quem fez a atualização
+    );
+  }
+  FS_PRODUTOS.doc(String(id)).set(produtos[idx]);
+  document.getElementById('modalOutroPromotor').classList.add('hidden');
+  renderTabela();
+  showToast('✅ Registro atualizado!', '#166534');
 }
 
 // ── Reconhecimento de voz ────────────────────
