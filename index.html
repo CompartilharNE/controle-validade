@@ -3564,9 +3564,6 @@ document.getElementById('prodForm').addEventListener('submit', (e) => {
     }
 
     // Checar se OUTRO promotor já lançou o mesmo produto na mesma loja
-    const fabrica  = document.getElementById('f_fabrica').value.trim();
-    const produto  = document.getElementById('f_produto').value.trim();
-    const loja     = document.getElementById('f_loja').value.trim();
     const duplicOutro = produtos.find(p =>
       normTxt(p.promotor) !== normTxt(sessao.nome) &&
       normTxt(p.fabrica)  === normTxt(fabrica) &&
