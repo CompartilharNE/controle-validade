@@ -355,6 +355,9 @@
       <div class="bg-white rounded-2xl shadow overflow-hidden mb-4">
         <div class="px-4 py-3 border-b border-slate-100 flex items-center gap-2 flex-wrap">
           <span class="text-sm font-semibold text-slate-700 mr-auto">Produtos cadastrados</span>
+          <select id="filtroCatalogoFabrica" onchange="renderCatalogo()" class="border border-slate-200 rounded-lg px-3 py-1 text-sm bg-white">
+            <option value="">Todas as fábricas</option>
+          </select>
           <input id="buscaCatalogo" type="text" placeholder="🔍 Buscar..."
             oninput="renderCatalogo()" class="border border-slate-200 rounded-lg px-3 py-1 text-sm w-36" />
           <button onclick="document.getElementById('importCatalogoInput').click()" class="flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg px-3 py-1.5 transition border border-blue-200">📥 Importar</button>
@@ -365,7 +368,7 @@
         </div>
         <div class="overflow-x-auto">
           <table>
-            <thead><tr><th>Fábrica</th><th>Código</th><th>Nome do Produto</th><th>EAN</th><th>UND</th><th>Qtde CX</th><th>ShelfLife</th><th>Ação</th></tr></thead>
+            <thead><tr><th>Fábrica</th><th>Código</th><th>Nome do Produto</th><th style="text-align:center">Foto</th><th>EAN</th><th>UND</th><th>Qtde CX</th><th>ShelfLife</th><th>Ação</th></tr></thead>
             <tbody id="corpoCatalogo"></tbody>
           </table>
         </div>
@@ -3027,7 +3030,18 @@ function preencherEANAdmin(codigo) {
 }
 function renderCatalogo() {
   const busca=(document.getElementById('buscaCatalogo')?.value||'').toLowerCase();
-  const lista=catalogo.filter(p=>!busca||p.ean.includes(busca)||p.nome.toLowerCase().includes(busca)||(p.fabrica||'').toLowerCase().includes(busca));
+  const fabSel=(document.getElementById('filtroCatalogoFabrica')?.value||'');
+  // Popular select de fábricas
+  const selF = document.getElementById('filtroCatalogoFabrica');
+  if (selF) {
+    const cur = selF.value;
+    const fabs = [...new Set(catalogo.map(p=>p.fabrica).filter(Boolean))].sort();
+    selF.innerHTML = '<option value="">Todas as fábricas</option>' + fabs.map(f=>`<option value="${esc(f)}" ${f===cur?'selected':''}>${esc(f)}</option>`).join('');
+  }
+  const lista=catalogo.filter(p=>{
+    if (fabSel && (p.fabrica||'') !== fabSel) return false;
+    return !busca||p.ean.includes(busca)||p.nome.toLowerCase().includes(busca)||(p.fabrica||'').toLowerCase().includes(busca)||(p.codigo||'').toLowerCase().includes(busca);
+  });
   const tbody=document.getElementById('corpoCatalogo');
   const semEl=document.getElementById('semCatalogo');
   if (!lista.length) { tbody.innerHTML=''; semEl.classList.remove('hidden'); return; }
@@ -3035,7 +3049,11 @@ function renderCatalogo() {
   tbody.innerHTML=lista.map(p=>`<tr>
     <td>${esc(p.fabrica||'—')}</td>
     <td class="font-mono text-xs text-slate-500">${esc(p.codigo||'—')}</td>
-    <td>${p.foto?`<img src="${p.foto}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;display:inline-block;vertical-align:middle;margin-right:6px">`:''}${esc(p.nome)}</td>
+    <td>${esc(p.nome)}</td>
+    <td style="text-align:center">${p.foto
+      ? `<i class="ti ti-circle-check" style="font-size:18px;color:#16a34a" title="Foto carregada" aria-hidden="true"></i>`
+      : `<i class="ti ti-circle-x" style="font-size:18px;color:#dc2626" title="Sem foto" aria-hidden="true"></i>`
+    }</td>
     <td class="font-mono text-xs">${esc(p.ean)}</td>
     <td>${p.und?`<span style="display:inline-block;background:#eff6ff;color:#1d4ed8;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">${esc(p.und)}</span>`:'—'}</td>
     <td>${(p.qtdeCaixa&&p.und)?`<span style="display:inline-block;background:#f0fdf4;color:#166534;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">${esc(p.qtdeCaixa)} ${esc(p.und)}</span>`:'—'}</td>
