@@ -2730,7 +2730,7 @@ async function processarImportCatalogo(input) {
     showToast('⏳ Importando...','#1e3a8a');
     const wb = await _lerExcelImport(input.files[0]);
     const ws = wb.worksheets[0];
-    let novos = 0, dupl = 0;
+    let novos = 0, atualizados = 0;
     ws.eachRow((row, rn) => {
       if (rn <= 5) return;
       const codigo    = (row.getCell(2).value||'').toString().trim();
@@ -2739,15 +2739,27 @@ async function processarImportCatalogo(input) {
       const fabrica   = (row.getCell(5).value||'').toString().trim();
       const und       = (row.getCell(6).value||'').toString().trim();
       const qtdeCaixa = (row.getCell(7).value||'').toString().trim();
+      const shelfLife = (row.getCell(8).value||'').toString().trim();
       if (!ean || !nome) return;
-      if (catalogo.find(p => p.ean === ean)) { dupl++; return; }
-      const _ci = { id:Date.now()+novos, ean, nome, codigo, fabrica, und, qtdeCaixa, foto:null };
-      catalogo.push(_ci);
-      FS_CATALOGO.doc(String(_ci.id)).set(_ci);
-      novos++;
+      const idx = catalogo.findIndex(p => p.ean === ean);
+      if (idx !== -1) {
+        // Atualizar existente — preserva foto e id
+        catalogo[idx] = { ...catalogo[idx], ean, nome, codigo, fabrica, und, qtdeCaixa, shelfLife };
+        FS_CATALOGO.doc(String(catalogo[idx].id)).set(catalogo[idx]);
+        atualizados++;
+      } else {
+        const _ci = { id:Date.now()+novos, ean, nome, codigo, fabrica, und, qtdeCaixa, shelfLife, foto:null };
+        catalogo.push(_ci);
+        FS_CATALOGO.doc(String(_ci.id)).set(_ci);
+        novos++;
+      }
     });
     renderCatalogo(); atualizarSelectFabricas();
-    showToast(`✅ ${novos} produto(s) importado(s)${dupl?' · '+dupl+' duplicado(s) ignorado(s)':''}`, '#166534');
+    const msg = [
+      novos      ? `${novos} novo(s)`          : '',
+      atualizados ? `${atualizados} atualizado(s)` : ''
+    ].filter(Boolean).join(' · ');
+    showToast(`✅ ${msg || 'Nenhuma alteração'}`, '#166534');
   } catch(e) { showToast('❌ Erro ao importar: '+e.message,'#991b1b'); }
   input.value = '';
 }
