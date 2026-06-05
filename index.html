@@ -1271,9 +1271,14 @@
       </div>
       <!-- Tabela histórico -->
       <div class="bg-white rounded-2xl shadow overflow-hidden">
-        <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+        <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
           <span class="text-sm font-semibold text-slate-700">Detalhamento das movimentações</span>
-          <span id="hContador" class="text-xs text-slate-400">0 registros</span>
+          <div class="flex items-center gap-3">
+            <span id="hContador" class="text-xs text-slate-400">0 registros</span>
+            <button onclick="exportarHistorico()" class="flex items-center gap-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold rounded-lg px-3 py-1.5 transition border border-green-200">
+              <i class="ti ti-file-spreadsheet" style="font-size:14px" aria-hidden="true"></i> Exportar Excel
+            </button>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table><thead><tr id="hTableHead"><th>Data</th><th>Ação</th><th>Tipo</th><th>Qtde</th><th>Estoque</th><th>Produto</th><th>Fabricação</th><th>Vencimento</th><th>ShelfLife</th><th>Vida Útil</th><th>Data de Entrega</th><th>Loja</th><th>UF</th><th>Promotor</th></tr></thead><tbody id="hTableBody"></tbody></table>
@@ -2614,6 +2619,67 @@ async function exportarUsuarios() {
   });
   [6,28,20,14,8].forEach((w,i) => { ws.getColumn(i+1).width = w; });
   await _downloadExcel(wb,'cadastro_usuarios.xlsx');
+}
+
+async function exportarHistorico() {
+  if (typeof ExcelJS === 'undefined') { showToast('⚠️ Aguarde o carregamento da biblioteca...','#92400e'); return; }
+  const dados = _filtrarHistorico('h');
+  if (!dados.length) { showToast('Nenhum registro para exportar.','#92400e'); return; }
+  showToast('⏳ Gerando Excel...','#1e3a8a');
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Histórico');
+  const cols = ['#','DATA','AÇÃO','TIPO','QTDE','ESTOQUE','PRODUTO','FABRICAÇÃO','VENCIMENTO','SHELFLIFE (dias)','VIDA ÚTIL (%)','DATA DE ENTREGA','LOJA','UF','PROMOTOR'];
+  await _cabecalhoExcel(wb, ws, 'CONTROLE DE VALIDADE — HISTÓRICO DE MOVIMENTAÇÕES', cols.length);
+  const hr = ws.getRow(5); hr.height = 18;
+  cols.forEach((c,i) => { const cell=hr.getCell(i+1); _estiloCabecalho(cell); cell.value=c; });
+  ws.autoFilter = { from:'A5', to: String.fromCharCode(64+cols.length)+'5' };
+  const toDate = iso => iso ? new Date(iso.slice(0,10)+'T12:00:00') : null;
+  dados.forEach((m, i) => {
+    // Calcular vida útil
+    let diasVU = '', pctVU = '', alerta = false;
+    if (m.shelfLife && m.dataFabricacao && m.data) {
+      const fab = new Date(m.dataFabricacao+'T00:00:00');
+      const reg = new Date(m.data+'T00:00:00');
+      diasVU = Math.max(0, Math.round((reg-fab)/86400000));
+      pctVU  = Math.round((diasVU/m.shelfLife)*100);
+      alerta = pctVU > 33;
+    }
+    const vidaUtilTxt = diasVU !== '' ? `${diasVU} dias (${pctVU}%)${alerta?' ⚠️':''}` : '—';
+    const row = ws.addRow([
+      i+1,
+      toDate(m.data),
+      (m.acao||m.tipo||'').toUpperCase(),
+      m.tipo==='entrada'?'ENTRADA':m.tipo==='saida_vencimento'?'SAÍDA AUTO':'SAÍDA',
+      `${m.tipo==='entrada'?'+':'-'}${m.qtde} ${m.und||''}`,
+      `${m.estoqueApos||0} ${m.und||''}`,
+      m.produto||'',
+      toDate(m.dataFabricacao),
+      toDate(m.validade),
+      m.shelfLife||'',
+      vidaUtilTxt,
+      toDate(m.dataEntrega),
+      m.loja||'',
+      m.uf||'',
+      m.promotor||''
+    ]);
+    // Formatar datas
+    [2,8,9,12].forEach(col => {
+      const c = row.getCell(col);
+      if (c.value instanceof Date) c.numFmt = 'dd/mm/yyyy';
+    });
+    // Fundo vermelho se alerta de vida útil
+    if (alerta) {
+      row.eachCell(c => {
+        c.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFEE2E2' } };
+        c.font = { ...c.font, color:{ argb:'FF991B1B' } };
+      });
+    } else {
+      _estiloLinha(row, i);
+    }
+    row.height = 15;
+  });
+  [5,14,12,10,10,10,28,12,12,14,16,14,28,6,18].forEach((w,i) => { ws.getColumn(i+1).width = w; });
+  await _downloadExcel(wb, `historico_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 function _lerExcelImport(file) {
