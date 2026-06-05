@@ -963,6 +963,9 @@
         <select id="filtroRede" onchange="renderTabela()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
           <option value="">Todas as Redes</option>
         </select>
+        <select id="filtroLoja" onchange="renderTabela()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+          <option value="">Todas as Lojas</option>
+        </select>
         <select id="filtroProduto" onchange="renderTabela()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
           <option value="">Todos os Produtos</option>
         </select>
@@ -1250,17 +1253,12 @@
           </div>
         </div>
         <div id="filtrosHistoricoBody" class="flex flex-wrap items-end gap-3 mt-3 pt-3" style="border-top:0.5px solid #bfdbfe">
-          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500"><span style="background:#0e2841;color:white;font-size:9px;border-radius:3px;padding:1px 5px;margin-right:3px">1</span>Fábrica</label><select id="hFabrica" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
-          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;padding-bottom:10px"></i>
-          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500"><span style="background:#0e2841;color:white;font-size:9px;border-radius:3px;padding:1px 5px;margin-right:3px">2</span>Rede</label><select id="hRede" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
-          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;padding-bottom:10px"></i>
-          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500"><span style="background:#0e2841;color:white;font-size:9px;border-radius:3px;padding:1px 5px;margin-right:3px">3</span>Vendedor</label><select id="hVendedor" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
-          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;padding-bottom:10px"></i>
-          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500"><span style="background:#0e2841;color:white;font-size:9px;border-radius:3px;padding:1px 5px;margin-right:3px">4</span>UF</label><select id="hUF" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
-          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;padding-bottom:10px"></i>
-          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500"><span style="background:#0e2841;color:white;font-size:9px;border-radius:3px;padding:1px 5px;margin-right:3px">5</span>Loja</label><select id="hLoja" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
-          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;padding-bottom:10px"></i>
-          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500"><span style="background:#0e2841;color:white;font-size:9px;border-radius:3px;padding:1px 5px;margin-right:3px">6</span>Produto</label><select id="hProduto" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
+          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Fábrica</label><select id="hFabrica" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Rede</label><select id="hRede" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Vendedor</label><select id="hVendedor" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
+          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">UF</label><select id="hUF" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Loja</label><select id="hLoja" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Produto</label><select id="hProduto" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data inicial</label><input id="hDataIni" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data final</label><input id="hDataFim" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
         </div>
@@ -4130,6 +4128,13 @@ function renderTabela() {
   const sRede = document.getElementById('filtroRede');
   if (sRede) { const cur=sRede.value; sRede.innerHTML='<option value="">Todas as Redes</option>'+redesUnicas.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join(''); }
 
+  // Popular Loja (baseado em N4: Vendedor + Fábrica + UF + Rede)
+  const sLoja = document.getElementById('filtroLoja');
+  const fLoja = sLoja?.value || '';
+  const lojasBase4 = isDirAdm ? pN4 : produtosBase;
+  const lojasUnicas = [...new Set(lojasBase4.map(p => p.loja).filter(Boolean))].sort();
+  if (sLoja) { const cur=sLoja.value; sLoja.innerHTML='<option value="">Todas as Lojas</option>'+lojasUnicas.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join(''); }
+
   // UFs do vendedor selecionado (para filtrar por UF)
   const vendSel = fVendedor ? vendedores.find(v=>v.nome===fVendedor) : null;
   const ufsVendSel = vendSel?.ufs || [];
@@ -4151,6 +4156,7 @@ function renderTabela() {
     const fPromV = document.getElementById('filtroPromotorVend')?.value || '';
     if (fPromV && p.promotor !== fPromV) return false;
     if (fRede) { const lr=lojas.find(l=>normTxt(l.nome)===normTxt(p.loja)); if (!lr||lr.rede!==fRede) return false; }
+    if (fLoja && normTxt(p.loja) !== normTxt(fLoja)) return false;
     if (busca&&!normTxt([p.produto,p.promotor,p.loja,p.fabrica,p.uf].join(' ')).includes(busca)) return false;
     const fDtI=dataParaISO(document.getElementById('filtroDataInicio')?.value||'');
     const fDtF=dataParaISO(document.getElementById('filtroDataFim')?.value||'');
