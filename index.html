@@ -2900,8 +2900,18 @@ function previewFotoEAN(input) {
   document.getElementById('fotoNomeLabel').textContent = file.name;
   const reader = new FileReader();
   reader.onload = function(e) {
-    window._fotoEANBase64 = e.target.result;
-    document.getElementById('fotoAnexadaBadge').classList.remove('hidden');
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 300;
+      const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      window._fotoEANBase64 = canvas.toDataURL('image/jpeg', 0.75);
+      document.getElementById('fotoAnexadaBadge').classList.remove('hidden');
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -2994,9 +3004,22 @@ async function processarImportFotos(input) {
       return arq === cod || arq.startsWith(cod + ' ') || arq.startsWith(cod + '-') || arq.startsWith(cod + '_');
     });
     if (!prod) { naoEncontrados.push(nomeSemExt); continue; }
+    // Comprimir foto (máx 300px, qualidade 0.75) para caber no Firestore (limite 1MB)
     const b64 = await new Promise(resolve => {
       const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result);
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 300;
+          const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+          const canvas = document.createElement('canvas');
+          canvas.width  = Math.round(img.width  * ratio);
+          canvas.height = Math.round(img.height * ratio);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        img.src = e.target.result;
+      };
       reader.readAsDataURL(file);
     });
     const idx = catalogo.findIndex(p => p.id === prod.id);
