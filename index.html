@@ -359,7 +359,9 @@
             oninput="renderCatalogo()" class="border border-slate-200 rounded-lg px-3 py-1 text-sm w-36" />
           <button onclick="document.getElementById('importCatalogoInput').click()" class="flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg px-3 py-1.5 transition border border-blue-200">📥 Importar</button>
           <button onclick="exportarCatalogo()" class="flex items-center gap-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold rounded-lg px-3 py-1.5 transition border border-green-200">📤 Exportar</button>
+          <button onclick="abrirModalImportFotos()" class="flex items-center gap-1 text-xs font-semibold rounded-lg px-3 py-1.5 transition border" style="background:#fef3c7;color:#92400e;border-color:#fde68a">🖼️ Foto</button>
           <input type="file" id="importCatalogoInput" accept=".xlsx" class="hidden" onchange="processarImportCatalogo(this)" />
+          <input type="file" id="importFotosInput" accept="image/*" multiple webkitdirectory class="hidden" onchange="processarImportFotos(this)" />
         </div>
         <div class="overflow-x-auto">
           <table>
@@ -1594,6 +1596,33 @@
     <div class="px-4 pb-4 pt-2 flex-shrink-0">
       <button id="modalStatusBtn" onclick="document.getElementById('modalStatus').classList.add('hidden')"
         class="w-full text-white font-semibold rounded-xl py-2.5 text-sm transition">OK, entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Importar Fotos Catálogo -->
+<div id="modalImportFotos" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+    <div class="px-5 py-4 flex items-center gap-3" style="background:#1e40af;">
+      <i class="ti ti-photo-up" style="font-size:20px;color:#fff" aria-hidden="true"></i>
+      <p class="text-white font-semibold text-sm mb-0">Importar fotos do catálogo</p>
+    </div>
+    <div class="p-5 flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Fábrica *</label>
+        <select id="importFotosFabrica" class="border border-blue-300 rounded-lg px-3 py-2 text-sm bg-blue-50 text-blue-800 font-semibold">
+          <option value="">Selecione a fábrica</option>
+        </select>
+        <p class="text-xs text-slate-400">Somente produtos desta fábrica serão atualizados</p>
+      </div>
+      <div class="flex flex-col items-center gap-2 rounded-xl p-4 border-2 border-dashed border-slate-300 bg-slate-50">
+        <i class="ti ti-folder-open" style="font-size:28px;color:#94a3b8" aria-hidden="true"></i>
+        <p class="text-sm font-medium text-slate-600 text-center mb-0">Selecionar pasta com as fotos</p>
+        <p class="text-xs text-slate-400 text-center">Arquivos nomeados com o <strong>Código</strong> do produto<br>(ex: <span class="font-mono bg-slate-200 px-1 rounded">QT-001.jpg</span>)</p>
+        <button onclick="document.getElementById('importFotosInput').click()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm transition mt-1">📁 Escolher pasta</button>
+      </div>
+      <div id="importFotosResultado" class="hidden rounded-lg px-3 py-2 text-xs font-medium"></div>
+      <button onclick="document.getElementById('modalImportFotos').classList.add('hidden')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium text-sm rounded-xl py-2.5 transition">Fechar</button>
     </div>
   </div>
 </div>
@@ -2894,6 +2923,62 @@ function limparFormCatalogo() {
   if (prev) prev.style.display = 'none';
   window._fotoEANBase64 = null;
 }
+function abrirModalImportFotos() {
+  // Popular select de fábricas
+  const sel = document.getElementById('importFotosFabrica');
+  const fabs = [...new Set(catalogo.map(p => p.fabrica).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Selecione a fábrica</option>' +
+    fabs.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
+  document.getElementById('importFotosResultado').classList.add('hidden');
+  document.getElementById('modalImportFotos').classList.remove('hidden');
+}
+
+async function processarImportFotos(input) {
+  const fabrica = document.getElementById('importFotosFabrica').value;
+  if (!fabrica) {
+    showToast('⚠️ Selecione a fábrica primeiro.', '#92400e');
+    input.value = '';
+    return;
+  }
+  const files = Array.from(input.files).filter(f => /\.(jpe?g|png|webp|gif)$/i.test(f.name));
+  if (!files.length) {
+    showToast('⚠️ Nenhuma imagem encontrada na pasta.', '#92400e');
+    input.value = '';
+    return;
+  }
+  let vinculados = 0, naoEncontrados = [];
+  const produtosFabrica = catalogo.filter(p => (p.fabrica||'') === fabrica && p.codigo);
+
+  for (const file of files) {
+    const nomeSemExt = file.name.replace(/\.[^.]+$/, '').trim();
+    const prod = produtosFabrica.find(p => p.codigo.trim().toLowerCase() === nomeSemExt.toLowerCase());
+    if (!prod) { naoEncontrados.push(nomeSemExt); continue; }
+    const b64 = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    });
+    const idx = catalogo.findIndex(p => p.id === prod.id);
+    if (idx !== -1) {
+      catalogo[idx].foto = b64;
+      FS_CATALOGO.doc(String(prod.id)).update({ foto: b64 });
+      vinculados++;
+    }
+  }
+  renderCatalogo();
+  const resEl = document.getElementById('importFotosResultado');
+  resEl.classList.remove('hidden');
+  if (vinculados > 0) {
+    resEl.style.background = '#dcfce7'; resEl.style.color = '#166534';
+    resEl.textContent = `✅ ${vinculados} foto(s) vinculada(s)` +
+      (naoEncontrados.length ? ` · ${naoEncontrados.length} arquivo(s) sem correspondência` : '');
+  } else {
+    resEl.style.background = '#fee2e2'; resEl.style.color = '#991b1b';
+    resEl.textContent = `❌ Nenhum produto encontrado. Verifique se os arquivos têm o mesmo nome do Código.`;
+  }
+  input.value = '';
+}
+
 function preencherEANAdmin(codigo) {
   document.getElementById('c_ean').value=codigo;
   showToast('📷 EAN inserido!','#1e3a5f');
