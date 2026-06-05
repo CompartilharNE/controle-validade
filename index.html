@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle de Validade</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Validade" />
+  <meta name="theme-color" content="#1e40af" />
+  <link rel="manifest" id="pwaManifest" />
+  <link rel="apple-touch-icon" id="appleTouchIcon" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
@@ -216,6 +222,13 @@
         🌙 Tema Escuro
       </button>
     </div>
+    <div id="installBtnWrap" class="flex flex-col items-center mt-3 gap-1">
+      <button onclick="instalarApp()" class="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg px-4 py-2 transition border border-blue-200 w-full justify-center">
+        <i class="ti ti-device-mobile" style="font-size:15px" aria-hidden="true"></i>
+        Adicionar à tela inicial
+      </button>
+      <p class="text-xs text-slate-400 text-center">Use como um app, sem abrir o navegador</p>
+    </div>
   </div>
 </div>
 
@@ -256,6 +269,7 @@
       <div class="bg-white rounded-2xl shadow p-4 mb-4">
         <h3 class="text-sm font-semibold text-blue-700 mb-3">➕ Novo Produto no Catálogo</h3>
         <div class="grid grid-cols-2 gap-3">
+          <!-- Linha 1: Fábrica | Código -->
           <div class="flex flex-col gap-1">
             <label class="text-xs font-medium text-slate-600">Fábrica</label>
             <select id="c_fabrica" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
@@ -284,9 +298,9 @@
             </label>
             <span id="fotoAnexadaBadge" class="hidden text-xs text-green-600 font-medium">✅ Foto anexada</span>
           </div>
-          <!-- Linha 3: EAN + câmera | UND | Qtde CX -->
+          <!-- Linha 3: EAN + câmera | UND -->
           <div class="flex flex-col gap-1 col-span-2">
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;align-items:end">
+            <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px;align-items:end">
               <div class="flex flex-col gap-1">
                 <label class="text-xs font-medium text-slate-600">Código EAN *</label>
                 <div class="flex gap-2">
@@ -306,13 +320,19 @@
                   <option>PC</option>
                 </select>
               </div>
-              <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-slate-600">Qtde por Caixa</label>
-                <input id="c_qtde_caixa" type="number" placeholder="Ex: 7" min="0.01" step="0.01"
-                  oninput="_atualizarPreviewCaixa()"
-                  class="border border-slate-300 rounded-lg px-3 py-2 text-sm text-center font-semibold" />
-              </div>
             </div>
+          </div>
+          <!-- Linha 4: Qtde CX | ShelfLife -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-slate-600">Qtde por Caixa</label>
+            <input id="c_qtde_caixa" type="number" placeholder="Ex: 7" min="0.01" step="0.01"
+              oninput="_atualizarPreviewCaixa()"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-sm text-center font-semibold" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-slate-600">ShelfLife <span style="font-size:10px;background:#eff6ff;color:#1d4ed8;border-radius:4px;padding:1px 5px;font-weight:600">dias</span></label>
+            <input id="c_shelflife" type="number" placeholder="Ex: 30" min="1"
+              class="border border-blue-300 rounded-lg px-3 py-2 text-sm text-center font-semibold" style="background:#eff6ff;color:#1e40af" />
           </div>
           <div id="c_caixa_preview" class="flex flex-col gap-1 col-span-2" style="display:none!important">
             <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px">
@@ -343,7 +363,7 @@
         </div>
         <div class="overflow-x-auto">
           <table>
-            <thead><tr><th>Fábrica</th><th>Código</th><th>Nome do Produto</th><th>EAN</th><th>UND</th><th>Qtde CX</th><th>Ação</th></tr></thead>
+            <thead><tr><th>Fábrica</th><th>Código</th><th>Nome do Produto</th><th>EAN</th><th>UND</th><th>Qtde CX</th><th>ShelfLife</th><th>Ação</th></tr></thead>
             <tbody id="corpoCatalogo"></tbody>
           </table>
         </div>
@@ -1732,6 +1752,11 @@
         <input id="ee_qtde_caixa" type="number" placeholder="Ex: 7" min="0.01" step="0.01"
           class="border border-slate-300 rounded-lg px-3 py-2 text-sm text-center font-semibold" />
       </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">ShelfLife <span style="font-size:10px;background:#eff6ff;color:#1d4ed8;border-radius:4px;padding:1px 5px;font-weight:600">dias</span></label>
+        <input id="ee_shelflife" type="number" placeholder="Ex: 30" min="1"
+          class="border border-blue-300 rounded-lg px-3 py-2 text-sm text-center font-semibold" style="background:#eff6ff;color:#1e40af" />
+      </div>
       <div class="flex flex-col gap-1 col-span-2">
         <label class="text-xs font-medium text-slate-600">Fábrica</label>
         <select id="ee_fabrica" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
@@ -1870,6 +1895,35 @@
 
 <!-- Toast -->
 <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 text-white text-sm px-5 py-3 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-50"></div>
+
+<!-- Modal Instalar App -->
+<div id="modalInstalarApp" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-semibold text-slate-700 text-sm">Instalar como app</h3>
+      <button onclick="document.getElementById('modalInstalarApp').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
+    </div>
+    <div class="flex flex-col gap-3">
+      <div class="bg-blue-50 rounded-xl p-3">
+        <p class="text-xs font-semibold text-blue-800 mb-2 flex items-center gap-1"><i class="ti ti-brand-apple" style="font-size:14px" aria-hidden="true"></i> iPhone / iPad (Safari)</p>
+        <ol class="flex flex-col gap-1.5 text-xs text-blue-700">
+          <li class="flex gap-2"><span class="bg-blue-700 text-white rounded-full w-4 h-4 flex items-center justify-center shrink-0 text-[10px] font-bold">1</span> Toque em <i class="ti ti-share" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> (Compartilhar) no Safari</li>
+          <li class="flex gap-2"><span class="bg-blue-700 text-white rounded-full w-4 h-4 flex items-center justify-center shrink-0 text-[10px] font-bold">2</span> Selecione "Adicionar à Tela de Início"</li>
+          <li class="flex gap-2"><span class="bg-blue-700 text-white rounded-full w-4 h-4 flex items-center justify-center shrink-0 text-[10px] font-bold">3</span> Toque em "Adicionar"</li>
+        </ol>
+      </div>
+      <div class="bg-green-50 rounded-xl p-3">
+        <p class="text-xs font-semibold text-green-800 mb-2 flex items-center gap-1"><i class="ti ti-brand-android" style="font-size:14px" aria-hidden="true"></i> Android (Chrome)</p>
+        <ol class="flex flex-col gap-1.5 text-xs text-green-700">
+          <li class="flex gap-2"><span class="bg-green-700 text-white rounded-full w-4 h-4 flex items-center justify-center shrink-0 text-[10px] font-bold">1</span> Toque em <i class="ti ti-dots-vertical" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> (Menu) no Chrome</li>
+          <li class="flex gap-2"><span class="bg-green-700 text-white rounded-full w-4 h-4 flex items-center justify-center shrink-0 text-[10px] font-bold">2</span> Selecione "Adicionar à tela inicial"</li>
+          <li class="flex gap-2"><span class="bg-green-700 text-white rounded-full w-4 h-4 flex items-center justify-center shrink-0 text-[10px] font-bold">3</span> Toque em "Adicionar"</li>
+        </ol>
+      </div>
+    </div>
+    <button onclick="document.getElementById('modalInstalarApp').classList.add('hidden')" class="mt-4 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg py-2 transition">Fechar</button>
+  </div>
+</div>
 
 <!-- Loading overlay Firebase -->
 <div id="appLoader" style="display:flex;position:fixed;inset:0;background:rgba(15,23,42,0.88);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:16px">
@@ -2426,13 +2480,13 @@ async function exportarCatalogo() {
   showToast('⏳ Gerando Excel...','#1e3a8a');
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('Produtos');
-  const cols = ['#','Código','EAN','Nome do Produto','Fábrica','UND','Qtde CX'];
+  const cols = ['#','Código','EAN','Nome do Produto','Fábrica','UND','Qtde CX','ShelfLife (dias)'];
   await _cabecalhoExcel(wb, ws, 'CONTROLE DE VALIDADE — CADASTRO DE PRODUTOS', cols.length);
   const hr = ws.getRow(5); hr.height = 18;
   cols.forEach((c,i) => _estiloCabecalho(hr.getCell(i+1)));
   cols.forEach((c,i) => { hr.getCell(i+1).value = c; });
-  catalogo.forEach((p,i) => { const r=ws.addRow([i+1,p.codigo||'',p.ean||'',p.nome||'',p.fabrica||'',p.und||'',p.qtdeCaixa||'']); _estiloLinha(r,i); });
-  [6,14,18,40,22,8,10].forEach((w,i) => { ws.getColumn(i+1).width = w; });
+  catalogo.forEach((p,i) => { const r=ws.addRow([i+1,p.codigo||'',p.ean||'',p.nome||'',p.fabrica||'',p.und||'',p.qtdeCaixa||'',p.shelfLife||'']); _estiloLinha(r,i); });
+  [6,14,18,40,22,8,10,14].forEach((w,i) => { ws.getColumn(i+1).width = w; });
   await _downloadExcel(wb,'cadastro_produtos.xlsx');
 }
 
@@ -2610,10 +2664,11 @@ function salvarProdutoCatalogo() {
   const fab       = document.getElementById('c_fabrica').value;
   const und       = document.getElementById('c_und').value;
   const qtdeCaixa = document.getElementById('c_qtde_caixa').value.trim();
+  const shelfLife = document.getElementById('c_shelflife').value.trim();
   if (!ean||!nome) { showToast('⚠️ Preencha EAN e Nome.','#92400e'); return; }
   if (catalogo.find(p=>p.ean===ean)) { showToast('⚠️ EAN já cadastrado.','#92400e'); return; }
   const fotoB64 = window._fotoEANBase64 || null;
-  const _cp = {id:Date.now(), ean, nome, codigo, fabrica:fab, und, qtdeCaixa, foto:fotoB64};
+  const _cp = {id:Date.now(), ean, nome, codigo, fabrica:fab, und, qtdeCaixa, shelfLife, foto:fotoB64};
   catalogo.push(_cp);
   FS_CATALOGO.doc(String(_cp.id)).set(_cp);
   limparFormCatalogo(); renderCatalogo();
@@ -2643,6 +2698,7 @@ function limparFormCatalogo() {
   document.getElementById('c_fabrica').value='';
   document.getElementById('c_und').value='';
   document.getElementById('c_qtde_caixa').value='';
+  document.getElementById('c_shelflife').value='';
   document.getElementById('fotoNomeLabel').textContent='Nenhuma foto selecionada';
   document.getElementById('fotoAnexadaBadge').classList.add('hidden');
   document.getElementById('c_foto').value='';
@@ -2668,6 +2724,7 @@ function renderCatalogo() {
     <td class="font-mono text-xs">${esc(p.ean)}</td>
     <td>${p.und?`<span style="display:inline-block;background:#eff6ff;color:#1d4ed8;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">${esc(p.und)}</span>`:'—'}</td>
     <td>${(p.qtdeCaixa&&p.und)?`<span style="display:inline-block;background:#f0fdf4;color:#166534;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">${esc(p.qtdeCaixa)} ${esc(p.und)}</span>`:'—'}</td>
+    <td>${p.shelfLife?`<span style="display:inline-block;background:#eff6ff;color:#1e40af;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">${esc(p.shelfLife)} dias</span>`:'—'}</td>
     <td class="text-center">
       <button onclick="abrirEditEAN(${p.id})" class="text-blue-500 hover:text-blue-700 font-bold text-base px-1" title="Editar">✏️</button>
       <button onclick="deletarProdutoCatalogo(${p.id})" class="text-red-500 hover:text-red-700 font-bold text-lg px-1">×</button>
@@ -6108,6 +6165,7 @@ function abrirEditEAN(id) {
   document.getElementById('ee_codigo').value = item.codigo || '';
   document.getElementById('ee_und').value = item.und || '';
   document.getElementById('ee_qtde_caixa').value = item.qtdeCaixa || '';
+  document.getElementById('ee_shelflife').value = item.shelfLife || '';
   document.getElementById('ee_fabrica').value = item.fabrica || '';
   document.getElementById('ee_fotoLabel').textContent = item.foto ? 'Foto já anexada' : 'Nenhuma foto selecionada';
   const prev = document.getElementById('ee_fotoPreview');
@@ -6147,6 +6205,7 @@ function salvarEdicaoEAN() {
   catalogo[idx].codigo = document.getElementById('ee_codigo').value.trim();
   catalogo[idx].und = document.getElementById('ee_und').value;
   catalogo[idx].qtdeCaixa = document.getElementById('ee_qtde_caixa').value.trim();
+  catalogo[idx].shelfLife = document.getElementById('ee_shelflife').value.trim();
   catalogo[idx].fabrica = document.getElementById('ee_fabrica').value;
   if (window._editEANFoto !== undefined) catalogo[idx].foto = window._editEANFoto;
   FS_CATALOGO.doc(String(id)).set(catalogo[idx]);
@@ -6489,6 +6548,44 @@ async function carregarDados() {
   });
 
   initApp();
+}
+
+// ── PWA: Ícone, Manifesto e Instalação ───────
+(function() {
+  const iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 500" width="512" height="512"><rect width="420" height="500" fill="#ffffff"/><path d="M 126.50 367.89 C119.90,367.47 112.93,366.66 111.00,366.10 C109.07,365.54 106.15,364.87 104.50,364.61 C99.54,363.83 89.82,361.36 84.50,359.53 C79.79,357.90 77.41,356.93 69.01,353.22 C64.77,351.35 53.79,344.29 49.02,340.36 C30.77,325.37 18.01,306.93 14.16,290.00 C10.85,275.42 10.00,270.22 9.01,258.50 C7.07,235.48 12.07,204.45 20.93,184.50 C22.15,181.75 23.84,177.93 24.69,176.00 C33.46,156.12 45.32,136.10 55.80,123.50 C67.23,109.75 98.29,79.32 109.50,70.91 C121.80,61.67 134.50,52.94 138.50,50.98 C140.15,50.17 143.52,48.10 146.00,46.38 C152.13,42.14 158.18,38.92 166.50,35.51 C170.35,33.93 174.18,32.11 175.00,31.47 C177.33,29.67 184.77,27.00 187.48,27.00 C190.00,27.00 195.00,31.48 195.00,33.74 C195.00,34.43 195.45,35.00 196.00,35.00 C196.55,35.00 197.00,35.42 197.00,35.94 C197.00,36.46 198.80,40.76 201.00,45.50 C203.20,50.24 205.00,54.66 205.00,55.32 C205.00,55.97 203.67,57.10 202.05,57.82 C200.43,58.54 196.27,61.40 192.80,64.18 C189.34,66.97 184.70,70.38 182.50,71.77 C177.30,75.05 162.50,89.46 154.54,99.00 C140.97,115.24 135.92,122.78 131.44,133.50 C130.52,135.70 129.14,138.92 128.38,140.65 C127.62,142.38 127.00,144.43 127.00,145.20 C127.00,145.97 126.64,147.03 126.20,147.55 C125.20,148.75 123.64,153.53 121.34,162.50 C119.05,171.40 118.75,202.17 120.86,211.50 C122.86,220.36 125.17,227.05 127.60,231.04 C131.55,237.52 144.87,250.74 150.78,254.04 C153.93,255.79 157.85,258.23 159.50,259.46 C161.15,260.69 165.53,262.70 169.24,263.92 C176.66,266.38 180.55,269.98 179.52,273.46 C179.19,274.58 178.29,278.20 177.51,281.50 C176.73,284.80 175.59,289.30 174.98,291.50 C174.37,293.70 173.26,297.98 172.51,301.00 C170.92,307.44 166.22,325.17 164.96,329.50 C164.48,331.15 163.36,335.20 162.48,338.50 C161.59,341.80 160.42,346.08 159.87,348.00 C159.32,349.92 158.42,353.52 157.86,356.00 C156.57,361.74 154.18,367.02 152.67,367.48 C149.67,368.39 137.39,368.58 126.50,367.89 ZM 166.50 197.23 C162.61,196.95 161.16,196.47 154.13,193.11 C150.18,191.22 142.85,184.10 141.18,180.51 C140.53,179.13 139.44,176.81 138.75,175.35 C137.11,171.85 137.12,156.48 138.76,154.84 C139.44,154.16 140.00,152.51 140.00,151.18 C140.00,145.94 154.76,130.23 164.22,125.40 C173.54,120.65 177.94,119.65 190.00,119.58 C205.26,119.48 211.22,121.31 218.16,128.26 C225.76,135.86 227.42,140.32 227.36,153.00 C227.32,162.89 227.14,163.78 224.31,168.33 C220.74,174.07 210.15,185.09 204.39,189.07 C195.32,195.33 181.55,198.29 166.50,197.23 Z" fill="#272A4A"/><path d="M 174.20 363.74 C173.55,362.96 173.24,362.10 173.51,361.83 C173.78,361.56 174.41,359.35 174.91,356.92 C175.41,354.49 177.02,348.00 178.49,342.50 C179.95,337.00 181.75,330.02 182.49,327.00 C183.22,323.98 184.34,319.92 184.99,318.00 C185.63,316.08 187.21,310.45 188.51,305.50 C195.84,277.48 196.90,273.29 199.17,272.49 C199.60,272.33 200.07,272.30 200.64,272.25 C205.58,271.83 218.33,269.91 222.50,268.96 C249.95,262.75 261.86,259.24 273.70,253.88 C283.96,249.23 298.89,240.23 309.77,232.14 C315.42,227.94 322.44,222.78 325.37,220.67 L 330.70 216.83 L 342.10 218.90 C348.37,220.03 356.65,221.65 360.50,222.49 C364.35,223.33 369.19,224.30 371.25,224.64 C374.10,225.11 375.00,225.74 375.00,227.23 C375.00,230.43 358.74,251.42 341.56,270.40 C320.28,293.90 278.94,324.35 248.48,338.95 C236.33,344.78 229.24,348.00 228.55,348.00 C228.24,348.00 226.07,348.87 223.74,349.93 C217.89,352.60 192.81,360.97 185.50,362.70 C182.20,363.48 178.57,364.35 177.44,364.64 C176.29,364.93 174.85,364.53 174.20,363.74 ZM 260.39 223.05 C252.62,221.08 247.00,217.32 242.90,211.36 C239.98,207.11 239.66,205.93 239.58,199.01 C239.52,192.73 239.94,190.50 242.00,186.47 C245.47,179.66 254.35,171.03 261.50,167.52 C266.86,164.88 268.53,164.56 277.10,164.53 C287.31,164.50 289.51,165.16 296.17,170.24 C308.26,179.46 306.52,200.02 292.59,212.74 C286.33,218.46 280.56,221.48 272.50,223.28 C267.32,224.43 265.66,224.40 260.39,223.05 Z" fill="#D82621"/><path d="M 282.56 85.68 C275.09,83.54 269.10,74.62 270.42,67.59 C270.75,65.81 272.29,62.36 273.84,59.93 C277.34,54.42 287.05,49.00 293.43,49.00 C301.89,49.00 310.08,55.59 311.59,63.62 C312.50,68.46 308.73,77.25 304.12,81.06 C298.64,85.58 289.25,87.60 282.56,85.68 ZM 362.97 60.44 C352.85,50.16 339.63,41.62 327.50,37.51 C311.75,32.17 308.31,31.66 287.50,31.64 C268.01,31.62 262.63,32.21 248.00,35.95 C234.18,39.48 231.30,40.29 229.76,41.09 C226.73,42.68 219.46,42.17 217.75,40.25 C215.47,37.70 207.00,20.88 207.00,18.92 C207.00,15.83 208.35,15.39 231.00,11.06 C246.93,8.01 296.29,7.87 306.28,10.85 C308.05,11.38 312.88,12.57 317.00,13.49 C337.27,18.01 357.74,29.00 374.64,44.44 C381.26,50.48 389.00,60.43 389.00,62.89 C389.00,65.08 383.05,67.00 376.27,67.00 L 369.44 67.00 L 362.97 60.44 Z" fill="#DE7926"/></svg>`;
+  const iconURI = 'data:image/svg+xml,' + encodeURIComponent(iconSVG);
+
+  // Apple touch icon
+  const atIcon = document.getElementById('appleTouchIcon');
+  if (atIcon) atIcon.href = iconURI;
+
+  // Web App Manifest
+  const manifest = {
+    name: 'Controle de Validade',
+    short_name: 'Validade',
+    start_url: './',
+    display: 'standalone',
+    background_color: '#ffffff',
+    theme_color: '#1e40af',
+    icons: [{ src: iconURI, sizes: '512x512', type: 'image/svg+xml' }]
+  };
+  const mLink = document.getElementById('pwaManifest');
+  if (mLink) mLink.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifest));
+})();
+
+let _pwaPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _pwaPrompt = e;
+});
+
+function instalarApp() {
+  if (_pwaPrompt) {
+    _pwaPrompt.prompt();
+    _pwaPrompt.userChoice.then(() => { _pwaPrompt = null; });
+  } else {
+    document.getElementById('modalInstalarApp').classList.remove('hidden');
+  }
 }
 
 // ── Arranque ─────────────────────────────────
