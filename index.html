@@ -1604,6 +1604,35 @@
   </div>
 </div>
 
+<!-- Modal Alerta Datas de Entrega Pendentes -->
+<div id="modalAlertaEntrega" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+    <div class="px-5 py-4 flex items-center gap-3" style="background:#dc2626;">
+      <i class="ti ti-alert-triangle" style="font-size:20px;color:#fff" aria-hidden="true"></i>
+      <div>
+        <p class="text-white font-semibold text-sm mb-0">Datas de entrega pendentes</p>
+        <p class="text-xs" style="color:#fecaca;margin:0">Histórico com vida útil em alerta</p>
+      </div>
+    </div>
+    <div class="p-5 flex flex-col gap-3">
+      <div class="rounded-xl p-3 flex flex-col gap-2" style="background:#fff5f5;border:0.5px solid #fca5a5">
+        <div class="flex items-center justify-between">
+          <span id="alertaEntregaContador" class="text-xs font-semibold" style="color:#991b1b"></span>
+          <span class="text-xs font-bold rounded px-2 py-0.5" style="background:#fee2e2;color:#dc2626">⚠️ Vida Útil &gt;33%</span>
+        </div>
+        <div id="alertaEntregaLista" class="flex flex-col gap-1 text-xs" style="color:#dc2626"></div>
+      </div>
+      <button onclick="irParaHistoricoEntrega()" class="w-full text-white font-semibold text-sm rounded-xl py-3 transition flex items-center justify-center gap-2" style="background:#dc2626">
+        <i class="ti ti-history" style="font-size:16px" aria-hidden="true"></i>
+        Ir para o Histórico e preencher
+      </button>
+      <button onclick="document.getElementById('modalAlertaEntrega').classList.add('hidden')" class="w-full text-sm rounded-xl py-2.5 transition font-medium" style="background:#fee2e2;color:#991b1b;border:none">
+        Ignorar por agora
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Confirmar Lançamento -->
 <div id="modalConfirmarLancamento" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
@@ -2212,6 +2241,8 @@ function entrarNoApp(user) {
   renderTabela();
   verificarAlertaVencimento();
   verificarSaidasPorVencimento();
+  // Alerta de datas de entrega pendentes (somente admin)
+  if (user.role === 'admin') setTimeout(verificarAlertaDataEntrega, 800);
 }
 function abrirAdmin() {
   document.getElementById('mainApp').classList.add('hidden');
@@ -6139,6 +6170,49 @@ function renderHistorico() {
   }).join('');
 }
 
+function verificarAlertaDataEntrega() {
+  if (sessao?.role !== 'admin') return;
+  const pendentes = historico.filter(m => {
+    if (!m.shelfLife || !m.dataFabricacao || !m.data) return false;
+    const fab  = new Date(m.dataFabricacao + 'T00:00:00');
+    const reg  = new Date(m.data + 'T00:00:00');
+    const dias = Math.max(0, Math.round((reg - fab) / 86400000));
+    const pct  = Math.round((dias / m.shelfLife) * 100);
+    return pct > 33 && !m.dataEntrega;
+  });
+  if (!pendentes.length) return;
+
+  const total = pendentes.length;
+  document.getElementById('alertaEntregaContador').textContent =
+    `${total} produto${total !== 1 ? 's' : ''} sem data de entrega`;
+
+  const mostrar = pendentes.slice(0, 2);
+  const resto   = total - mostrar.length;
+  const lista   = document.getElementById('alertaEntregaLista');
+  lista.innerHTML = mostrar.map(m =>
+    `<div style="display:flex;align-items:center;gap:5px">
+       <i class="ti ti-circle-dot" style="font-size:10px;flex-shrink:0" aria-hidden="true"></i>
+       ${esc(m.produto)} · ${esc(m.loja)}
+     </div>`
+  ).join('') + (resto > 0
+    ? `<div style="color:#b45309;margin-top:2px">+ ${resto} produto${resto !== 1 ? 's' : ''} a mais...</div>`
+    : '');
+
+  document.getElementById('modalAlertaEntrega').classList.remove('hidden');
+}
+
+function irParaHistoricoEntrega() {
+  document.getElementById('modalAlertaEntrega').classList.add('hidden');
+  // Abrir painel admin na aba Histórico
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('adminPanel').classList.remove('hidden');
+  document.getElementById('adminUserInfo').textContent = 'Logado como: ' + sessao.nome;
+  mostrarTabAdmin('historico');
+  renderHistorico();
+  renderCatalogo(); renderFabricas(); renderLojas(); renderUsuarios(); renderRelatorio();
+  atualizarSelectFabricas(); atualizarDatalistLojas();
+}
+
 function salvarDataEntrega(movId, dataEntrega) {
   const idx = historico.findIndex(m => m.id === movId);
   if (idx < 0) return;
@@ -6837,15 +6911,35 @@ function toggleDarkMode() {
 
 // ── Carregamento inicial do Firebase ─────────
 async function carregarDados() {
+  // Detectar arquivo local (file://)
+  if (location.protocol === 'file:') {
+    document.getElementById('appLoader').innerHTML = `
+      <div style="background:#1e293b;border-radius:16px;padding:28px 32px;max-width:340px;text-align:center">
+        <div style="font-size:36px;margin-bottom:12px">⚠️</div>
+        <p style="color:#f1f5f9;font-size:15px;font-weight:600;margin:0 0 8px">Arquivo aberto localmente</p>
+        <p style="color:#94a3b8;font-size:13px;margin:0 0 16px">O Firebase só funciona via HTTPS. Acesse pelo GitHub Pages:</p>
+        <a href="https://compartilharne.github.io/controle-validade/" target="_blank"
+           style="display:inline-block;background:#2563eb;color:#fff;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;text-decoration:none">
+          Abrir no GitHub Pages →
+        </a>
+      </div>`;
+    return;
+  }
+  const _timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('TIMEOUT')), 12000)
+  );
   try {
-    const [usSnap, fabSnap, consSnap, lojaSnap, catSnap, prodSnap, histSnap] = await Promise.all([
-      FS_CFG_USUARIOS.get(),
-      FS_CFG_FABRICAS.get(),
-      FS_CFG_CONSOLIDADO.get(),
-      FS_LOJAS.get(),
-      FS_CATALOGO.get(),
-      FS_PRODUTOS.get(),
-      FS_HISTORICO.get(),
+    const [usSnap, fabSnap, consSnap, lojaSnap, catSnap, prodSnap, histSnap] = await Promise.race([
+      Promise.all([
+        FS_CFG_USUARIOS.get(),
+        FS_CFG_FABRICAS.get(),
+        FS_CFG_CONSOLIDADO.get(),
+        FS_LOJAS.get(),
+        FS_CATALOGO.get(),
+        FS_PRODUTOS.get(),
+        FS_HISTORICO.get(),
+      ]),
+      _timeout
     ]);
     usuarios    = usSnap.exists    ? (usSnap.data().lista   || []) : [];
     fabricas    = fabSnap.exists   ? (fabSnap.data().lista  || []) : [];
@@ -6856,7 +6950,23 @@ async function carregarDados() {
     historico   = histSnap.docs.map(d => d.data());
   } catch(e) {
     console.error('Erro ao carregar Firebase:', e);
-    showToast('❌ Erro de conexão com Firebase. Verifique o console.', '#991b1b');
+    const msg = e.message === 'TIMEOUT'
+      ? '⏱ Firebase não respondeu. Verifique as Regras do Firestore no console.firebase.google.com'
+      : `❌ Erro Firebase: ${e.message}`;
+    document.getElementById('appLoader').innerHTML = `
+      <div style="background:#1e293b;border-radius:16px;padding:24px 28px;max-width:360px;text-align:center">
+        <div style="font-size:32px;margin-bottom:10px">🔥</div>
+        <p style="color:#fca5a5;font-size:14px;font-weight:600;margin:0 0 8px">${msg}</p>
+        <p style="color:#94a3b8;font-size:12px;margin:0 0 14px">Certifique-se que as Regras do Firestore estão como <code style="background:#334155;padding:2px 6px;border-radius:4px;color:#fff">allow read, write: if true</code></p>
+        <a href="https://console.firebase.google.com/project/controle-validade-5274f/firestore/rules" target="_blank"
+           style="display:inline-block;background:#f97316;color:#fff;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:8px">
+          Abrir Regras do Firestore →
+        </a><br>
+        <button onclick="location.reload()" style="background:#334155;color:#e2e8f0;border:none;border-radius:8px;padding:8px 16px;font-size:12px;cursor:pointer;margin-top:6px">
+          🔄 Tentar novamente
+        </button>
+      </div>`;
+    return;
   }
   document.getElementById('appLoader').style.display = 'none';
 
