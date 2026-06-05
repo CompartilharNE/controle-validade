@@ -3286,7 +3286,8 @@ function _onDigitarLoja(input) {
   input.style.borderColor = ''; input.style.backgroundColor = '';
 
   const raw = input.value.replace(/\D/g,'').slice(0,14);
-  const soNumeros = input.value.trim().length > 0 && /^\d/.test(input.value.trim());
+  // Só ativa modo CNPJ com 14 dígitos completos
+  const soNumeros = /^\d+$/.test(input.value.replace(/[\.\-\/]/g,'').trim()) && raw.length === 14;
 
   if (soNumeros) {
     document.getElementById('f_loja_icon').className = 'ti ti-id-badge';
