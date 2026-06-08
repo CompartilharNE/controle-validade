@@ -6942,14 +6942,8 @@ function verificarAlertaDataEntrega() {
 
 function irParaHistoricoEntrega() {
   document.getElementById('modalAlertaEntrega').classList.add('hidden');
-  // Abrir painel admin na aba Histórico
-  document.getElementById('mainApp').classList.add('hidden');
-  document.getElementById('adminPanel').classList.remove('hidden');
-  document.getElementById('adminUserInfo').textContent = 'Logado como: ' + sessao.nome;
-  mostrarTabAdmin('historico');
+  setView('historico');
   renderHistorico();
-  renderCatalogo(); renderFabricas(); renderLojas(); renderUsuarios(); renderRelatorio();
-  atualizarSelectFabricas(); atualizarDatalistLojas();
 }
 
 function salvarDataEntrega(movId, dataEntrega) {
