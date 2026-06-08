@@ -6881,7 +6881,7 @@ function renderHistorico() {
       <td style="font-weight:700;color:${m.tipo==='entrada'?'#16a34a':m.tipo==='saida_vencimento'?'#d97706':'#dc2626'}">${m.tipo==='entrada'?'+':'-'}${m.qtde} ${esc(m.und)}</td>
       <td>${m.estoqueApos} ${esc(m.und)}</td>
       <td>${esc(m.produto)}</td>
-      <td style="${rowAlerta?'color:#dc2626;font-weight:600':''}">${fmtData(m.dataFabricacao)||'—'}</td>
+      <td style="${vu?.alerta?'color:#dc2626;font-weight:600':''}">${fmtData(m.dataFabricacao)||'—'}</td>
       <td style="${m.tipo==='saida_vencimento'?'color:#dc2626;font-weight:600':''}">${fmtData(m.validade)||'—'}</td>
       <td>${m.shelfLife?`<span style="background:#eff6ff;color:#1e40af;font-size:10px;font-weight:600;border-radius:4px;padding:1px 6px">${m.shelfLife} dias</span>`:'—'}</td>
       <td>${vuCell}</td>
