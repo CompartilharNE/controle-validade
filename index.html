@@ -1377,6 +1377,15 @@
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Produto</label><select id="hProduto" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data inicial</label><input id="hDataIni" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data final</label><input id="hDataFim" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium" style="color:#dc2626">Data de Entrega</label>
+            <select id="hEntregaAlerta" onchange="renderHistorico()" class="border rounded-lg px-3 py-2 text-sm" style="border-color:#fca5a5;background:#fff5f5;color:#991b1b;font-weight:500">
+              <option value="">Todas</option>
+              <option value="alerta">Entrega com alerta</option>
+              <option value="ok">Entrega dentro do prazo</option>
+              <option value="sem">Sem data de entrega</option>
+            </select>
+          </div>
         </div>
       </div>
       <!-- Tabela histórico -->
@@ -1385,6 +1394,9 @@
           <span class="text-sm font-semibold text-slate-700">Detalhamento das movimentações</span>
           <div class="flex items-center gap-3">
             <span id="hContador" class="text-xs text-slate-400">0 registros</span>
+            <span id="hEntregaBadge" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:3px 10px;font-size:11px;font-weight:500;color:#991b1b;align-items:center;gap:4px">
+              <i class="ti ti-alert-triangle" style="font-size:12px" aria-hidden="true"></i> Entregas com alerta
+            </span>
             <button onclick="exportarHistorico()" class="flex items-center gap-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold rounded-lg px-3 py-1.5 transition border border-green-200">
               <i class="ti ti-file-spreadsheet" style="font-size:14px" aria-hidden="true"></i> Exportar Excel
             </button>
@@ -6733,6 +6745,7 @@ function _filtrarHistorico(prefixo) {
   const ufsVend = vendSel?.ufs||[];
   // Para vendedor logado: pré-filtrar automaticamente pelas suas UFs
   const ufsVendSession = (isVendSession && sessao?.ufs?.length) ? sessao.ufs : [];
+  const fEntrega = p==='h' ? (document.getElementById('hEntregaAlerta')?.value || '') : '';
   return historico.filter(m=>{
     if (fFab  && m.fabrica!==fFab)  return false;
     if (fRede && m.rede!==fRede)     return false;
@@ -6741,10 +6754,19 @@ function _filtrarHistorico(prefixo) {
     if (fUF   && m.uf!==fUF)         return false;
     if (fLoja && m.loja!==fLoja)       return false;
     if (fProd && m.produto!==fProd)    return false;
-    // saida_vencimento é filtrada como saída normal nos selects
     const dataChk = (p==='m' && _movMode==='mensal') ? m.data.slice(0,7) : m.data;
     if (cmpI && dataChk < cmpI) return false;
     if (cmpF && dataChk > cmpF) return false;
+    // Filtro de entrega
+    if (fEntrega) {
+      const temEntrega = !!(m.dataEntrega && m.dataFabricacao && m.shelfLife);
+      if (fEntrega === 'sem') return !m.dataEntrega;
+      if (!temEntrega) return false;
+      const dias = Math.max(0, Math.round((new Date(m.dataEntrega+'T00:00:00') - new Date(m.dataFabricacao+'T00:00:00')) / 86400000));
+      const pct  = Math.round((dias / m.shelfLife) * 100);
+      if (fEntrega === 'alerta') return pct > 33;
+      if (fEntrega === 'ok')     return pct <= 33;
+    }
     return true;
   }).sort((a,b)=>a.data.localeCompare(b.data));
 }
@@ -6922,6 +6944,8 @@ function renderHistorico() {
   const semEl = document.getElementById('hSemDados');
   const cnt   = document.getElementById('hContador');
   if (cnt) cnt.textContent = dados.length+' registros';
+  const badge = document.getElementById('hEntregaBadge');
+  if (badge) badge.style.display = document.getElementById('hEntregaAlerta')?.value === 'alerta' ? 'inline-flex' : 'none';
   if (!dados.length) { tbody.innerHTML=''; semEl.classList.remove('hidden'); return; }
   semEl.classList.add('hidden');
   const _acaoBadge = (m) => {
@@ -6956,10 +6980,8 @@ function renderHistorico() {
       entregaAlerta = pct > 33;
     }
 
-    // Cor da linha: entrega tem prioridade quando preenchida
-    const rowCls = entregaAlerta === true  ? 'row-expired'
-                 : entregaAlerta === false ? 'row-ok'
-                 : m.tipo==='saida'||m.acao==='exclusao' ? 'row-expired'
+    // Cor da linha: apenas por tipo/ação (data de entrega colore só a célula)
+    const rowCls = m.tipo==='saida'||m.acao==='exclusao' ? 'row-expired'
                  : m.acao==='atualizacao_promotor' ? 'row-warning' : '';
 
     const vuCell = vu
