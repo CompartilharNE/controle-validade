@@ -1250,6 +1250,69 @@
         </div>
         <div id="movSemDados" class="hidden text-center py-8 text-slate-400 text-sm">Nenhuma movimentação registrada ainda. As movimentações serão registradas automaticamente ao adicionar ou editar produtos.</div>
       </div>
+
+      <!-- Divisor + Gráfico de Concorrência de Preços -->
+      <div style="border-top:2px dashed var(--color-border-tertiary);margin:20px 0 14px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;font-weight:500;color:var(--color-text-secondary);background:var(--color-background-secondary);padding:2px 12px;border-radius:20px;white-space:nowrap">Preços — Concorrência</span>
+        <div style="flex:1;height:1px;background:var(--color-border-tertiary)"></div>
+      </div>
+
+      <!-- Filtros Concorrência -->
+      <div id="cardFiltrosConc" class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+        <div class="flex flex-wrap items-center justify-between gap-3 cursor-pointer" onclick="toggleFiltrosConcCard()">
+          <div style="display:flex;align-items:center;gap:8px">
+            <i class="ti ti-list-search" style="font-size:17px;color:#1d4ed8" aria-hidden="true"></i>
+            <h2 class="text-base font-semibold text-blue-700">Filtros — Concorrência</h2>
+            <i id="concCardChevron" class="ti ti-chevron-down" style="font-size:15px;color:#64748b;transition:transform .2s" aria-hidden="true"></i>
+          </div>
+        </div>
+        <div id="filtrosConcBody" class="flex flex-wrap items-end gap-3 mt-3 pt-3" style="border-top:0.5px solid #bfdbfe;display:none">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs text-slate-500">Fábrica</label>
+            <select id="cFabrica" onchange="renderConcChart()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select>
+          </div>
+          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;padding-bottom:10px"></i>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs text-slate-500">Rede</label>
+            <select id="cRede" onchange="renderConcChart()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select>
+          </div>
+          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;padding-bottom:10px" id="cChevronVend"></i>
+          <div id="cVendedorWrap" class="flex flex-col gap-1">
+            <label class="text-xs text-slate-500">Vendedor</label>
+            <select id="cVendedor" onchange="renderConcChart()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select>
+          </div>
+          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;padding-bottom:10px"></i>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs text-slate-500">UF</label>
+            <select id="cUF" onchange="renderConcChart()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select>
+          </div>
+          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;padding-bottom:10px"></i>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs text-slate-500">Loja</label>
+            <select id="cLoja" onchange="renderConcChart()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select>
+          </div>
+          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;padding-bottom:10px"></i>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs text-slate-500">Produto</label>
+            <select id="cProduto" onchange="renderConcChart()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legenda Concorrência -->
+      <div id="concLegenda" style="display:flex;gap:12px;font-size:11px;color:#64748b;margin-bottom:8px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#185FA5"></span>Nosso Preço</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#ea580c"></span>Concorrente 1</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b"></span>Concorrente 2</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#d97706"></span>Concorrente 3</span>
+      </div>
+      <!-- Canvas concorrência -->
+      <div class="bg-white rounded-2xl shadow" style="padding:12px 14px;overflow-y:auto;overflow-x:auto;max-height:460px">
+        <div id="concChartWrap" style="position:relative;width:100%;min-height:220px">
+          <canvas id="concChart" role="img" aria-label="Gráfico de comparação de preços com concorrência">Preços — Concorrência.</canvas>
+        </div>
+        <div id="concSemDados" style="display:none" class="text-center py-8 text-slate-400 text-sm">Nenhum produto com dados de concorrência registrados nos filtros selecionados.</div>
+      </div>
     </div>
 
     <!-- Aba: Histórico de movimentações (só Admin) -->
@@ -5805,6 +5868,219 @@ function renderGraficos() {
   });
 }
 
+// ── Gráfico de Concorrência de Preços ────────
+let _concChart = null;
+
+function toggleFiltrosConcCard() {
+  const body = document.getElementById('filtrosConcBody');
+  const chev = document.getElementById('concCardChevron');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'flex';
+  chev.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function _popularFiltrosConc() {
+  const isVend = sessao?.role === 'vendedor';
+  const isAdmDir = sessao?.role === 'admin' || sessao?.role === 'diretor';
+
+  // Mostrar/ocultar filtro Vendedor (só Admin e Diretor)
+  const wrapVend = document.getElementById('cVendedorWrap');
+  const chevVend = document.getElementById('cChevronVend');
+  if (wrapVend) wrapVend.style.display = isAdmDir ? '' : 'none';
+  if (chevVend) chevVend.style.display  = isAdmDir ? '' : 'none';
+
+  // Base: apenas produtos com concorrência
+  const base = produtos.filter(p => p.concorrencia);
+
+  const fFab  = document.getElementById('cFabrica')?.value || '';
+  const fRede = document.getElementById('cRede')?.value    || '';
+  const fVend = isAdmDir ? (document.getElementById('cVendedor')?.value || '') : '';
+  const fUF   = document.getElementById('cUF')?.value      || '';
+  const fLoja = document.getElementById('cLoja')?.value    || '';
+
+  const vendSel = fVend ? usuarios.find(u => u.role === 'vendedor' && u.nome === fVend) : null;
+  const ufsVend = isVend ? (sessao?.ufs || []) : (vendSel?.ufs || []);
+
+  // Fábrica
+  const selFab = document.getElementById('cFabrica');
+  if (selFab) {
+    const cur = selFab.value;
+    const opts = [...new Set(base.map(p => p.fabrica).filter(Boolean))].sort();
+    selFab.innerHTML = '<option value="">Todas</option>' + opts.map(v => `<option ${v===cur?'selected':''}>${v}</option>`).join('');
+  }
+
+  // Rede
+  const selRede = document.getElementById('cRede');
+  if (selRede) {
+    const cur = selRede.value;
+    const b2 = fFab ? base.filter(p => p.fabrica === fFab) : base;
+    const lojasBase = new Set(b2.map(p => normTxt(p.loja)));
+    const redes = [...new Set(lojas.filter(l => lojasBase.has(normTxt(l.nome))).map(l => l.rede).filter(Boolean))].sort();
+    selRede.innerHTML = '<option value="">Todas</option>' + redes.map(v => `<option ${v===cur?'selected':''}>${v}</option>`).join('');
+  }
+
+  // Vendedor (só admin/diretor)
+  if (isAdmDir) {
+    const selVend = document.getElementById('cVendedor');
+    if (selVend) {
+      const cur = selVend.value;
+      const vends = usuarios.filter(u => u.role === 'vendedor').sort((a,b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      selVend.innerHTML = '<option value="">Todos</option>' + vends.map(v => {
+        const ufsStr = (v.ufs||[]).join('·');
+        return `<option value="${v.nome}" ${v.nome===cur?'selected':''}>${v.nome}${ufsStr?' ('+ufsStr+')':''}</option>`;
+      }).join('');
+    }
+  }
+
+  // Base filtrada para UF/Loja/Produto
+  let bf = [...base];
+  if (fFab)  bf = bf.filter(p => p.fabrica === fFab);
+  if (fRede) bf = bf.filter(p => { const l = lojas.find(l => normTxt(l.nome) === normTxt(p.loja)); return l?.rede === fRede; });
+  if (ufsVend.length) bf = bf.filter(p => ufsVend.includes(p.uf));
+  if (fUF)   bf = bf.filter(p => p.uf === fUF);
+  if (fLoja) bf = bf.filter(p => normTxt(p.loja) === normTxt(fLoja));
+
+  // UF
+  const selUF = document.getElementById('cUF');
+  if (selUF) {
+    const cur = selUF.value;
+    const bUF = [...base];
+    let bUFf = bUF;
+    if (fFab)  bUFf = bUFf.filter(p => p.fabrica === fFab);
+    if (fRede) bUFf = bUFf.filter(p => { const l = lojas.find(l => normTxt(l.nome) === normTxt(p.loja)); return l?.rede === fRede; });
+    if (ufsVend.length) bUFf = bUFf.filter(p => ufsVend.includes(p.uf));
+    const opts = [...new Set(bUFf.map(p => p.uf).filter(Boolean))].sort();
+    selUF.innerHTML = '<option value="">Todas</option>' + opts.map(v => `<option ${v===cur?'selected':''}>${v}</option>`).join('');
+  }
+
+  // Loja
+  const selLoja = document.getElementById('cLoja');
+  if (selLoja) {
+    const cur = selLoja.value;
+    let bL = [...base];
+    if (fFab)  bL = bL.filter(p => p.fabrica === fFab);
+    if (fRede) bL = bL.filter(p => { const l = lojas.find(l => normTxt(l.nome) === normTxt(p.loja)); return l?.rede === fRede; });
+    if (ufsVend.length) bL = bL.filter(p => ufsVend.includes(p.uf));
+    if (fUF)   bL = bL.filter(p => p.uf === fUF);
+    const opts = [...new Set(bL.map(p => p.loja).filter(Boolean))].sort();
+    selLoja.innerHTML = '<option value="">Todas</option>' + opts.map(v => `<option ${v===cur?'selected':''}>${v}</option>`).join('');
+  }
+
+  // Produto
+  const selProd = document.getElementById('cProduto');
+  if (selProd) {
+    const cur = selProd.value;
+    const opts = [...new Set(bf.map(p => p.produto).filter(Boolean))].sort();
+    selProd.innerHTML = '<option value="">Todos</option>' + opts.map(v => `<option ${v===cur?'selected':''}>${v}</option>`).join('');
+  }
+}
+
+function renderConcChart() {
+  _popularFiltrosConc();
+
+  const isVend  = sessao?.role === 'vendedor';
+  const isAdmDir = sessao?.role === 'admin' || sessao?.role === 'diretor';
+
+  const fFab  = document.getElementById('cFabrica')?.value  || '';
+  const fRede = document.getElementById('cRede')?.value     || '';
+  const fVend = isAdmDir ? (document.getElementById('cVendedor')?.value || '') : '';
+  const fUF   = document.getElementById('cUF')?.value       || '';
+  const fLoja = document.getElementById('cLoja')?.value     || '';
+  const fProd = document.getElementById('cProduto')?.value  || '';
+
+  const vendSel = fVend ? usuarios.find(u => u.role === 'vendedor' && u.nome === fVend) : null;
+  const ufsVend = isVend ? (sessao?.ufs || []) : (vendSel?.ufs || []);
+
+  // Filtrar produtos com concorrência
+  let base = produtos.filter(p => p.concorrencia);
+  if (isVend && sessao?.ufs?.length) base = base.filter(p => sessao.ufs.includes(p.uf));
+  if (fFab)  base = base.filter(p => p.fabrica === fFab);
+  if (fRede) base = base.filter(p => { const l = lojas.find(l => normTxt(l.nome) === normTxt(p.loja)); return l?.rede === fRede; });
+  if (ufsVend.length && !isVend) base = base.filter(p => ufsVend.includes(p.uf));
+  if (fUF)   base = base.filter(p => p.uf === fUF);
+  if (fLoja) base = base.filter(p => normTxt(p.loja) === normTxt(fLoja));
+  if (fProd) base = base.filter(p => p.produto === fProd);
+
+  const semDados = document.getElementById('concSemDados');
+  const wrap     = document.getElementById('concChartWrap');
+  if (!base.length) {
+    if (semDados) semDados.style.display = '';
+    if (wrap)     wrap.style.display     = 'none';
+    if (_concChart) { _concChart.destroy(); _concChart = null; }
+    return;
+  }
+  if (semDados) semDados.style.display = 'none';
+  if (wrap)     wrap.style.display     = '';
+
+  // Agrupar por produto — média de preços
+  const mapa = new Map(); // key=produto → {nosso:[], c1:{nome,precos:[]}, c2:{...}, c3:{...}}
+  base.forEach(p => {
+    const key = p.produto || '(sem nome)';
+    if (!mapa.has(key)) {
+      mapa.set(key, { nosso: [], c1: { nome: '', precos: [] }, c2: { nome: '', precos: [] }, c3: { nome: '', precos: [] } });
+    }
+    const e = mapa.get(key);
+    if (p.preco) e.nosso.push(Number(p.preco));
+    const c = p.concorrencia;
+    if (c?.c1?.preco) { e.c1.precos.push(Number(c.c1.preco)); if (!e.c1.nome && c.c1.nome) e.c1.nome = c.c1.nome; }
+    if (c?.c2?.preco) { e.c2.precos.push(Number(c.c2.preco)); if (!e.c2.nome && c.c2.nome) e.c2.nome = c.c2.nome; }
+    if (c?.c3?.preco) { e.c3.precos.push(Number(c.c3.preco)); if (!e.c3.nome && c.c3.nome) e.c3.nome = c.c3.nome; }
+  });
+
+  const avg = arr => arr.length ? arr.reduce((s,v)=>s+v,0)/arr.length : null;
+  const labels  = [...mapa.keys()].sort();
+  const dadosNosso = labels.map(k => avg(mapa.get(k).nosso));
+  const dadosC1    = labels.map(k => avg(mapa.get(k).c1.precos));
+  const dadosC2    = labels.map(k => avg(mapa.get(k).c2.precos));
+  const dadosC3    = labels.map(k => avg(mapa.get(k).c3.precos));
+
+  // Nome dos concorrentes (pega o primeiro não-vazio)
+  const nomeC1 = [...mapa.values()].map(e=>e.c1.nome).find(n=>n) || 'Concorrente 1';
+  const nomeC2 = [...mapa.values()].map(e=>e.c2.nome).find(n=>n) || 'Concorrente 2';
+  const nomeC3 = [...mapa.values()].map(e=>e.c3.nome).find(n=>n) || 'Concorrente 3';
+
+  const temC1 = dadosC1.some(v=>v!==null);
+  const temC2 = dadosC2.some(v=>v!==null);
+  const temC3 = dadosC3.some(v=>v!==null);
+
+  const datasets = [
+    { label: 'Nosso Preço', data: dadosNosso, backgroundColor: 'rgba(24,95,165,0.82)', borderRadius: 4, borderSkipped: false },
+  ];
+  if (temC1) datasets.push({ label: nomeC1, data: dadosC1, backgroundColor: 'rgba(234,88,12,0.82)',  borderRadius: 4, borderSkipped: false });
+  if (temC2) datasets.push({ label: nomeC2, data: dadosC2, backgroundColor: 'rgba(245,158,11,0.82)', borderRadius: 4, borderSkipped: false });
+  if (temC3) datasets.push({ label: nomeC3, data: dadosC3, backgroundColor: 'rgba(217,119,6,0.82)',  borderRadius: 4, borderSkipped: false });
+
+  const h = Math.max(220, labels.length * 56);
+  if (wrap) wrap.style.minHeight = h + 'px';
+
+  if (_concChart) _concChart.destroy();
+  _concChart = new Chart(document.getElementById('concChart'), {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'top', labels: { font: { size: 11 }, boxWidth: 12, padding: 14 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              if (ctx.raw === null) return null;
+              return `${ctx.dataset.label}: R$ ${ctx.raw.toFixed(2).replace('.',',')}`;
+            },
+            filter: ctx => ctx.raw !== null && ctx.raw > 0
+          }
+        }
+      },
+      scales: {
+        y: { ticks: { font: { size: 11 }, crossAlign: 'far' }, grid: { display: false } },
+        x: { beginAtZero: true, position: 'top', ticks: { callback: v => 'R$ '+v.toFixed(2).replace('.',',') } }
+      }
+    }
+  });
+}
+
 // ── Accordeão — Filtros Lojas sem lançamento ─
 function toggleFiltrosLojasCard() {
   const body    = document.getElementById('filtrosLojas');
@@ -5943,9 +6219,9 @@ function setView(v) {
       if (typeof Chart === 'undefined') {
         const s = document.createElement('script');
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
-        s.onload = () => { setGUnd(''); renderMovChart(); };
+        s.onload = () => { setGUnd(''); renderMovChart(); renderConcChart(); };
         document.head.appendChild(s);
-      } else { setGUnd(''); renderMovChart(); }
+      } else { setGUnd(''); renderMovChart(); renderConcChart(); }
       return;
     }
     if (v === 'historico') {
