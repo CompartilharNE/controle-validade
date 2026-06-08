@@ -1333,7 +1333,7 @@
             <div id="concMProd" style="font-size:22px;font-weight:500;color:#0e2841">—</div>
           </div>
           <div style="background:#eff6ff;border:2px solid transparent;border-radius:10px;padding:10px;text-align:center">
-            <div style="font-size:11px;color:#1d4ed8">Nosso menor</div>
+            <div style="font-size:11px;color:#1d4ed8">Nosso Preço</div>
             <div id="concMNosso" style="font-size:18px;font-weight:500;color:#185FA5">—</div>
           </div>
           <div style="background:#fff7ed;border:2px solid transparent;border-radius:10px;padding:10px;text-align:center">
@@ -1341,6 +1341,12 @@
             <div id="concMConc" style="font-size:18px;font-weight:500;color:#EA580C">—</div>
           </div>
         </div>
+      </div>
+      <!-- Estado vazio: nenhum produto selecionado -->
+      <div id="concSelecioneProduto" style="display:none;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:16px;padding:48px 24px;text-align:center;margin-bottom:8px">
+        <i class="ti ti-chart-bar" style="font-size:40px;color:#94a3b8;opacity:.5" aria-hidden="true"></i>
+        <p style="font-size:14px;font-weight:500;color:#64748b;margin:12px 0 4px">Selecione um produto</p>
+        <p style="font-size:12px;color:#94a3b8;margin:0">Abra os filtros e escolha um produto para ver a comparação de preços com a concorrência.</p>
       </div>
       <!-- Cards concorrência -->
       <div class="bg-white rounded-2xl shadow" style="padding:12px 14px;overflow-y:auto;max-height:520px">
@@ -6142,8 +6148,22 @@ function renderConcChart() {
   if (fLoja) base = base.filter(p => normTxt(p.loja) === normTxt(fLoja));
   if (fProd) base = base.filter(p => p.produto === fProd);
 
-  const semDados = document.getElementById('concSemDados');
-  const wrap     = document.getElementById('concChartWrap');
+  const semDados     = document.getElementById('concSemDados');
+  const semProduto   = document.getElementById('concSelecioneProduto');
+  const wrap         = document.getElementById('concChartWrap');
+  const cHeader      = document.getElementById('concChartHeader');
+
+  // Exigir produto selecionado
+  if (!fProd) {
+    if (semProduto) semProduto.style.display = '';
+    if (semDados)   semDados.style.display   = 'none';
+    if (wrap)       wrap.innerHTML           = '';
+    if (cHeader)    cHeader.style.display    = 'none';
+    if (_concChart) { _concChart.destroy(); _concChart = null; }
+    return;
+  }
+  if (semProduto) semProduto.style.display = 'none';
+
   if (!base.length) {
     if (semDados) semDados.style.display = '';
     if (wrap)     wrap.style.display     = 'none';
