@@ -1668,18 +1668,18 @@
   <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl flex flex-col overflow-hidden" style="max-height:95vh">
     <div id="modalStatusHead" class="flex items-center justify-between px-5 py-4 flex-shrink-0">
       <h3 id="modalStatusTitulo" class="font-semibold text-base"></h3>
-      <button onclick="document.getElementById('modalStatus').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
+      <button onclick="fecharModalStatus()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
     </div>
     <p id="modalStatusSub" class="text-xs text-slate-500 px-5 pb-2 flex-shrink-0"></p>
     <div style="flex:1;min-height:0;position:relative;overflow:hidden">
-      <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-2" style="overflow-y:scroll;scrollbar-width:thin;scrollbar-color:#cbd5e1 #f1f5f9;height:100%"></div>
+      <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-2" style="overflow-y:scroll;scrollbar-width:thin;scrollbar-color:#cbd5e1 #f1f5f9;height:100%;overscroll-behavior:contain"></div>
       <div id="modalStatusShadow" style="position:absolute;bottom:0;left:0;right:0;height:32px;background:linear-gradient(transparent,rgba(255,255,255,.97));pointer-events:none"></div>
     </div>
     <div style="text-align:center;font-size:10px;color:#94a3b8;padding:4px 0;border-top:0.5px solid #e2e8f0;flex-shrink:0" id="modalStatusScrollHint">
       ↕ role para ver mais
     </div>
     <div class="px-4 pb-4 pt-2 flex-shrink-0">
-      <button id="modalStatusBtn" onclick="document.getElementById('modalStatus').classList.add('hidden')"
+      <button id="modalStatusBtn" onclick="fecharModalStatus()"
         class="w-full text-white font-semibold rounded-xl py-2.5 text-sm transition">OK, entendido</button>
     </div>
   </div>
@@ -4313,6 +4313,11 @@ function abrirModalDuplicado(p) {
   document.getElementById('modalDuplicado').classList.remove('hidden');
 }
 
+function fecharModalStatus() {
+  document.getElementById('modalStatus').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
 function abrirModalStatus(status) {
   const cfg = {
     expired: {
@@ -4408,6 +4413,7 @@ function abrirModalStatus(status) {
     ul.innerHTML = html;
   }
   document.getElementById('modalStatus').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
   // Sombra e hint: mostrar/ocultar conforme scroll
   setTimeout(() => {
     const lista  = document.getElementById('modalStatusLista');
