@@ -1731,8 +1731,13 @@
       <h3 id="modalStatusTitulo" class="font-semibold text-base"></h3>
       <button onclick="fecharModalStatus()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
     </div>
-    <p id="modalStatusSub" class="text-xs text-slate-500 px-5 pb-3" style="flex-shrink:0"></p>
-    <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-3" style="overflow-y:auto;flex:1;min-height:0;max-height:calc(92vh - 130px);scrollbar-width:thin;scrollbar-color:#94a3b8 #e2e8f0"></div>
+    <div style="flex-shrink:0;padding:10px 20px 8px;display:flex;flex-direction:column;gap:8px">
+      <p id="modalStatusSub" class="text-xs text-slate-500" style="margin:0"></p>
+      <select id="modalStatusFabrica" onchange="_msFiltrFab()" style="border:0.5px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:12px;background:#f8fafc;color:#334155;width:100%">
+        <option value="">Todas as fábricas</option>
+      </select>
+    </div>
+    <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-3" style="overflow-y:auto;flex:1;min-height:0;max-height:calc(92vh - 160px);scrollbar-width:thin;scrollbar-color:#94a3b8 #e2e8f0"></div>
     <div class="px-4 pb-4 pt-3" style="flex-shrink:0;border-top:0.5px solid #e2e8f0">
       <button id="modalStatusBtn" onclick="fecharModalStatus()"
         class="w-full text-white font-semibold rounded-xl py-2.5 text-sm transition">OK, entendido</button>
@@ -4556,77 +4561,54 @@ function abrirModalStatus(status) {
   head.style.borderBottom = `1px solid ${c.headBorder}`;
   document.getElementById('modalStatusTitulo').textContent  = c.titulo;
   document.getElementById('modalStatusTitulo').style.color  = c.headColor;
-  document.getElementById('modalStatusSub').textContent     = c.subFn(lista.length);
   document.getElementById('modalStatusBtn').style.background = c.btnBg;
 
-  // agrupar: Fábrica → Rede → itens individuais
-  const groups = {};
-  lista.forEach(p => {
-    const fab  = p.fabrica || '—';
-    const lj   = lojas.find(l => normTxt(l.nome) === normTxt(p.loja));
-    const rede = (lj && lj.rede) ? lj.rede : (p.loja || '—');
-    if (!groups[fab]) groups[fab] = {};
-    if (!groups[fab][rede]) groups[fab][rede] = [];
-    groups[fab][rede].push(p);
-  });
+  // popular select de fábricas
+  const fabSel = document.getElementById('modalStatusFabrica');
+  const fabs = [...new Set(lista.map(p => p.fabrica).filter(Boolean))].sort();
+  fabSel.innerHTML = '<option value="">Todas as fábricas</option>' +
+    fabs.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
+  fabSel.value = '';
 
-  // renderizar — cascata Fábrica → Rede → cards
-  const ul = document.getElementById('modalStatusLista');
-  if (!lista.length) {
-    ul.innerHTML = '<p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">Nenhum produto neste status.</p>';
-  } else {
-    let html = '';
-    let fi = 0;
-    Object.entries(groups).forEach(([fab, redes]) => {
-      const totalFab = Object.values(redes).reduce((s, arr) => s + arr.length, 0);
-      const fabBodyId = `msf-body-${fi}`;
-      const fabChevId = `msf-chev-${fi}`;
-      const fabOpen   = fi === 0;
-      html += `<div style="border:0.5px solid var(--color-border-tertiary);border-radius:10px;overflow:hidden">
-        <div onclick="_msToggle('${fabBodyId}','${fabChevId}')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#1e3a5f;cursor:pointer;user-select:none">
-          <i class="ti ti-building-factory-2" style="font-size:15px;color:#93c5fd" aria-hidden="true"></i>
-          <span style="font-size:13px;font-weight:500;color:#fff;flex:1">${esc(fab)}</span>
-          <span style="background:rgba(255,255,255,0.15);color:#e2e8f0;font-size:10px;border-radius:99px;padding:2px 8px;font-weight:500">${totalFab} ite${totalFab>1?'ns':'m'}</span>
-          <i id="${fabChevId}" class="ti ti-chevron-down" style="font-size:13px;color:#93c5fd;transition:transform .2s;${fabOpen?'':'transform:rotate(-90deg)'}" aria-hidden="true"></i>
-        </div>
-        <div id="${fabBodyId}" style="display:${fabOpen?'flex':'none'};flex-direction:column">`;
-      let ri = 0;
-      Object.entries(redes).forEach(([rede, itens]) => {
-        const redeBodyId = `msr-body-${fi}-${ri}`;
-        const redeChevId = `msr-chev-${fi}-${ri}`;
-        const redeOpen   = ri === 0 && fabOpen;
-        const cards = itens.map(p => {
-          const d      = diasRestantes(p.validade);
-          const qtdTxt = `${p.quantidade||0}${p.und ? ' ' + p.und.charAt(0).toUpperCase() + p.und.slice(1).toLowerCase() : ''}`;
-          return `<div style="background:${c.diasBg};border-radius:8px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;border:0.5px solid ${c.headBorder}">
-            <div style="flex:1;min-width:0;margin-right:10px">
-              <p style="font-size:12px;font-weight:500;color:#1e293b;margin:0 0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.produto||'—')}</p>
-              <p style="font-size:11px;color:#64748b;margin:0">${esc(p.loja||'—')} · ${esc(p.uf||'—')} · ${qtdTxt}</p>
-            </div>
-            <div style="text-align:right;flex-shrink:0">
-              <p style="font-size:12px;font-weight:500;color:${c.diasColor};margin:0 0 1px">${c.diasFmt(d)}</p>
-              <p style="font-size:10px;color:#94a3b8;margin:0">${fmtData(p.validade)}</p>
-            </div>
-          </div>`;
-        }).join('');
-        html += `<div style="border-top:0.5px solid var(--color-border-tertiary)">
-          <div onclick="_msToggle('${redeBodyId}','${redeChevId}')" style="display:flex;align-items:center;gap:7px;padding:8px 12px;background:var(--color-background-secondary);cursor:pointer;user-select:none">
-            <i class="ti ti-store" style="font-size:13px;color:#64748b" aria-hidden="true"></i>
-            <span style="font-size:12px;font-weight:500;color:var(--color-text-primary);flex:1">${esc(rede)}</span>
-            <span style="background:var(--color-background-primary);color:var(--color-text-secondary);font-size:10px;border-radius:99px;padding:1px 7px;border:0.5px solid var(--color-border-tertiary)">${itens.length}</span>
-            <i id="${redeChevId}" class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;transition:transform .2s;${redeOpen?'':'transform:rotate(-90deg)'}" aria-hidden="true"></i>
-          </div>
-          <div id="${redeBodyId}" style="display:${redeOpen?'flex':'none'};flex-direction:column;gap:6px;padding:8px 10px">${cards}</div>
-        </div>`;
-        ri++;
-      });
-      html += `</div></div>`;
-      fi++;
-    });
-    ul.innerHTML = html;
-  }
+  // função de renderização dos cards filtrados
+  window._msLista  = lista;
+  window._msCfg    = c;
+  window._msSubFn  = c.subFn;
+  _msFiltrFab();
+
   document.getElementById('modalStatus').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+}
+
+function _msFiltrFab() {
+  const lista = window._msLista || [];
+  const c     = window._msCfg  || {};
+  const subFn = window._msSubFn || (n => `${n} produto(s)`);
+  const fab   = document.getElementById('modalStatusFabrica')?.value || '';
+  const filtrado = fab ? lista.filter(p => (p.fabrica||'') === fab) : lista;
+
+  document.getElementById('modalStatusSub').textContent = subFn(filtrado.length);
+
+  const ul = document.getElementById('modalStatusLista');
+  if (!filtrado.length) {
+    ul.innerHTML = '<p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">Nenhum produto neste status.</p>';
+    return;
+  }
+  ul.innerHTML = filtrado.map(p => {
+    const d      = diasRestantes(p.validade);
+    const qtdTxt = `${p.quantidade||0}${p.und ? ' ' + p.und.charAt(0).toUpperCase() + p.und.slice(1).toLowerCase() : ''}`;
+    return `<div style="background:${c.diasBg};border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;border:0.5px solid ${c.headBorder}">
+      <div style="flex:1;min-width:0;margin-right:10px">
+        <p style="font-size:13px;font-weight:500;color:#1e293b;margin:0 0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.produto||'—')}</p>
+        <p style="font-size:11px;color:#64748b;margin:0 0 1px">${esc(p.loja||'—')} · ${esc(p.uf||'—')}</p>
+        <p style="font-size:11px;color:#64748b;margin:0">${esc(p.fabrica||'—')} · ${qtdTxt}</p>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <p style="font-size:12px;font-weight:500;color:${c.diasColor};margin:0 0 2px">${c.diasFmt(d)}</p>
+        <p style="font-size:10px;color:#94a3b8;margin:0">${fmtData(p.validade)}</p>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function fecharModalDuplicado() {
