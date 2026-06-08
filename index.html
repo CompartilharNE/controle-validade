@@ -1349,7 +1349,10 @@
           </div>
           <div style="background:#fff7ed;border:2px solid transparent;border-radius:10px;padding:10px;text-align:center">
             <div style="font-size:11px;color:#9a3412">Concorrência</div>
-            <div id="concMConc" style="font-size:18px;font-weight:500;color:#EA580C">—</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:5px">
+              <div id="concMConc" style="font-size:18px;font-weight:500;color:#EA580C">—</div>
+              <span id="concMDiff" style="display:none;font-size:10px;font-weight:500;border-radius:4px;padding:2px 5px"></span>
+            </div>
             <div style="font-size:9px;color:#94a3b8;margin-top:2px">média de preços</div>
           </div>
         </div>
@@ -6366,9 +6369,24 @@ function renderConcChart() {
   const concMProd  = document.getElementById('concMProd');
   const concMNosso = document.getElementById('concMNosso');
   const concMConc  = document.getElementById('concMConc');
+  const avgNosso = todosNosso.length ? Math.min(...todosNosso) : null;
+  const avgConc  = todosConc.length  ? todosConc.reduce((s,v)=>s+v,0)/todosConc.length : null;
   if (concMProd)  concMProd.textContent  = labels.length;
-  if (concMNosso) concMNosso.textContent = fmtR(todosNosso.length ? Math.min(...todosNosso) : null);
-  if (concMConc)  concMConc.textContent  = fmtR(todosConc.length  ? todosConc.reduce((s,v)=>s+v,0)/todosConc.length : null);
+  if (concMNosso) concMNosso.textContent = fmtR(avgNosso);
+  if (concMConc)  concMConc.textContent  = fmtR(avgConc);
+  const diffEl = document.getElementById('concMDiff');
+  if (diffEl) {
+    if (avgNosso !== null && avgConc !== null && avgConc > 0) {
+      const pct  = ((avgConc - avgNosso) / avgConc) * 100;
+      const pos  = pct >= 0;
+      diffEl.textContent        = (pos ? '+' : '') + pct.toFixed(1) + '%';
+      diffEl.style.display      = 'inline';
+      diffEl.style.background   = pos ? '#dcfce7' : '#fee2e2';
+      diffEl.style.color        = pos ? '#15803d' : '#dc2626';
+    } else {
+      diffEl.style.display = 'none';
+    }
+  }
 
   // Renderizar cards HTML
   wrap.innerHTML = labels.map(produto => {
