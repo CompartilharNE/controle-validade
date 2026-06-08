@@ -1841,16 +1841,33 @@
         </div>
         <i class="ti ti-chevron-right" style="font-size:14px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
       </button>
-      <button onclick="document.getElementById('modalExportTipo').classList.add('hidden');exportarCodigosRedes()" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:0.5px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer;text-align:left;width:100%">
-        <div style="width:36px;height:36px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <i class="ti ti-building-store" style="font-size:18px;color:#16a34a" aria-hidden="true"></i>
+      <div style="border:0.5px solid #e2e8f0;border-radius:10px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid #e2e8f0">
+          <div style="width:36px;height:36px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-building-store" style="font-size:18px;color:#16a34a" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#1e293b">Códigos de rede</div>
+            <div style="font-size:11px;color:#64748b">Escolha o tipo de exportação</div>
+          </div>
         </div>
-        <div>
-          <div style="font-size:13px;font-weight:500;color:#1e293b">Códigos de rede</div>
-          <div style="font-size:11px;color:#64748b">Exporta todos os códigos por rede</div>
-        </div>
-        <i class="ti ti-chevron-right" style="font-size:14px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
-      </button>
+        <button onclick="document.getElementById('modalExportTipo').classList.add('hidden');exportarCodigosRedes(true)" style="display:flex;align-items:center;gap:10px;padding:10px 14px 10px 20px;background:#fff;border:none;border-bottom:0.5px solid #e2e8f0;cursor:pointer;width:100%;text-align:left">
+          <i class="ti ti-layout-list" style="font-size:15px;color:#16a34a" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:#1e293b">Todos os itens</div>
+            <div style="font-size:11px;color:#64748b">Inclui produtos sem código de rede</div>
+          </div>
+          <i class="ti ti-chevron-right" style="font-size:13px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
+        </button>
+        <button onclick="document.getElementById('modalExportTipo').classList.add('hidden');exportarCodigosRedes(false)" style="display:flex;align-items:center;gap:10px;padding:10px 14px 10px 20px;background:#fff;border:none;cursor:pointer;width:100%;text-align:left">
+          <i class="ti ti-filter" style="font-size:15px;color:#16a34a" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:#1e293b">Somente com códigos</div>
+            <div style="font-size:11px;color:#64748b">Apenas produtos com rede cadastrada</div>
+          </div>
+          <i class="ti ti-chevron-right" style="font-size:13px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -3029,7 +3046,7 @@ function abrirModalExportCatalogo() {
   document.getElementById('modalExportTipo').classList.remove('hidden');
 }
 
-async function exportarCodigosRedes() {
+async function exportarCodigosRedes(todos) {
   if (typeof ExcelJS === 'undefined') { showToast('⚠️ Aguarde o carregamento da biblioteca...','#92400e'); return; }
   showToast('⏳ Gerando Excel...','#1e3a8a');
   const wb = new ExcelJS.Workbook();
@@ -3041,15 +3058,27 @@ async function exportarCodigosRedes() {
   let row = 0;
   catalogo.forEach(p => {
     const redes = Object.entries(p.codigosRedes || {});
-    if (!redes.length) return;
-    redes.forEach(([rede, codRede]) => {
-      const r = ws.addRow([++row, p.codigo||'', p.nome||'', p.fabrica||'', rede, codRede]);
-      _estiloLinha(r, row-1);
-    });
+    if (todos) {
+      if (redes.length) {
+        redes.forEach(([rede, codRede]) => {
+          const r = ws.addRow([++row, p.codigo||'', p.nome||'', p.fabrica||'', rede, codRede]);
+          _estiloLinha(r, row-1);
+        });
+      } else {
+        const r = ws.addRow([++row, p.codigo||'', p.nome||'', p.fabrica||'', '', '']);
+        _estiloLinha(r, row-1);
+      }
+    } else {
+      if (!redes.length) return;
+      redes.forEach(([rede, codRede]) => {
+        const r = ws.addRow([++row, p.codigo||'', p.nome||'', p.fabrica||'', rede, codRede]);
+        _estiloLinha(r, row-1);
+      });
+    }
   });
-  if (!row) { showToast('Nenhum código de rede cadastrado.','#92400e'); return; }
+  if (!row) { showToast('Nenhum item para exportar.','#92400e'); return; }
   [6,18,36,22,24,18].forEach((w,i) => { ws.getColumn(i+1).width = w; });
-  await _downloadExcel(wb,'codigos_de_rede.xlsx');
+  await _downloadExcel(wb, todos ? 'codigos_de_rede_todos.xlsx' : 'codigos_de_rede.xlsx');
 }
 
 async function processarImportCodigosRedes(input) {
