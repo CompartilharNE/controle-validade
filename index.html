@@ -3570,6 +3570,12 @@ function renderCatalogo() {
   const lista=catalogo.filter(p=>{
     if (fabSel && (p.fabrica||'') !== fabSel) return false;
     return !busca||p.ean.includes(busca)||p.nome.toLowerCase().includes(busca)||(p.fabrica||'').toLowerCase().includes(busca)||(p.codigo||'').toLowerCase().includes(busca);
+  }).sort((a,b)=>{
+    const fa=(a.fabrica||'').toLowerCase(), fb=(b.fabrica||'').toLowerCase();
+    if (fa!==fb) return fa<fb?-1:1;
+    const ca=(a.codigo||'').toLowerCase(), cb=(b.codigo||'').toLowerCase();
+    if (ca!==cb) return ca<cb?-1:1;
+    return (a.nome||'').toLowerCase()<(b.nome||'').toLowerCase()?-1:1;
   });
   const tbody=document.getElementById('corpoCatalogo');
   const semEl=document.getElementById('semCatalogo');
