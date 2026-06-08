@@ -6185,7 +6185,6 @@ function renderConcChart() {
     fLoja ? { label: 'Loja',     val: fLoja } : null,
     fProd ? { label: 'Produto',  val: fProd } : null,
   ].filter(Boolean);
-  const cHeader = document.getElementById('concChartHeader');
   const cFL = document.getElementById('concFiltroLabel');
   const cFV = document.getElementById('concFiltroValor');
   if (cHeader) cHeader.style.display = 'flex';
