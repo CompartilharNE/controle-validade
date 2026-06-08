@@ -1842,31 +1842,34 @@
         <i class="ti ti-chevron-right" style="font-size:14px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
       </button>
       <div style="border:0.5px solid #e2e8f0;border-radius:10px;overflow:hidden">
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid #e2e8f0">
+        <button onclick="const s=document.getElementById('exportRedeSubOpts');const ch=document.getElementById('exportRedeChev');const open=s.style.display!=='none';s.style.display=open?'none':'block';ch.style.transform=open?'rotate(0deg)':'rotate(90deg)';" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:none;cursor:pointer;width:100%;text-align:left">
           <div style="width:36px;height:36px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
             <i class="ti ti-building-store" style="font-size:18px;color:#16a34a" aria-hidden="true"></i>
           </div>
-          <div>
+          <div style="flex:1">
             <div style="font-size:13px;font-weight:500;color:#1e293b">Códigos de rede</div>
             <div style="font-size:11px;color:#64748b">Escolha o tipo de exportação</div>
           </div>
+          <i id="exportRedeChev" class="ti ti-chevron-right" style="font-size:14px;color:#94a3b8;transition:transform .2s" aria-hidden="true"></i>
+        </button>
+        <div id="exportRedeSubOpts" style="display:none;border-top:0.5px solid #e2e8f0">
+          <button onclick="document.getElementById('modalExportTipo').classList.add('hidden');document.getElementById('exportRedeSubOpts').style.display='none';document.getElementById('exportRedeChev').style.transform='rotate(0deg)';exportarCodigosRedes(true)" style="display:flex;align-items:center;gap:10px;padding:10px 14px 10px 20px;background:#fff;border:none;border-bottom:0.5px solid #e2e8f0;cursor:pointer;width:100%;text-align:left">
+            <i class="ti ti-layout-list" style="font-size:15px;color:#16a34a" aria-hidden="true"></i>
+            <div>
+              <div style="font-size:12px;font-weight:500;color:#1e293b">Todos os itens</div>
+              <div style="font-size:11px;color:#64748b">Inclui produtos sem código de rede</div>
+            </div>
+            <i class="ti ti-chevron-right" style="font-size:13px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
+          </button>
+          <button onclick="document.getElementById('modalExportTipo').classList.add('hidden');document.getElementById('exportRedeSubOpts').style.display='none';document.getElementById('exportRedeChev').style.transform='rotate(0deg)';exportarCodigosRedes(false)" style="display:flex;align-items:center;gap:10px;padding:10px 14px 10px 20px;background:#fff;border:none;cursor:pointer;width:100%;text-align:left">
+            <i class="ti ti-filter" style="font-size:15px;color:#16a34a" aria-hidden="true"></i>
+            <div>
+              <div style="font-size:12px;font-weight:500;color:#1e293b">Somente com códigos</div>
+              <div style="font-size:11px;color:#64748b">Apenas produtos com rede cadastrada</div>
+            </div>
+            <i class="ti ti-chevron-right" style="font-size:13px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
+          </button>
         </div>
-        <button onclick="document.getElementById('modalExportTipo').classList.add('hidden');exportarCodigosRedes(true)" style="display:flex;align-items:center;gap:10px;padding:10px 14px 10px 20px;background:#fff;border:none;border-bottom:0.5px solid #e2e8f0;cursor:pointer;width:100%;text-align:left">
-          <i class="ti ti-layout-list" style="font-size:15px;color:#16a34a" aria-hidden="true"></i>
-          <div>
-            <div style="font-size:12px;font-weight:500;color:#1e293b">Todos os itens</div>
-            <div style="font-size:11px;color:#64748b">Inclui produtos sem código de rede</div>
-          </div>
-          <i class="ti ti-chevron-right" style="font-size:13px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
-        </button>
-        <button onclick="document.getElementById('modalExportTipo').classList.add('hidden');exportarCodigosRedes(false)" style="display:flex;align-items:center;gap:10px;padding:10px 14px 10px 20px;background:#fff;border:none;cursor:pointer;width:100%;text-align:left">
-          <i class="ti ti-filter" style="font-size:15px;color:#16a34a" aria-hidden="true"></i>
-          <div>
-            <div style="font-size:12px;font-weight:500;color:#1e293b">Somente com códigos</div>
-            <div style="font-size:11px;color:#64748b">Apenas produtos com rede cadastrada</div>
-          </div>
-          <i class="ti ti-chevron-right" style="font-size:13px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
-        </button>
       </div>
     </div>
   </div>
@@ -3043,6 +3046,10 @@ function abrirModalImportCatalogo() {
   document.getElementById('modalImportTipo').classList.remove('hidden');
 }
 function abrirModalExportCatalogo() {
+  const s = document.getElementById('exportRedeSubOpts');
+  const ch = document.getElementById('exportRedeChev');
+  if (s) { s.style.display = 'none'; }
+  if (ch) { ch.style.transform = 'rotate(0deg)'; }
   document.getElementById('modalExportTipo').classList.remove('hidden');
 }
 
