@@ -1326,11 +1326,9 @@
         <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b"></span>Concorrente 2</span>
         <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#d97706"></span>Concorrente 3</span>
       </div>
-      <!-- Canvas concorrência -->
-      <div class="bg-white rounded-2xl shadow" style="padding:12px 14px;overflow-y:auto;overflow-x:auto;max-height:460px">
-        <div id="concChartWrap" style="position:relative;width:100%;min-height:220px">
-          <canvas id="concChart" role="img" aria-label="Gráfico de comparação de preços com concorrência">Preços — Concorrência.</canvas>
-        </div>
+      <!-- Cards concorrência -->
+      <div class="bg-white rounded-2xl shadow" style="padding:12px 14px;overflow-y:auto;max-height:520px">
+        <div id="concChartWrap" style="width:100%"></div>
         <div id="concSemDados" style="display:none" class="text-center py-8 text-slate-400 text-sm">Nenhum produto com dados de concorrência registrados nos filtros selecionados.</div>
       </div>
       </div><!-- /tabPanelConc -->
@@ -6112,8 +6110,15 @@ function renderConcChart() {
   if (semDados) semDados.style.display = 'none';
   if (wrap)     wrap.style.display     = '';
 
+  // Destruir chart.js anterior se existir
+  if (_concChart) { _concChart.destroy(); _concChart = null; }
+
+  // Ocultar legenda antiga (não mais necessária)
+  const legEl = document.getElementById('concLegenda');
+  if (legEl) legEl.style.display = 'none';
+
   // Agrupar por produto — média de preços
-  const mapa = new Map(); // key=produto → {nosso:[], c1:{nome,precos:[]}, c2:{...}, c3:{...}}
+  const mapa = new Map();
   base.forEach(p => {
     const key = p.produto || '(sem nome)';
     if (!mapa.has(key)) {
@@ -6128,57 +6133,39 @@ function renderConcChart() {
   });
 
   const avg = arr => arr.length ? arr.reduce((s,v)=>s+v,0)/arr.length : null;
-  const labels  = [...mapa.keys()].sort();
-  const dadosNosso = labels.map(k => avg(mapa.get(k).nosso));
-  const dadosC1    = labels.map(k => avg(mapa.get(k).c1.precos));
-  const dadosC2    = labels.map(k => avg(mapa.get(k).c2.precos));
-  const dadosC3    = labels.map(k => avg(mapa.get(k).c3.precos));
+  const labels = [...mapa.keys()].sort();
 
-  // Nome dos concorrentes (pega o primeiro não-vazio)
-  const nomeC1 = [...mapa.values()].map(e=>e.c1.nome).find(n=>n) || 'Concorrente 1';
-  const nomeC2 = [...mapa.values()].map(e=>e.c2.nome).find(n=>n) || 'Concorrente 2';
-  const nomeC3 = [...mapa.values()].map(e=>e.c3.nome).find(n=>n) || 'Concorrente 3';
+  // Renderizar cards HTML
+  wrap.innerHTML = labels.map(produto => {
+    const e = mapa.get(produto);
+    const linhas = [
+      { nome: 'Nosso Preço', valor: avg(e.nosso),      cor: '#185FA5', txt: '#E6F1FB' },
+      { nome: e.c1.nome||'Concorrente 1', valor: avg(e.c1.precos), cor: '#EA580C', txt: '#fff' },
+      { nome: e.c2.nome||'Concorrente 2', valor: avg(e.c2.precos), cor: '#F59E0B', txt: '#412402' },
+      { nome: e.c3.nome||'Concorrente 3', valor: avg(e.c3.precos), cor: '#D97706', txt: '#412402' },
+    ].filter(l => l.valor !== null && l.valor > 0);
 
-  const temC1 = dadosC1.some(v=>v!==null);
-  const temC2 = dadosC2.some(v=>v!==null);
-  const temC3 = dadosC3.some(v=>v!==null);
+    if (!linhas.length) return '';
+    const maxVal = Math.max(...linhas.map(l => l.valor));
 
-  const datasets = [
-    { label: 'Nosso Preço', data: dadosNosso, backgroundColor: 'rgba(24,95,165,0.82)', borderRadius: 4, borderSkipped: false },
-  ];
-  if (temC1) datasets.push({ label: nomeC1, data: dadosC1, backgroundColor: 'rgba(234,88,12,0.82)',  borderRadius: 4, borderSkipped: false });
-  if (temC2) datasets.push({ label: nomeC2, data: dadosC2, backgroundColor: 'rgba(245,158,11,0.82)', borderRadius: 4, borderSkipped: false });
-  if (temC3) datasets.push({ label: nomeC3, data: dadosC3, backgroundColor: 'rgba(217,119,6,0.82)',  borderRadius: 4, borderSkipped: false });
+    const barras = linhas.map(l => {
+      const pct = Math.round((l.valor / maxVal) * 100);
+      const vlr = 'R$ ' + l.valor.toFixed(2).replace('.', ',');
+      return `<div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--color-text-secondary);min-width:120px;text-align:right;flex-shrink:0">${esc(l.nome)}</span>
+        <div style="flex:1;background:var(--color-background-secondary);border-radius:4px;height:22px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${l.cor};border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;min-width:70px">
+            <span style="font-size:11px;font-weight:500;color:${l.txt};white-space:nowrap">${vlr}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
 
-  const h = Math.max(220, labels.length * 56);
-  if (wrap) wrap.style.minHeight = h + 'px';
-
-  if (_concChart) _concChart.destroy();
-  _concChart = new Chart(document.getElementById('concChart'), {
-    type: 'bar',
-    data: { labels, datasets },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: 'top', labels: { font: { size: 11 }, boxWidth: 12, padding: 14 } },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              if (ctx.raw === null) return null;
-              return `${ctx.dataset.label}: R$ ${ctx.raw.toFixed(2).replace('.',',')}`;
-            },
-            filter: ctx => ctx.raw !== null && ctx.raw > 0
-          }
-        }
-      },
-      scales: {
-        y: { ticks: { font: { size: 11 }, crossAlign: 'far' }, grid: { display: false } },
-        x: { beginAtZero: true, position: 'top', ticks: { callback: v => 'R$ '+v.toFixed(2).replace('.',',') } }
-      }
-    }
-  });
+    return `<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px 16px;margin-bottom:10px">
+      <p style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin:0 0 12px 0">${esc(produto)}</p>
+      <div style="display:flex;flex-direction:column;gap:8px">${barras}</div>
+    </div>`;
+  }).join('');
 }
 
 // ── Accordeão — Filtros Lojas sem lançamento ─
