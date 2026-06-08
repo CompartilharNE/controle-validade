@@ -6153,25 +6153,17 @@ function renderConcChart() {
   const wrap         = document.getElementById('concChartWrap');
   const cHeader      = document.getElementById('concChartHeader');
 
-  // Exigir produto selecionado
-  if (!fProd) {
-    if (semProduto) semProduto.style.display = '';
-    if (semDados)   semDados.style.display   = 'none';
+  if (!base.length) {
+    if (semProduto) semProduto.style.display = 'none';
+    if (semDados)   semDados.style.display   = '';
     if (wrap)       wrap.innerHTML           = '';
     if (cHeader)    cHeader.style.display    = 'none';
     if (_concChart) { _concChart.destroy(); _concChart = null; }
     return;
   }
+  if (semDados)   semDados.style.display   = 'none';
   if (semProduto) semProduto.style.display = 'none';
-
-  if (!base.length) {
-    if (semDados) semDados.style.display = '';
-    if (wrap)     wrap.style.display     = 'none';
-    if (_concChart) { _concChart.destroy(); _concChart = null; }
-    return;
-  }
-  if (semDados) semDados.style.display = 'none';
-  if (wrap)     wrap.style.display     = '';
+  if (wrap)       wrap.style.display       = '';
 
   // Destruir chart.js anterior se existir
   if (_concChart) { _concChart.destroy(); _concChart = null; }
