@@ -407,6 +407,17 @@
             <input id="fab_cnpj" type="text" placeholder="00.000.000/0001-00"
               class="border border-slate-300 rounded-lg px-3 py-2 text-sm" />
           </div>
+          <div class="flex flex-col gap-1 col-span-2">
+            <label class="text-xs font-medium text-slate-600">Logo da Fábrica</label>
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer bg-slate-50 border border-dashed border-slate-300 hover:border-blue-400 rounded-lg px-3 py-2 transition" style="flex:1">
+                <span class="text-base">📷</span>
+                <span id="fabFotoNomeLabel" class="text-xs text-slate-500 truncate">Nenhuma foto selecionada</span>
+                <input id="fab_foto" type="file" accept="image/*" onchange="previewFotoFabrica(this)" class="hidden" />
+              </label>
+              <span id="fabFotoAnexadaBadge" class="hidden text-xs text-green-600 font-medium">✅ Logo anexada</span>
+            </div>
+          </div>
         </div>
         <button onclick="salvarFabrica()" class="mt-3 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded-lg px-5 py-2 transition">Salvar Fábrica</button>
       </div>
@@ -420,7 +431,7 @@
         </div>
         <div class="overflow-x-auto">
           <table>
-            <thead><tr><th>#</th><th>Nome</th><th>CNPJ</th><th>Ação</th></tr></thead>
+            <thead><tr><th>#</th><th>Nome</th><th>CNPJ</th><th style="text-align:center">Logo</th><th>Ação</th></tr></thead>
             <tbody id="corpoFabricas"></tbody>
           </table>
         </div>
@@ -2031,6 +2042,40 @@
   </div>
 </div>
 
+<!-- Modal Editar Fábrica -->
+<div id="editFabricaModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-semibold text-slate-700 text-base">✏️ Editar Fábrica</h3>
+      <button onclick="document.getElementById('editFabricaModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
+    </div>
+    <input type="hidden" id="ef_id" />
+    <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Nome da Fábrica *</label>
+        <input id="ef_nome" type="text" class="border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">CNPJ (opcional)</label>
+        <input id="ef_cnpj" type="text" placeholder="00.000.000/0001-00" class="border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Logo da Fábrica</label>
+        <label class="flex items-center gap-2 cursor-pointer bg-slate-50 border border-dashed border-slate-300 hover:border-blue-400 rounded-lg px-3 py-2 transition">
+          <span class="text-base">📷</span>
+          <span id="ef_fotoLabel" class="text-xs text-slate-500 truncate">Nenhuma foto selecionada</span>
+          <input id="ef_foto" type="file" accept="image/*" onchange="previewFotoFabricaEdit(this)" class="hidden" />
+        </label>
+        <div id="ef_fotoPreview" class="hidden mt-2 w-full h-20 rounded-lg overflow-hidden flex items-center justify-center" style="background:#f8fafc"></div>
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button onclick="salvarEdicaoFabrica()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm transition">Salvar</button>
+        <button onclick="document.getElementById('editFabricaModal').classList.add('hidden')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg px-4 py-2 text-sm transition">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Editar Loja -->
 <div id="editLojaModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
@@ -2591,10 +2636,15 @@ function salvarFabrica() {
   if (!nome) { showToast('⚠️ Informe o nome da fábrica.','#92400e'); return; }
   if (fabricas.find(f => f.nome.toLowerCase() === nome.toLowerCase())) { showToast('⚠️ Fábrica já cadastrada.','#92400e'); return; }
   const cnpj = document.getElementById('fab_cnpj').value.trim();
-  fabricas.push({ id: Date.now(), nome, cnpj });
+  const logo = window._fotoFabricaBase64 || null;
+  fabricas.push({ id: Date.now(), nome, cnpj, logo });
   FS_CFG_FABRICAS.set({ lista: fabricas });
   document.getElementById('fab_nome').value = '';
   document.getElementById('fab_cnpj').value = '';
+  document.getElementById('fab_foto').value = '';
+  document.getElementById('fabFotoNomeLabel').textContent = 'Nenhuma foto selecionada';
+  document.getElementById('fabFotoAnexadaBadge').classList.add('hidden');
+  window._fotoFabricaBase64 = null;
   renderFabricas();
   atualizarSelectFabricas();
   showToast('✅ Fábrica salva!','#166534');
@@ -2606,6 +2656,70 @@ function deletarFabrica(id) {
   FS_CFG_FABRICAS.set({ lista: fabricas });
   renderFabricas();
   atualizarSelectFabricas();
+}
+
+function abrirEditFabrica(id) {
+  const f = fabricas.find(x => x.id === id);
+  if (!f) return;
+  document.getElementById('ef_id').value   = id;
+  document.getElementById('ef_nome').value = f.nome;
+  document.getElementById('ef_cnpj').value = f.cnpj || '';
+  document.getElementById('ef_fotoLabel').textContent = f.logo ? 'Logo já anexada' : 'Nenhuma foto selecionada';
+  const prev = document.getElementById('ef_fotoPreview');
+  if (f.logo) {
+    prev.innerHTML = `<img src="${f.logo}" style="width:100%;height:100%;object-fit:contain">`;
+    prev.classList.remove('hidden');
+  } else {
+    prev.innerHTML = '';
+    prev.classList.add('hidden');
+  }
+  window._editFabricaLogo = f.logo || null;
+  document.getElementById('editFabricaModal').classList.remove('hidden');
+}
+
+function previewFotoFabricaEdit(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  document.getElementById('ef_fotoLabel').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 300;
+      const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      const ctx2d = canvas.getContext('2d');
+      ctx2d.fillStyle = '#ffffff';
+      ctx2d.fillRect(0, 0, canvas.width, canvas.height);
+      ctx2d.drawImage(img, 0, 0, canvas.width, canvas.height);
+      window._editFabricaLogo = canvas.toDataURL('image/jpeg', 0.75);
+      const prev = document.getElementById('ef_fotoPreview');
+      prev.innerHTML = `<img src="${window._editFabricaLogo}" style="width:100%;height:100%;object-fit:contain">`;
+      prev.classList.remove('hidden');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function salvarEdicaoFabrica() {
+  const id   = Number(document.getElementById('ef_id').value);
+  const nome = document.getElementById('ef_nome').value.trim();
+  if (!nome) { showToast('⚠️ Informe o nome da fábrica.','#92400e'); return; }
+  const idx  = fabricas.findIndex(f => f.id === id);
+  if (idx < 0) return;
+  const duplicado = fabricas.find(f => f.id !== id && f.nome.toLowerCase() === nome.toLowerCase());
+  if (duplicado) { showToast('⚠️ Já existe uma fábrica com esse nome.','#92400e'); return; }
+  fabricas[idx].nome = nome;
+  fabricas[idx].cnpj = document.getElementById('ef_cnpj').value.trim();
+  if (window._editFabricaLogo !== undefined) fabricas[idx].logo = window._editFabricaLogo;
+  FS_CFG_FABRICAS.set({ lista: fabricas });
+  renderFabricas();
+  atualizarSelectFabricas();
+  document.getElementById('editFabricaModal').classList.add('hidden');
+  showToast('✅ Fábrica atualizada!','#166534');
 }
 
 function renderFabricas() {
@@ -2624,7 +2738,14 @@ function renderFabricas() {
     <td class="text-xs text-slate-400">${i+1}</td>
     <td class="font-medium">${esc(f.nome)}</td>
     <td class="text-slate-500 text-xs">${esc(f.cnpj||'—')}</td>
-    <td><button onclick="deletarFabrica(${f.id})" style="background:none;border:none;font-size:16px;font-weight:700;color:#dc2626;cursor:pointer;line-height:1" title="Excluir">✕</button></td>
+    <td style="text-align:center">${f.logo
+      ? `<i class="ti ti-circle-check" style="font-size:18px;color:#16a34a" title="Logo cadastrada" aria-hidden="true"></i>`
+      : `<i class="ti ti-circle-x" style="font-size:18px;color:#dc2626" title="Sem logo" aria-hidden="true"></i>`
+    }</td>
+    <td class="text-center">
+      <button onclick="abrirEditFabrica(${f.id})" class="text-blue-500 hover:text-blue-700 font-bold text-base px-1" title="Editar">✏️</button>
+      <button onclick="deletarFabrica(${f.id})" style="background:none;border:none;font-size:16px;font-weight:700;color:#dc2626;cursor:pointer;line-height:1" title="Excluir">✕</button>
+    </td>
   </tr>`).join('');
 }
 
@@ -3066,6 +3187,31 @@ function salvarProdutoCatalogo() {
   limparFormCatalogo(); renderCatalogo();
   showToast('✅ Produto salvo no catálogo!','#166534');
 }
+function previewFotoFabrica(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  document.getElementById('fabFotoNomeLabel').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 300;
+      const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      const ctx2d = canvas.getContext('2d');
+      ctx2d.fillStyle = '#ffffff';
+      ctx2d.fillRect(0, 0, canvas.width, canvas.height);
+      ctx2d.drawImage(img, 0, 0, canvas.width, canvas.height);
+      window._fotoFabricaBase64 = canvas.toDataURL('image/jpeg', 0.75);
+      document.getElementById('fabFotoAnexadaBadge').classList.remove('hidden');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function previewFotoEAN(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
