@@ -5867,7 +5867,7 @@ function _popularFiltrosGraficos() {
     if (ufsVend.length) base = base.filter(p=>ufsVend.includes(p.uf));
     const ufs = [...new Set(base.map(p=>p.uf).filter(Boolean))].sort();
     selUF.innerHTML = '<option value="">Todas as UFs</option>' + ufs.map(u=>`<option ${u===cur?'selected':''}>${u}</option>`).join('');
-    if (isVend && lblUF) lblUF.innerHTML = '<span style="background:#0e2841;color:white;font-size:9px;border-radius:3px;padding:1px 5px;margin-right:3px">3</span>UF';
+    if (lblUF) lblUF.textContent = 'UF';
   }
 }
 
@@ -6705,7 +6705,7 @@ function _popularMovSelects(prefixo, callback) {
   if (wrapVend) wrapVend.style.display = isVendMov ? 'none' : 'flex';
   // Renumerar labels UF/Loja/Produto
   const mUFnum = document.getElementById('mUFnum');
-  if (mUFnum) mUFnum.textContent = isVendMov ? '3' : '4';
+  if (mUFnum) mUFnum.textContent = 'UF';
   const fFab  = document.getElementById(p+'Fabrica')?.value  || '';
   const fRede = document.getElementById(p+'Rede')?.value     || '';
   const fVend = isVendMov ? '' : (document.getElementById(p+'Vendedor')?.value || '');
