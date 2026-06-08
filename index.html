@@ -54,8 +54,12 @@
       .desktop-only { display: none; }
       th, td { font-size: 0.75rem; padding: 6px 6px; }
     }
-    ::-webkit-scrollbar { height: 6px; }
+    ::-webkit-scrollbar { height: 6px; width: 6px; }
     ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    #modalStatusLista::-webkit-scrollbar { width: 5px; }
+    #modalStatusLista::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    #modalStatusLista::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
 
     /* Modal Status — layout agrupado */
     .ms-fab-group { margin:5px 10px; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; }
@@ -1668,7 +1672,7 @@
     </div>
     <p id="modalStatusSub" class="text-xs text-slate-500 px-5 pb-2 flex-shrink-0"></p>
     <div style="flex:1;min-height:0;position:relative;overflow:hidden">
-      <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-2" style="overflow-y:scroll;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent;height:100%"></div>
+      <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-2" style="overflow-y:scroll;scrollbar-width:thin;scrollbar-color:#cbd5e1 #f1f5f9;height:100%"></div>
       <div id="modalStatusShadow" style="position:absolute;bottom:0;left:0;right:0;height:32px;background:linear-gradient(transparent,rgba(255,255,255,.97));pointer-events:none"></div>
     </div>
     <div style="text-align:center;font-size:10px;color:#94a3b8;padding:4px 0;border-top:0.5px solid #e2e8f0;flex-shrink:0" id="modalStatusScrollHint">
