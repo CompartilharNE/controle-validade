@@ -1280,7 +1280,7 @@
           </div>
         </div>
         <div class="overflow-x-auto">
-          <table><thead><tr id="hTableHead"><th>Data</th><th>Ação</th><th>Tipo</th><th>Qtde</th><th>Estoque</th><th>Produto</th><th>Fabricação</th><th>Vencimento</th><th>ShelfLife</th><th>Vida Útil</th><th>Data de Entrega</th><th>Loja</th><th>UF</th><th>Promotor</th></tr></thead><tbody id="hTableBody"></tbody></table>
+          <table><thead><tr id="hTableHead"><th>Data</th><th>Ação</th><th>Tipo</th><th>Qtde</th><th>Estoque</th><th>Produto</th><th>Fabricação</th><th>Vencimento</th><th>ShelfLife</th><th>Vida Útil</th><th>Data de Entrega</th><th>Loja</th><th>UF</th><th>Promotor</th><th></th></tr></thead><tbody id="hTableBody"></tbody></table>
         </div>
         <div id="hSemDados" class="hidden text-center py-10 text-slate-400 text-sm">Nenhuma movimentação registrada ainda.</div>
       </div>
@@ -1541,7 +1541,7 @@
 <div id="confirmarProdutoModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
     <h3 class="font-semibold text-slate-700 text-base mb-3">📦 Confirmar Produto</h3>
-    <div id="cpFoto" class="w-full h-32 bg-slate-100 rounded-t-xl flex items-center justify-center overflow-hidden">
+    <div id="cpFoto" class="w-full h-32 rounded-t-xl flex items-center justify-center overflow-hidden" style="background:#ffffff">
       <span class="text-4xl">📦</span>
     </div>
     <div class="bg-slate-50 border border-t-0 border-slate-200 rounded-b-xl px-3 py-2 mb-3">
@@ -1856,7 +1856,7 @@
           <span id="ee_fotoLabel" class="text-xs text-slate-500">Nenhuma foto selecionada</span>
           <input id="ee_foto" type="file" accept="image/*" onchange="previewFotoEANEdit(this)" class="hidden" />
         </label>
-        <div id="ee_fotoPreview" class="hidden mt-2 w-full h-24 bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center"></div>
+        <div id="ee_fotoPreview" class="hidden mt-2 w-full h-24 rounded-lg overflow-hidden flex items-center justify-center" style="background:#ffffff"></div>
       </div>
       <div class="col-span-2 flex gap-2 pt-1">
         <button onclick="salvarEdicaoEAN()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm transition">Salvar</button>
@@ -2907,7 +2907,10 @@ function previewFotoEAN(input) {
       const canvas = document.createElement('canvas');
       canvas.width  = Math.round(img.width  * ratio);
       canvas.height = Math.round(img.height * ratio);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const ctx2d = canvas.getContext('2d');
+      ctx2d.fillStyle = '#ffffff';
+      ctx2d.fillRect(0, 0, canvas.width, canvas.height);
+      ctx2d.drawImage(img, 0, 0, canvas.width, canvas.height);
       window._fotoEANBase64 = canvas.toDataURL('image/jpeg', 0.75);
       document.getElementById('fotoAnexadaBadge').classList.remove('hidden');
     };
@@ -3015,7 +3018,10 @@ async function processarImportFotos(input) {
           const canvas = document.createElement('canvas');
           canvas.width  = Math.round(img.width  * ratio);
           canvas.height = Math.round(img.height * ratio);
-          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          const ctx2dBatch = canvas.getContext('2d');
+          ctx2dBatch.fillStyle = '#ffffff';
+          ctx2dBatch.fillRect(0, 0, canvas.width, canvas.height);
+          ctx2dBatch.drawImage(img, 0, 0, canvas.width, canvas.height);
           resolve(canvas.toDataURL('image/jpeg', 0.75));
         };
         img.src = e.target.result;
@@ -3935,7 +3941,9 @@ function _confirmarLancamentoSIM() {
   produtos.push(p);
   FS_PRODUTOS.doc(String(p.id)).set(p);
   renderTabela();
-  _registrarMovimento('entrada', p.quantidade, p, 'novo');
+  // Produto já vencido no lançamento: não registra no histórico
+  const _hojeConf = new Date().toISOString().slice(0,10);
+  if (!p.validade || p.validade >= _hojeConf) _registrarMovimento('entrada', p.quantidade, p, 'novo');
   document.getElementById('modalConfirmarLancamento').classList.add('hidden');
   limparForm();
   if (_lojaSnapshot && _lojaSnapshot.nome) {
@@ -4011,7 +4019,13 @@ function deletar(id) {
 function confirmarDeleteSIM() {
   if (!_deletandoId) return;
   const _pExcluido = produtos.find(p => p.id === _deletandoId);
-  if (_pExcluido) _registrarMovimento('saida', _pExcluido.quantidade || 1, _pExcluido, 'exclusao');
+  if (_pExcluido) {
+    const _hoje = new Date().toISOString().slice(0,10);
+    const _isVencido = _pExcluido.validade && _pExcluido.validade < _hoje;
+    // Produto vencido: exclusão não gera movimentação no histórico
+    // Produto a vencer: exclusão registra SAÍDA
+    if (!_isVencido) _registrarMovimento('saida', _pExcluido.quantidade || 1, _pExcluido, 'exclusao');
+  }
   FS_PRODUTOS.doc(String(_deletandoId)).delete();
   produtos = produtos.filter(p => p.id !== _deletandoId);
   renderTabela();
@@ -4314,6 +4328,8 @@ function renderTabela() {
 
   let lista=listaBase.filter(p=>{
     const d=diasRestantes(p.validade), st=statusDe(d);
+    // Vencidos há mais de 5 dias: ocultos no padrão; aparecem só com filtro "Vencidos"
+    if (fStatus==='todos' && d < -5) return false;
     if (fStatus!=='todos'&&st!==fStatus) return false;
     if (fUF&&p.uf!==fUF) return false;
     if (fFab&&p.fabrica!==fFab) return false;
@@ -4342,7 +4358,7 @@ function renderTabela() {
   let _baseCnt = produtos;
   if (sessao?.role === 'promotor') _baseCnt = produtos.filter(p => p.promotor === sessao.nome);
   if (sessao?.role === 'vendedor') _baseCnt = produtos.filter(p => sessao.ufs && sessao.ufs.includes(p.uf));
-  const exp  = _baseCnt.filter(p=>diasRestantes(p.validade)<0).length;
+  const exp  = _baseCnt.filter(p=>{ const d=diasRestantes(p.validade); return d<0&&d>=-5; }).length;
   const warn = _baseCnt.filter(p=>{const d=diasRestantes(p.validade);return d>=0&&d<=20;}).length;
   const ok   = _baseCnt.filter(p=>diasRestantes(p.validade)>20).length;
   document.getElementById('cntExp').textContent  = `${exp} Vencido${exp!==1?'s':''}`;
@@ -6346,8 +6362,24 @@ function renderHistorico() {
       <td>${esc(m.loja)}</td>
       <td style="text-align:center">${esc(m.uf)}</td>
       <td>${esc(m.promotor)}</td>
+      <td style="text-align:center"><button onclick="excluirMovHistorico(${m.id})" title="Excluir este registro" style="background:none;border:none;cursor:pointer;color:#dc2626;padding:2px 6px;border-radius:5px;font-size:13px;transition:background .15s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'"><i class="ti ti-trash" aria-hidden="true"></i></button></td>
     </tr>`;
   }).join('');
+}
+
+function excluirMovHistorico(movId) {
+  if (!confirm('Excluir este registro do histórico? Esta ação não pode ser desfeita.')) return;
+  const idx = historico.findIndex(m => m.id === movId);
+  if (idx < 0) return;
+  const fsId = historico[idx].firestoreId;
+  historico.splice(idx, 1);
+  if (fsId) {
+    FS_HISTORICO.doc(fsId).delete();
+  } else {
+    FS_HISTORICO.where('id', '==', movId).get().then(snap => snap.forEach(doc => doc.ref.delete()));
+  }
+  renderHistorico();
+  showToast('🗑 Registro removido do histórico.', '#7f1d1d');
 }
 
 function verificarAlertaDataEntrega() {
