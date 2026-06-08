@@ -1314,10 +1314,10 @@
       </div><!-- /tabPanelConc -->
 
       <!-- ── Barra de abas dos gráficos ── -->
-      <div style="display:flex;border-top:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);border-radius:0 0 16px 16px;margin-top:12px;overflow:hidden">
-        <button id="gTab-dist" onclick="setGraficoTab('dist')" style="flex:1;padding:12px 8px 14px;border:none;border-top:2px solid #185FA5;background:#eff6ff;cursor:pointer;font-size:12px;font-weight:500;color:#185FA5;transition:all .15s">Distribuição</button>
-        <button id="gTab-mov"  onclick="setGraficoTab('mov')"  style="flex:1;padding:12px 8px 14px;border:none;border-top:2px solid transparent;background:transparent;cursor:pointer;font-size:12px;font-weight:400;color:var(--color-text-secondary);transition:all .15s">Movimentações</button>
-        <button id="gTab-conc" onclick="setGraficoTab('conc')" style="flex:1;padding:12px 8px 14px;border:none;border-top:2px solid transparent;background:transparent;cursor:pointer;font-size:12px;font-weight:400;color:var(--color-text-secondary);transition:all .15s">Concorrência</button>
+      <div style="background:var(--color-background-secondary);padding:8px;border-radius:12px;display:flex;gap:6px;margin-top:12px">
+        <button id="gTab-dist" onclick="setGraficoTab('dist')" style="flex:1;padding:9px 8px;border:none;border-radius:8px;font-size:13px;cursor:pointer;background:var(--color-background-primary);color:#185FA5;font-weight:500;box-shadow:0 1px 4px rgba(0,0,0,.10);transition:all .15s">Distribuição</button>
+        <button id="gTab-mov"  onclick="setGraficoTab('mov')"  style="flex:1;padding:9px 8px;border:none;border-radius:8px;font-size:13px;cursor:pointer;background:transparent;color:var(--color-text-secondary);font-weight:400;transition:all .15s">Movimentações</button>
+        <button id="gTab-conc" onclick="setGraficoTab('conc')" style="flex:1;padding:9px 8px;border:none;border-radius:8px;font-size:13px;cursor:pointer;background:transparent;color:var(--color-text-secondary);font-weight:400;transition:all .15s">Concorrência</button>
       </div>
     </div>
 
@@ -5701,10 +5701,11 @@ function setGraficoTab(tab) {
     const btn = document.getElementById('gTab-'+k);
     if (!btn) return;
     const ativo = k === tab;
-    btn.style.borderTop  = ativo ? '2px solid #185FA5' : '2px solid transparent';
-    btn.style.background = ativo ? '#eff6ff' : 'transparent';
-    btn.style.color      = ativo ? '#185FA5' : 'var(--color-text-secondary)';
-    btn.style.fontWeight = ativo ? '500' : '400';
+    btn.style.background  = ativo ? 'var(--color-background-primary)' : 'transparent';
+    btn.style.color       = ativo ? '#185FA5' : 'var(--color-text-secondary)';
+    btn.style.fontWeight  = ativo ? '500' : '400';
+    btn.style.boxShadow   = ativo ? '0 1px 4px rgba(0,0,0,.10)' : 'none';
+    btn.style.borderRadius = '8px';
   });
   if (tab === 'dist') { setGUnd(_gUnd); }
   if (tab === 'mov')  { renderMovChart(); }
