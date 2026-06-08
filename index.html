@@ -3032,7 +3032,7 @@ async function exportarCodigosRedes() {
   showToast('⏳ Gerando Excel...','#1e3a8a');
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('Códigos de Rede');
-  const cols = ['#','Código Fábrica','Nome do Produto','Rede','Código da Rede'];
+  const cols = ['#','Código Fábrica','Nome do Produto','Fábrica','Rede','Código da Rede'];
   await _cabecalhoExcel(wb, ws, 'CONTROLE DE VALIDADE — CÓDIGOS DE REDE', cols.length);
   const hr = ws.getRow(5); hr.height = 18;
   cols.forEach((c,i) => { const cell=hr.getCell(i+1); _estiloCabecalho(cell); cell.value=c; });
@@ -3041,12 +3041,12 @@ async function exportarCodigosRedes() {
     const redes = Object.entries(p.codigosRedes || {});
     if (!redes.length) return;
     redes.forEach(([rede, codRede]) => {
-      const r = ws.addRow([++row, p.codigo||'', p.nome||'', rede, codRede]);
+      const r = ws.addRow([++row, p.codigo||'', p.nome||'', p.fabrica||'', rede, codRede]);
       _estiloLinha(r, row-1);
     });
   });
   if (!row) { showToast('Nenhum código de rede cadastrado.','#92400e'); return; }
-  [6,18,36,24,18].forEach((w,i) => { ws.getColumn(i+1).width = w; });
+  [6,18,36,22,24,18].forEach((w,i) => { ws.getColumn(i+1).width = w; });
   await _downloadExcel(wb,'codigos_de_rede.xlsx');
 }
 
@@ -3060,10 +3060,11 @@ async function processarImportCodigosRedes(input) {
     ws.eachRow((row, rn) => {
       if (rn <= 5) return;
       const codigoFab = (row.getCell(2).value||'').toString().trim();
-      const rede      = (row.getCell(4).value||'').toString().trim();
-      const codRede   = (row.getCell(5).value||'').toString().trim();
+      const fabrica   = (row.getCell(4).value||'').toString().trim();
+      const rede      = (row.getCell(5).value||'').toString().trim();
+      const codRede   = (row.getCell(6).value||'').toString().trim();
       if (!codigoFab || !rede || !codRede) return;
-      const idx = catalogo.findIndex(p => (p.codigo||'').trim() === codigoFab);
+      const idx = catalogo.findIndex(p => (p.codigo||'').trim() === codigoFab && (p.fabrica||'').trim() === fabrica);
       if (idx === -1) { naoEncontrados++; return; }
       if (!catalogo[idx].codigosRedes) catalogo[idx].codigosRedes = {};
       catalogo[idx].codigosRedes[rede] = codRede;
