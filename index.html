@@ -1733,9 +1733,14 @@
     </div>
     <div style="flex-shrink:0;padding:10px 20px 8px;display:flex;flex-direction:column;gap:8px">
       <p id="modalStatusSub" class="text-xs text-slate-500" style="margin:0"></p>
-      <select id="modalStatusFabrica" onchange="_msFiltrFab()" style="border:0.5px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:12px;background:#f8fafc;color:#334155;width:100%">
-        <option value="">Todas as fábricas</option>
-      </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <select id="modalStatusFabrica" onchange="_msOnFabChange()" style="border:0.5px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:12px;background:#f8fafc;color:#334155">
+          <option value="">Todas as fábricas</option>
+        </select>
+        <select id="modalStatusRede" onchange="_msFiltrFab()" style="border:0.5px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:12px;background:#f8fafc;color:#334155">
+          <option value="">Todas as redes</option>
+        </select>
+      </div>
     </div>
     <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-3" style="overflow-y:auto;flex:1;min-height:0;max-height:calc(92vh - 160px);scrollbar-width:thin;scrollbar-color:#94a3b8 #e2e8f0"></div>
     <div class="px-4 pb-4 pt-3" style="flex-shrink:0;border-top:0.5px solid #e2e8f0">
@@ -4570,7 +4575,11 @@ function abrirModalStatus(status) {
     fabs.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
   fabSel.value = '';
 
-  // função de renderização dos cards filtrados
+  // resetar select de redes
+  const redeSel = document.getElementById('modalStatusRede');
+  if (redeSel) { redeSel.innerHTML = '<option value="">Todas as redes</option>'; redeSel.value = ''; }
+
+  // guardar lista e config para os filtros
   window._msLista  = lista;
   window._msCfg    = c;
   window._msSubFn  = c.subFn;
@@ -4580,12 +4589,37 @@ function abrirModalStatus(status) {
   document.body.style.overflow = 'hidden';
 }
 
+function _msOnFabChange() {
+  const lista = window._msLista || [];
+  const fab   = document.getElementById('modalStatusFabrica')?.value || '';
+  const base  = fab ? lista.filter(p => (p.fabrica||'') === fab) : lista;
+  const redes = [...new Set(base.map(p => {
+    const lj = lojas.find(l => normTxt(l.nome) === normTxt(p.loja));
+    return (lj && lj.rede) ? lj.rede : (p.loja || '—');
+  }))].sort();
+  const redeSel = document.getElementById('modalStatusRede');
+  if (redeSel) {
+    redeSel.innerHTML = '<option value="">Todas as redes</option>' +
+      redes.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+    redeSel.value = '';
+  }
+  _msFiltrFab();
+}
+
 function _msFiltrFab() {
   const lista = window._msLista || [];
   const c     = window._msCfg  || {};
   const subFn = window._msSubFn || (n => `${n} produto(s)`);
   const fab   = document.getElementById('modalStatusFabrica')?.value || '';
-  const filtrado = fab ? lista.filter(p => (p.fabrica||'') === fab) : lista;
+  const rede  = document.getElementById('modalStatusRede')?.value    || '';
+
+  let filtrado = lista;
+  if (fab) filtrado = filtrado.filter(p => (p.fabrica||'') === fab);
+  if (rede) filtrado = filtrado.filter(p => {
+    const lj = lojas.find(l => normTxt(l.nome) === normTxt(p.loja));
+    const r  = (lj && lj.rede) ? lj.rede : (p.loja || '—');
+    return r === rede;
+  });
 
   document.getElementById('modalStatusSub').textContent = subFn(filtrado.length);
 
