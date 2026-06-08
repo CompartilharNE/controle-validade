@@ -6841,20 +6841,33 @@ function renderHistorico() {
 
   tbody.innerHTML = [...dados].reverse().map(m => {
     const vu = _calcVidaUtil(m);
-    const rowAlerta = vu?.alerta;
-    const rowCls = rowAlerta ? 'row-expired'
-      : m.tipo==='saida'||m.acao==='exclusao' ? 'row-expired'
-      : m.acao==='atualizacao_promotor' ? 'row-warning' : '';
+
+    // Verificação da data de entrega (1/3 do ShelfLife)
+    let entregaAlerta = null; // null = sem data, true = além do 1/3, false = dentro do 1/3
+    if (m.dataEntrega && m.dataFabricacao && m.shelfLife) {
+      const fab  = new Date(m.dataFabricacao + 'T00:00:00');
+      const ent  = new Date(m.dataEntrega    + 'T00:00:00');
+      const dias = Math.max(0, Math.round((ent - fab) / 86400000));
+      const pct  = Math.round((dias / m.shelfLife) * 100);
+      entregaAlerta = pct > 33;
+    }
+
+    // Cor da linha: entrega tem prioridade quando preenchida
+    const rowCls = entregaAlerta === true  ? 'row-expired'
+                 : entregaAlerta === false ? 'row-ok'
+                 : m.tipo==='saida'||m.acao==='exclusao' ? 'row-expired'
+                 : m.acao==='atualizacao_promotor' ? 'row-warning' : '';
 
     const vuCell = vu
       ? `<span style="font-size:11px;font-weight:700;color:${vu.alerta?'#dc2626':'#16a34a'}">${vu.dias} dias (${vu.pct}%)${vu.alerta?' ⚠️':''}</span>`
       : `<span style="color:#94a3b8;font-size:10px;">—</span>`;
 
-    const entregaCell = vu?.alerta
-      ? `<input type="date" value="${m.dataEntrega||''}" onchange="salvarDataEntrega(${m.id},this.value)"
-           style="border:1.5px solid #fca5a5;border-radius:6px;padding:3px 6px;font-size:10px;background:#fff5f5;color:#991b1b;cursor:pointer" />`
-      : `<input type="date" value="${m.dataEntrega||''}" onchange="salvarDataEntrega(${m.id},this.value)"
-           style="border:1px solid #e2e8f0;border-radius:6px;padding:3px 6px;font-size:10px;background:#f8fafc;cursor:pointer" />`;
+    const entregaStyle = entregaAlerta === true
+      ? 'border:1.5px solid #fca5a5;border-radius:6px;padding:3px 6px;font-size:10px;background:#fff5f5;color:#991b1b;cursor:pointer'
+      : entregaAlerta === false
+        ? 'border:1.5px solid #86efac;border-radius:6px;padding:3px 6px;font-size:10px;background:#f0fdf4;color:#166534;cursor:pointer'
+        : 'border:1px solid #e2e8f0;border-radius:6px;padding:3px 6px;font-size:10px;background:#f8fafc;cursor:pointer';
+    const entregaCell = `<input type="date" value="${m.dataEntrega||''}" onchange="salvarDataEntrega(${m.id},this.value)" style="${entregaStyle}" />`;
 
     return `<tr class="${rowCls}">
       <td>${fmtData(m.data)}</td>
