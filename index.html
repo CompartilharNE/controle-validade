@@ -1665,20 +1665,14 @@
 
 <!-- Modal Status (Vencidos / Atenção / OK) -->
 <div id="modalStatus" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl flex flex-col overflow-hidden" style="max-height:95vh">
-    <div id="modalStatusHead" class="flex items-center justify-between px-5 py-4 flex-shrink-0">
+  <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl" style="max-height:92vh;display:flex;flex-direction:column">
+    <div id="modalStatusHead" class="flex items-center justify-between px-5 py-4" style="flex-shrink:0">
       <h3 id="modalStatusTitulo" class="font-semibold text-base"></h3>
       <button onclick="fecharModalStatus()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
     </div>
-    <p id="modalStatusSub" class="text-xs text-slate-500 px-5 pb-2 flex-shrink-0"></p>
-    <div style="flex:1;min-height:0;position:relative;overflow:hidden">
-      <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-2" style="overflow-y:scroll;scrollbar-width:thin;scrollbar-color:#94a3b8 #e2e8f0;height:100%;overscroll-behavior:contain"></div>
-      <div id="modalStatusShadow" style="position:absolute;bottom:0;left:0;right:0;height:32px;background:linear-gradient(transparent,rgba(255,255,255,.97));pointer-events:none"></div>
-    </div>
-    <div style="text-align:center;font-size:10px;color:#94a3b8;padding:4px 0;border-top:0.5px solid #e2e8f0;flex-shrink:0" id="modalStatusScrollHint">
-      ↕ role para ver mais
-    </div>
-    <div class="px-4 pb-4 pt-2 flex-shrink-0">
+    <p id="modalStatusSub" class="text-xs text-slate-500 px-5 pb-3" style="flex-shrink:0"></p>
+    <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-3" style="overflow-y:auto;flex:1;min-height:0;scrollbar-width:thin;scrollbar-color:#94a3b8 #e2e8f0"></div>
+    <div class="px-4 pb-4 pt-3" style="flex-shrink:0;border-top:0.5px solid #e2e8f0">
       <button id="modalStatusBtn" onclick="fecharModalStatus()"
         class="w-full text-white font-semibold rounded-xl py-2.5 text-sm transition">OK, entendido</button>
     </div>
@@ -4428,22 +4422,6 @@ function abrirModalStatus(status) {
     e.stopPropagation();
   };
   modal.addEventListener('wheel', modal._wheelHandler, { passive: false });
-  // Sombra e hint: mostrar/ocultar conforme scroll
-  setTimeout(() => {
-    const lista  = document.getElementById('modalStatusLista');
-    const hint   = document.getElementById('modalStatusScrollHint');
-    const shadow = document.getElementById('modalStatusShadow');
-    const temScroll = lista && lista.scrollHeight > lista.clientHeight;
-    if (hint)   hint.style.display   = temScroll ? '' : 'none';
-    if (shadow) shadow.style.display = temScroll ? '' : 'none';
-    if (lista) {
-      lista.onscroll = () => {
-        const noFim = lista.scrollTop + lista.clientHeight >= lista.scrollHeight - 4;
-        if (hint)   hint.style.display   = noFim ? 'none' : '';
-        if (shadow) shadow.style.display = noFim ? 'none' : '';
-      };
-    }
-  }, 50);
 }
 
 function fecharModalDuplicado() {
