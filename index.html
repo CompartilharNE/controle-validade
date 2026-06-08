@@ -873,8 +873,14 @@
 
         <div class="flex flex-col gap-1 col-span-2">
           <label class="text-xs font-medium text-slate-600">Preço (R$)</label>
-          <input id="f_preco" type="number" placeholder="0,00" min="0" step="0.01"
-            class="border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <div style="display:flex;gap:8px;align-items:stretch">
+            <input id="f_preco" type="number" placeholder="0,00" min="0" step="0.01"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-sm" style="flex:1" />
+            <button type="button" id="btnConcorrencia" onclick="abrirModalConcorrencia()"
+              style="display:inline-flex;align-items:center;gap:5px;background:#fff7ed;color:#c2410c;border:0.5px solid #fed7aa;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s">
+              <i class="ti ti-chart-bar" style="font-size:14px" aria-hidden="true"></i> Concorrência
+            </button>
+          </div>
         </div>
 
         <div class="flex col-span-2 gap-2 pt-1">
@@ -1606,6 +1612,45 @@
   </div>
 </div>
 
+<!-- Modal Concorrência -->
+<div id="modalConcorrencia" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-5">
+    <div class="flex items-center justify-between mb-1">
+      <span style="font-size:15px;font-weight:600;color:#1e293b;display:flex;align-items:center;gap:6px">
+        <i class="ti ti-chart-bar" style="font-size:16px;color:#ea580c" aria-hidden="true"></i> Concorrência
+      </span>
+      <button onclick="fecharModalConcorrencia()" style="background:none;border:none;font-size:20px;color:#94a3b8;cursor:pointer;line-height:1">×</button>
+    </div>
+    <p style="font-size:12px;color:#64748b;margin:0 0 16px">Informe o nome e preço dos concorrentes nesta loja (até 3)</p>
+
+    <div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:12px">
+      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 1</label>
+        <input id="conc1_nome" type="text" placeholder="Escrever" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
+      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Preço R$</label>
+        <input id="conc1_preco" type="number" placeholder="Escrever" min="0" step="0.01" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:12px">
+      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 2</label>
+        <input id="conc2_nome" type="text" placeholder="Escrever" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
+      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Preço R$</label>
+        <input id="conc2_preco" type="number" placeholder="Escrever" min="0" step="0.01" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:20px">
+      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 3</label>
+        <input id="conc3_nome" type="text" placeholder="Escrever" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
+      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Preço R$</label>
+        <input id="conc3_preco" type="number" placeholder="Escrever" min="0" step="0.01" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
+    </div>
+
+    <div class="flex gap-2">
+      <button onclick="fecharModalConcorrencia()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg px-4 py-2 text-sm transition">Cancelar</button>
+      <button onclick="salvarConcorrencia()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm transition">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Importar Fotos Catálogo -->
 <div id="modalImportFotos" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
@@ -1970,7 +2015,14 @@
       </div>
       <div class="flex flex-col gap-1 col-span-2">
         <label class="text-xs font-medium text-slate-600">Preço (R$)</label>
-        <input id="edit_preco" type="number" min="0" step="0.01" class="border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <input id="edit_preco" type="number" min="0" step="0.01" class="border border-slate-300 rounded-lg px-3 py-2 text-sm" style="flex:1" />
+          <button type="button" id="btnEditConcorrencia" onclick="abrirModalConcorrenciaEdit()"
+            style="display:inline-flex;align-items:center;gap:5px;background:#fff7ed;color:#c2410c;border:0.5px solid #fed7aa;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s">
+            <i class="ti ti-chart-bar" style="font-size:14px" aria-hidden="true"></i> Concorrência
+          </button>
+        </div>
+        <div id="editConcResumo" style="display:none;margin-top:5px;background:#fff7ed;border-radius:7px;padding:6px 10px;font-size:11px;color:#92400e;display:flex;flex-direction:column;gap:2px"></div>
       </div>
       <div class="col-span-2 flex gap-2 pt-1">
         <button onclick="salvarEdicao()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm transition">Salvar</button>
@@ -3773,6 +3825,7 @@ document.getElementById('prodForm').addEventListener('submit', (e) => {
     quantidade: Number(document.getElementById('f_quantidade').value),
     und:        document.getElementById('f_und').value,
     preco:      Number(document.getElementById('f_preco').value) || 0,
+    concorrencia: _concorrencia || null,
   };
 
   // Mostrar confirmação antes de salvar
@@ -3971,6 +4024,100 @@ function _confirmarLancamentoNAO() {
   _lojaSnapshot = null;
 }
 
+// ── Concorrência ─────────────────────────────
+let _concorrencia     = null; // usado no formulário de novo produto
+let _concorrenciaEdit = null; // usado no modal de edição
+let _concorrenciaCtx  = 'novo'; // 'novo' | 'edit'
+
+function abrirModalConcorrenciaEdit() {
+  _concorrenciaCtx = 'edit';
+  // Pré-preencher com dados do produto em edição
+  ['1','2','3'].forEach(n => {
+    document.getElementById('conc'+n+'_nome').value  = _concorrenciaEdit?.['c'+n]?.nome  || '';
+    document.getElementById('conc'+n+'_preco').value = _concorrenciaEdit?.['c'+n]?.preco || '';
+  });
+  document.getElementById('modalConcorrencia').classList.remove('hidden');
+}
+function _atualizarBtnEditConcorrencia() {
+  const btn     = document.getElementById('btnEditConcorrencia');
+  const resumo  = document.getElementById('editConcResumo');
+  const temDados = _concorrenciaEdit && Object.keys(_concorrenciaEdit).length > 0;
+  if (btn) {
+    btn.style.background  = temDados ? '#ea580c' : '#fff7ed';
+    btn.style.color       = temDados ? '#ffffff' : '#c2410c';
+    btn.style.borderColor = temDados ? '#c2410c' : '#fed7aa';
+  }
+  if (resumo) {
+    if (temDados) {
+      resumo.style.display = 'flex';
+      resumo.innerHTML = ['c1','c2','c3']
+        .filter(k => _concorrenciaEdit[k]?.nome)
+        .map(k => {
+          const preco = _concorrenciaEdit[k].preco ? ` · <strong>R$ ${Number(_concorrenciaEdit[k].preco).toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong>` : '';
+          return `<div>${esc(_concorrenciaEdit[k].nome)}${preco}</div>`;
+        }).join('');
+    } else {
+      resumo.style.display = 'none';
+    }
+  }
+}
+
+let _concorrencia = null; // { c1:{nome,preco}, c2:{nome,preco}, c3:{nome,preco} }
+
+function abrirModalConcorrencia() {
+  _concorrenciaCtx = 'novo';
+  // Pré-preencher se já havia dados
+  ['1','2','3'].forEach(n => {
+    document.getElementById('conc'+n+'_nome').value  = _concorrencia?.['c'+n]?.nome  || '';
+    document.getElementById('conc'+n+'_preco').value = _concorrencia?.['c'+n]?.preco || '';
+  });
+  document.getElementById('modalConcorrencia').classList.remove('hidden');
+}
+function fecharModalConcorrencia() {
+  document.getElementById('modalConcorrencia').classList.add('hidden');
+}
+function salvarConcorrencia() {
+  const dados = {
+    c1: { nome: document.getElementById('conc1_nome').value.trim(), preco: document.getElementById('conc1_preco').value },
+    c2: { nome: document.getElementById('conc2_nome').value.trim(), preco: document.getElementById('conc2_preco').value },
+    c3: { nome: document.getElementById('conc3_nome').value.trim(), preco: document.getElementById('conc3_preco').value },
+  };
+  // Remove entradas vazias
+  ['c1','c2','c3'].forEach(k => { if (!dados[k].nome && !dados[k].preco) delete dados[k]; });
+  const resultado = Object.keys(dados).length ? dados : null;
+  if (_concorrenciaCtx === 'edit') {
+    _concorrenciaEdit = resultado;
+    _atualizarBtnEditConcorrencia();
+  } else {
+    _concorrencia = resultado;
+    atualizarBtnConcorrencia();
+  }
+  fecharModalConcorrencia();
+  showToast('✅ Concorrência salva!', '#166534');
+}
+function atualizarBtnConcorrencia() {
+  const btn = document.getElementById('btnConcorrencia');
+  if (!btn) return;
+  const temDados = _concorrencia && Object.keys(_concorrencia).length > 0;
+  if (temDados) {
+    btn.style.background = '#ea580c';
+    btn.style.color      = '#ffffff';
+    btn.style.borderColor = '#c2410c';
+  } else {
+    btn.style.background = '#fff7ed';
+    btn.style.color      = '#c2410c';
+    btn.style.borderColor = '#fed7aa';
+  }
+}
+function limparConcorrencia() {
+  _concorrencia = null;
+  ['1','2','3'].forEach(n => {
+    document.getElementById('conc'+n+'_nome').value  = '';
+    document.getElementById('conc'+n+'_preco').value = '';
+  });
+  atualizarBtnConcorrencia();
+}
+
 function limparForm() {
   ['f_fabrica','f_validade'].forEach(id=>{
     const el=document.getElementById(id);
@@ -3982,6 +4129,7 @@ function limparForm() {
     const el=document.getElementById(id);
     el.value=''; el.style.borderColor=''; el.style.backgroundColor='';
   });
+  limparConcorrencia();
   // Manter UF fixa para promotor; limpar para outros perfis
   if (sessao?.role === 'promotor' && sessao?.uf) {
     document.getElementById('f_uf').value = sessao.uf;
@@ -4660,12 +4808,16 @@ function _construirSheetXLSX(wb, lista, nomeAba, logoBase64) {
   }
 
   // ── Linha 6 — Cabeçalhos ───────────────────
-  const hdrs = ['VENDEDOR','UF','FÁBRICA','DATA','LOJA','PRODUTO','VENCIMENTO','DIAS','QTDE / UND','PREÇO','PROMOTOR'];
+  const hdrs = ['VENDEDOR','UF','FÁBRICA','DATA','LOJA','PRODUTO','VENCIMENTO','DIAS','QTDE / UND','PREÇO','PROMOTOR','CONCORRENTE 1','PREÇO CONC. 1','CONCORRENTE 2','PREÇO CONC. 2','CONCORRENTE 3','PREÇO CONC. 3'];
   const hr = ws.getRow(6);
   hr.height = 18;
+  const hFillConc = {type:'pattern', pattern:'solid', fgColor:{argb:'FFC55A11'}};
   hdrs.forEach((h, i) => {
     const c = hr.getCell(i + 1);
-    c.value = h; c.font = hFont; c.fill = hFill; c.alignment = hAlign;
+    c.value = h;
+    c.font  = hFont;
+    c.fill  = i >= 11 ? hFillConc : hFill; // colunas L-Q em laranja
+    c.alignment = hAlign;
     c.border = {
       top:{style:'thin',color:{argb:'FFFFFFFF'}},
       bottom:{style:'thin',color:{argb:'FFFFFFFF'}},
@@ -4674,7 +4826,7 @@ function _construirSheetXLSX(wb, lista, nomeAba, logoBase64) {
     };
   });
 
-  ws.autoFilter = {from:'A6', to:'K6'};
+  ws.autoFilter = {from:'A6', to:'Q6'};
 
   // ── Linhas de dados — fundo transparente ───
   lista.forEach((p, idx) => {
@@ -4702,6 +4854,12 @@ function _construirSheetXLSX(wb, lista, nomeAba, logoBase64) {
       {v:Number(p.quantidade)||0, nf:'0',         al:cAlign},        // I QTDE
       {v:p.preco||0, nf:'"R$" #,##0.00',         al:rAlign},        // J PREÇO
       {v:p.promotor,                              al:{}},            // K PROMOTOR
+      {v:(p.concorrencia?.c1?.nome)||'',          al:{}},            // L CONCORRENTE 1
+      {v:p.concorrencia?.c1?.preco ? Number(p.concorrencia.c1.preco) : '', nf:p.concorrencia?.c1?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // M PREÇO CONC. 1
+      {v:(p.concorrencia?.c2?.nome)||'',          al:{}},            // N CONCORRENTE 2
+      {v:p.concorrencia?.c2?.preco ? Number(p.concorrencia.c2.preco) : '', nf:p.concorrencia?.c2?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // O PREÇO CONC. 2
+      {v:(p.concorrencia?.c3?.nome)||'',          al:{}},            // P CONCORRENTE 3
+      {v:p.concorrencia?.c3?.preco ? Number(p.concorrencia.c3.preco) : '', nf:p.concorrencia?.c3?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // Q PREÇO CONC. 3
     ];
 
     vals.forEach((item, i) => {
@@ -4723,6 +4881,11 @@ function _construirSheetXLSX(wb, lista, nomeAba, logoBase64) {
   const totBorder    = {top:{style:'thin',color:{argb:'FFB3BFCC'}}, bottom:{style:'thin',color:{argb:'FFB3BFCC'}}, left:{style:'thin',color:{argb:'FFB3BFCC'}}, right:{style:'thin',color:{argb:'FFB3BFCC'}}};
 
   ws.mergeCells(`A${totalRow}:H${totalRow}`);
+  // Preencher células de concorrência na linha de totais
+  ['L','M','N','O','P','Q'].forEach(col => {
+    const tc = ws.getCell(`${col}${totalRow}`);
+    tc.fill = totValFill; tc.border = totBorder;
+  });
   const tcLabel = ws.getCell(`A${totalRow}`);
   tcLabel.value     = 'TOTAL';
   tcLabel.font      = totLabelFont;
@@ -6744,6 +6907,9 @@ function abrirEditModal(id, isDuplicate) {
       infoCard.classList.add('hidden');
     }
   }
+  // Concorrência — carregar dados existentes do produto
+  _concorrenciaEdit = p.concorrencia ? JSON.parse(JSON.stringify(p.concorrencia)) : null;
+  _atualizarBtnEditConcorrencia();
   document.getElementById('editModal').classList.remove('hidden');
 }
 function salvarEdicao() {
@@ -6766,6 +6932,8 @@ function salvarEdicao() {
     if (isoV) produtos[idx].validade = isoV;
     produtos[idx].und = document.getElementById('edit_und').value || produtos[idx].und;
   }
+  // Concorrência
+  produtos[idx].concorrencia = _concorrenciaEdit || null;
   // Registrar data de atualização (usada em "Lojas sem lançamento")
   produtos[idx].dataAtualizacao = new Date().toISOString().slice(0,10);
   // Registrar movimentação se quantidade mudou
