@@ -1146,8 +1146,8 @@
         <div style="display:flex;align-items:center;gap:8px">
           <div style="width:8px;height:36px;background:#0e2841;border-radius:3px"></div>
           <div>
-            <div style="font-size:11px;color:#64748b">Rede filtrada</div>
-            <div id="gRedeLabel" style="font-size:17px;font-weight:600;color:#1e293b">Todas as redes</div>
+            <div id="gFiltroLabel" style="font-size:11px;color:#64748b">Rede filtrada</div>
+            <div id="gRedeLabel" style="font-size:17px;font-weight:500;color:#1e293b">Todas as redes</div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1;max-width:380px">
@@ -1227,26 +1227,27 @@
 
       <!-- Cabeçalho de filtros ativos -->
       <div id="headerFiltrosMov" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 12px;background:var(--color-background-secondary);border-radius:10px;margin-bottom:10px;border:0.5px solid var(--color-border-tertiary)"></div>
-      <!-- Cabeçalho opção 4 + gráfico -->
-      <div id="movChartHeader" class="bg-white rounded-2xl shadow p-4 mb-3" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+      <!-- Cabeçalho Movimentações -->
+      <div id="movChartHeader" style="display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:8px;height:40px;background:#0e2841;border-radius:3px;flex-shrink:0"></div>
           <div>
-            <div id="movChartTitulo" style="font-size:14px;font-weight:600;color:var(--color-text-primary)">—</div>
-            <div id="movChartSub" style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;display:flex;align-items:center;gap:4px"><i class="ti ti-map-pin" style="font-size:11px"></i><span id="movChartLocal">—</span></div>
+            <div id="movFiltroLabel" style="font-size:11px;color:#64748b">Produto</div>
+            <div id="movChartTitulo" style="font-size:17px;font-weight:500;color:#1e293b">—</div>
           </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:6px 12px;text-align:center;min-width:70px">
-              <div style="font-size:10px;color:#166534">Entradas</div>
-              <div id="movME" style="font-size:16px;font-weight:700;color:#16a34a">—</div>
-            </div>
-            <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:6px 12px;text-align:center;min-width:70px">
-              <div style="font-size:10px;color:#991b1b">Saídas</div>
-              <div id="movMS" style="font-size:16px;font-weight:700;color:#dc2626">—</div>
-            </div>
-            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:6px 12px;text-align:center;min-width:70px">
-              <div style="font-size:10px;color:#1d4ed8">Saldo</div>
-              <div id="movMSaldo" style="font-size:16px;font-weight:700;color:#1d4ed8">—</div>
-            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1;max-width:380px">
+          <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:11px;color:#166534">Entradas</div>
+            <div id="movME" style="font-size:20px;font-weight:500;color:#16a34a">—</div>
+          </div>
+          <div style="background:#fef2f2;border:2px solid transparent;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:11px;color:#991b1b">Saídas</div>
+            <div id="movMS" style="font-size:20px;font-weight:500;color:#dc2626">—</div>
+          </div>
+          <div style="background:#eff6ff;border:2px solid transparent;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:11px;color:#1d4ed8">Saldo</div>
+            <div id="movMSaldo" style="font-size:20px;font-weight:500;color:#1d4ed8">—</div>
           </div>
         </div>
       </div>
@@ -1317,14 +1318,29 @@
         </div>
       </div>
 
-      <!-- Cabeçalho de filtros ativos -->
-      <div id="headerFiltrosConc" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 12px;background:var(--color-background-secondary);border-radius:10px;margin-bottom:10px;border:0.5px solid var(--color-border-tertiary)"></div>
-      <!-- Legenda Concorrência -->
-      <div id="concLegenda" style="display:flex;gap:12px;font-size:11px;color:#64748b;margin-bottom:8px;flex-wrap:wrap">
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#185FA5"></span>Nosso Preço</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#ea580c"></span>Concorrente 1</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b"></span>Concorrente 2</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#d97706"></span>Concorrente 3</span>
+      <!-- Cabeçalho Concorrência -->
+      <div id="concChartHeader" style="display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:8px;height:40px;background:#0e2841;border-radius:3px;flex-shrink:0"></div>
+          <div>
+            <div id="concFiltroLabel" style="font-size:11px;color:#64748b">Todos os filtros</div>
+            <div id="concFiltroValor" style="font-size:17px;font-weight:500;color:#1e293b">Todos os produtos</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1;max-width:380px">
+          <div style="background:#f1f5f9;border:2px solid #0e2841;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:11px;color:#64748b">Produtos</div>
+            <div id="concMProd" style="font-size:22px;font-weight:500;color:#0e2841">—</div>
+          </div>
+          <div style="background:#eff6ff;border:2px solid transparent;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:11px;color:#1d4ed8">Nosso menor</div>
+            <div id="concMNosso" style="font-size:18px;font-weight:500;color:#185FA5">—</div>
+          </div>
+          <div style="background:#fff7ed;border:2px solid transparent;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:11px;color:#9a3412">Concorrência</div>
+            <div id="concMConc" style="font-size:18px;font-weight:500;color:#EA580C">—</div>
+          </div>
+        </div>
       </div>
       <!-- Cards concorrência -->
       <div class="bg-white rounded-2xl shadow" style="padding:12px 14px;overflow-y:auto;max-height:520px">
@@ -5848,7 +5864,22 @@ function renderGraficos() {
   const vendSel= fVend ? usuarios.find(u=>u.role==='vendedor'&&u.nome===fVend) : null;
   const ufsVend= isVend ? (sessao.ufs||[]) : (vendSel?.ufs||[]);
 
-  document.getElementById('gRedeLabel').textContent = fRede || 'Todas as redes';
+  // Cabeçalho dinâmico Distribuição
+  const _gFiltrosAtivos = [
+    fFab  ? { label: 'Fábrica',  val: fFab  } : null,
+    fRede ? { label: 'Rede',     val: fRede } : null,
+    fVend ? { label: 'Vendedor', val: fVend } : null,
+    fUF   ? { label: 'UF',       val: fUF   } : null,
+  ].filter(Boolean);
+  const gFL = document.getElementById('gFiltroLabel');
+  const gRL = document.getElementById('gRedeLabel');
+  if (_gFiltrosAtivos.length) {
+    if (gFL) gFL.textContent = _gFiltrosAtivos.map(f => f.label).join(' · ');
+    if (gRL) { gRL.textContent = _gFiltrosAtivos.map(f => f.val).join(' · '); gRL.style.fontSize = _gFiltrosAtivos.length > 2 ? '13px' : '17px'; }
+  } else {
+    if (gFL) gFL.textContent = 'Rede filtrada';
+    if (gRL) { gRL.textContent = 'Todas as redes'; gRL.style.fontSize = '17px'; }
+  }
   _headerFiltros('headerFiltrosDist', [
     { label: 'Fábrica',  id: 'gFabrica'  },
     { label: 'Rede',     id: 'gRede'     },
@@ -6113,9 +6144,26 @@ function renderConcChart() {
   // Destruir chart.js anterior se existir
   if (_concChart) { _concChart.destroy(); _concChart = null; }
 
-  // Ocultar legenda antiga (não mais necessária)
-  const legEl = document.getElementById('concLegenda');
-  if (legEl) legEl.style.display = 'none';
+  // Cabeçalho dinâmico Concorrência
+  const _cFiltrosAtivos = [
+    fFab  ? { label: 'Fábrica',  val: fFab  } : null,
+    fRede ? { label: 'Rede',     val: fRede } : null,
+    fVend ? { label: 'Vendedor', val: fVend } : null,
+    fUF   ? { label: 'UF',       val: fUF   } : null,
+    fLoja ? { label: 'Loja',     val: fLoja } : null,
+    fProd ? { label: 'Produto',  val: fProd } : null,
+  ].filter(Boolean);
+  const cHeader = document.getElementById('concChartHeader');
+  const cFL = document.getElementById('concFiltroLabel');
+  const cFV = document.getElementById('concFiltroValor');
+  if (cHeader) cHeader.style.display = 'flex';
+  if (_cFiltrosAtivos.length) {
+    if (cFL) cFL.textContent = _cFiltrosAtivos.map(f => f.label).join(' · ');
+    if (cFV) { cFV.textContent = _cFiltrosAtivos.map(f => f.val).join(' · '); cFV.style.fontSize = _cFiltrosAtivos.length > 2 ? '13px' : '17px'; }
+  } else {
+    if (cFL) cFL.textContent = 'Todos os filtros';
+    if (cFV) { cFV.textContent = 'Todos os produtos'; cFV.style.fontSize = '17px'; }
+  }
 
   // Agrupar por produto — média de preços
   const mapa = new Map();
@@ -6134,6 +6182,17 @@ function renderConcChart() {
 
   const avg = arr => arr.length ? arr.reduce((s,v)=>s+v,0)/arr.length : null;
   const labels = [...mapa.keys()].sort();
+
+  // Preencher métricas do cabeçalho de Concorrência
+  const todosNosso = [...mapa.values()].map(e => avg(e.nosso)).filter(v => v !== null && v > 0);
+  const todosConc  = [...mapa.values()].flatMap(e => [avg(e.c1.precos), avg(e.c2.precos), avg(e.c3.precos)]).filter(v => v !== null && v > 0);
+  const fmtR = v => v !== null ? 'R$ ' + v.toFixed(2).replace('.', ',') : '—';
+  const concMProd  = document.getElementById('concMProd');
+  const concMNosso = document.getElementById('concMNosso');
+  const concMConc  = document.getElementById('concMConc');
+  if (concMProd)  concMProd.textContent  = labels.length;
+  if (concMNosso) concMNosso.textContent = fmtR(todosNosso.length ? Math.min(...todosNosso) : null);
+  if (concMConc)  concMConc.textContent  = fmtR(todosConc.length  ? Math.min(...todosConc)  : null);
 
   // Renderizar cards HTML
   wrap.innerHTML = labels.map(produto => {
@@ -6757,29 +6816,41 @@ function renderMovChart() {
   const semEl  = document.getElementById('movSemDados');
   const wrap   = document.getElementById('movChartWrap');
   if (!dados.length) {
-    if (header) header.style.display='none';
+    if (header) header.style.display = 'none';
     semEl.classList.remove('hidden');
     if (_movChart) { _movChart.destroy(); _movChart=null; }
     return;
   }
   semEl.classList.add('hidden');
-  if (header) header.style.display='block';
-  // Cabeçalho opção 4
-  const fProd = document.getElementById('mProduto')?.value||'';
-  const fLoja = document.getElementById('mLoja')?.value||'';
+  if (header) header.style.display = 'flex';
+  // Ler filtros ativos
+  const fProd  = document.getElementById('mProduto')?.value  || '';
+  const fLoja  = document.getElementById('mLoja')?.value     || '';
+  const _mFab  = document.getElementById('mFabrica')?.value  || '';
+  const _mRede = document.getElementById('mRede')?.value     || '';
+  const _mVend = document.getElementById('mVendedor')?.value || '';
+  const _mUF   = document.getElementById('mUF')?.value       || '';
   const totE  = dados.filter(m=>m.tipo==='entrada').reduce((s,m)=>s+m.qtde,0);
   const totS  = dados.filter(m=>m.tipo==='saida').reduce((s,m)=>s+m.qtde,0);
   const und   = dados[dados.length-1]?.und||'';
-  document.getElementById('movChartTitulo').textContent = fProd||'Todos os produtos';
-  _headerFiltros('headerFiltrosMov', [
-    { label: 'Fábrica',  id: 'mFabrica'  },
-    { label: 'Rede',     id: 'mRede'     },
-    { label: 'Vendedor', id: 'mVendedor' },
-    { label: 'UF',       id: 'mUF'       },
-    { label: 'Loja',     id: 'mLoja'     },
-    { label: 'Produto',  id: 'mProduto'  },
-  ]);
-  document.getElementById('movChartLocal').textContent  = [fLoja, document.getElementById('mUF')?.value, document.getElementById('mRede')?.value].filter(Boolean).join(' · ')||'Todas as lojas';
+  // Cabeçalho dinâmico Movimentações
+  const _mFiltrosAtivos = [
+    _mFab  ? { label: 'Fábrica',  val: _mFab  } : null,
+    _mRede ? { label: 'Rede',     val: _mRede } : null,
+    _mVend ? { label: 'Vendedor', val: _mVend } : null,
+    _mUF   ? { label: 'UF',       val: _mUF   } : null,
+    fLoja  ? { label: 'Loja',     val: fLoja  } : null,
+    fProd  ? { label: 'Produto',  val: fProd  } : null,
+  ].filter(Boolean);
+  const mFL = document.getElementById('movFiltroLabel');
+  const mFV = document.getElementById('movChartTitulo');
+  if (_mFiltrosAtivos.length) {
+    if (mFL) mFL.textContent = _mFiltrosAtivos.map(f => f.label).join(' · ');
+    if (mFV) { mFV.textContent = _mFiltrosAtivos.map(f => f.val).join(' · '); mFV.style.fontSize = _mFiltrosAtivos.length > 2 ? '13px' : '17px'; }
+  } else {
+    if (mFL) mFL.textContent = 'Todos os filtros';
+    if (mFV) { mFV.textContent = 'Todos os produtos'; mFV.style.fontSize = '17px'; }
+  }
   document.getElementById('movME').textContent    = `+${totE} ${und}`;
   document.getElementById('movMS').textContent    = `-${totS} ${und}`;
   document.getElementById('movMSaldo').innerHTML  = `<span style="color:${totE-totS>=0?'#1d4ed8':'#dc2626'}">${totE-totS>=0?'+':''}${totE-totS} ${und}</span>`;
