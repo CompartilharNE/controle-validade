@@ -1139,6 +1139,8 @@
           </div>
         </div>
       </div>
+      <!-- Cabeçalho de filtros ativos -->
+      <div id="headerFiltrosDist" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 12px;background:var(--color-background-secondary);border-radius:10px;margin-bottom:10px;border:0.5px solid var(--color-border-tertiary)"></div>
       <!-- Rede + Métricas clicáveis -->
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px">
@@ -1223,6 +1225,8 @@
         </div>
       </div>
 
+      <!-- Cabeçalho de filtros ativos -->
+      <div id="headerFiltrosMov" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 12px;background:var(--color-background-secondary);border-radius:10px;margin-bottom:10px;border:0.5px solid var(--color-border-tertiary)"></div>
       <!-- Cabeçalho opção 4 + gráfico -->
       <div id="movChartHeader" class="bg-white rounded-2xl shadow p-4 mb-3" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
@@ -1313,6 +1317,8 @@
         </div>
       </div>
 
+      <!-- Cabeçalho de filtros ativos -->
+      <div id="headerFiltrosConc" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 12px;background:var(--color-background-secondary);border-radius:10px;margin-bottom:10px;border:0.5px solid var(--color-border-tertiary)"></div>
       <!-- Legenda Concorrência -->
       <div id="concLegenda" style="display:flex;gap:12px;font-size:11px;color:#64748b;margin-bottom:8px;flex-wrap:wrap">
         <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#185FA5"></span>Nosso Preço</span>
@@ -5845,6 +5851,12 @@ function renderGraficos() {
   const ufsVend= isVend ? (sessao.ufs||[]) : (vendSel?.ufs||[]);
 
   document.getElementById('gRedeLabel').textContent = fRede || 'Todas as redes';
+  _headerFiltros('headerFiltrosDist', [
+    { label: 'Fábrica',  id: 'gFabrica'  },
+    { label: 'Rede',     id: 'gRede'     },
+    { label: 'Vendedor', id: 'gVendedor' },
+    { label: 'UF',       id: 'gUF'       },
+  ]);
 
   // Datas do gráfico de distribuição
   const gDtI = dataParaISO(document.getElementById('gDataIni')?.value||'');
@@ -6037,8 +6049,34 @@ function _popularFiltrosConc() {
   }
 }
 
+function _headerFiltros(elId, filtros) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const ativos = filtros.filter(f => {
+    const sel = document.getElementById(f.id);
+    return sel && sel.value;
+  });
+  if (!ativos.length) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML =
+    `<i class="ti ti-filter" style="font-size:13px;color:#64748b;flex-shrink:0" aria-hidden="true"></i>` +
+    ativos.map((f, i) => {
+      const sel = document.getElementById(f.id);
+      const sep = i > 0 ? `<span style="color:var(--color-border-primary);font-size:12px;margin:0 2px">·</span>` : '';
+      return `${sep}<span style="font-size:12px;color:var(--color-text-secondary)">${f.label}:</span> <span style="font-size:12px;font-weight:500;color:var(--color-text-primary)">${sel.value}</span>`;
+    }).join('');
+}
+
 function renderConcChart() {
   _popularFiltrosConc();
+  _headerFiltros('headerFiltrosConc', [
+    { label: 'Fábrica',  id: 'cFabrica'  },
+    { label: 'Rede',     id: 'cRede'     },
+    { label: 'Vendedor', id: 'cVendedor' },
+    { label: 'UF',       id: 'cUF'       },
+    { label: 'Loja',     id: 'cLoja'     },
+    { label: 'Produto',  id: 'cProduto'  },
+  ]);
 
   const isVend  = sessao?.role === 'vendedor';
   const isAdmDir = sessao?.role === 'admin' || sessao?.role === 'diretor';
@@ -6746,6 +6784,14 @@ function renderMovChart() {
   const totS  = dados.filter(m=>m.tipo==='saida').reduce((s,m)=>s+m.qtde,0);
   const und   = dados[dados.length-1]?.und||'';
   document.getElementById('movChartTitulo').textContent = fProd||'Todos os produtos';
+  _headerFiltros('headerFiltrosMov', [
+    { label: 'Fábrica',  id: 'mFabrica'  },
+    { label: 'Rede',     id: 'mRede'     },
+    { label: 'Vendedor', id: 'mVendedor' },
+    { label: 'UF',       id: 'mUF'       },
+    { label: 'Loja',     id: 'mLoja'     },
+    { label: 'Produto',  id: 'mProduto'  },
+  ]);
   document.getElementById('movChartLocal').textContent  = [fLoja, document.getElementById('mUF')?.value, document.getElementById('mRede')?.value].filter(Boolean).join(' · ')||'Todas as lojas';
   document.getElementById('movME').textContent    = `+${totE} ${und}`;
   document.getElementById('movMS').textContent    = `-${totS} ${und}`;
