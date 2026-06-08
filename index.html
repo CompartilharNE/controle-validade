@@ -63,18 +63,30 @@
 
     /* Modal Status — layout agrupado */
     .ms-fab-group { margin:5px 10px; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; }
-    .ms-fab-header { background:#eff6ff; padding:5px 10px; font-size:11px; font-weight:700; color:#1e3a8a; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:5px; }
+    .ms-fab-header { background:#eff6ff; padding:8px 10px; font-size:12px; font-weight:700; color:#1e3a8a; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none; }
+    .ms-fab-header:hover { background:#dbeafe; }
+    .ms-fab-chev { margin-left:auto; font-size:13px; color:#3b82f6; transition:transform .2s; }
+    .ms-fab-badge { margin-left:4px; background:#dbeafe; color:#1d4ed8; font-size:10px; border-radius:99px; padding:1px 7px; font-weight:600; }
+    .ms-fab-body { }
     .ms-rede-group { border-bottom:1px solid #f1f5f9; }
     .ms-rede-group:last-child { border-bottom:none; }
-    .ms-rede-header { padding:4px 10px; font-size:10px; font-weight:600; color:#475569; background:#f8fafc; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:4px; }
-    .ms-prod-row { display:flex; align-items:center; justify-content:space-between; padding:5px 10px; gap:6px; border-bottom:1px solid #f8fafc; }
+    .ms-rede-header { padding:6px 10px 6px 16px; font-size:11px; font-weight:600; color:#475569; background:#f8fafc; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:4px; cursor:pointer; user-select:none; }
+    .ms-rede-header:hover { background:#f1f5f9; }
+    .ms-rede-chev { margin-left:auto; font-size:12px; color:#94a3b8; transition:transform .2s; }
+    .ms-rede-badge { margin-left:4px; background:#f1f5f9; color:#64748b; font-size:10px; border-radius:99px; padding:1px 6px; font-weight:600; }
+    .ms-rede-body { }
+    .ms-prod-row { display:flex; align-items:center; justify-content:space-between; padding:5px 10px 5px 20px; gap:6px; border-bottom:1px solid #f8fafc; }
     .ms-prod-row:last-child { border-bottom:none; }
     .ms-prod-name { font-size:11px; font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .ms-prod-qty  { font-size:10px; color:#64748b; white-space:nowrap; }
     .ms-prod-dias { font-size:10px; font-weight:700; white-space:nowrap; border-radius:99px; padding:1px 7px; }
     body.dark .ms-fab-group { border-color:#334155; }
     body.dark .ms-fab-header { background:#0c2a52; color:#93c5fd; border-color:#334155; }
+    body.dark .ms-fab-header:hover { background:#1e3a8a; }
+    body.dark .ms-fab-badge { background:#1e3a8a; color:#93c5fd; }
     body.dark .ms-rede-header { background:#1e293b; color:#94a3b8; border-color:#334155; }
+    body.dark .ms-rede-header:hover { background:#273548; }
+    body.dark .ms-rede-badge { background:#334155; color:#94a3b8; }
     body.dark .ms-rede-group { border-color:#1e293b; }
     body.dark .ms-prod-row { border-color:#1e293b; }
 
@@ -4307,13 +4319,17 @@ function abrirModalDuplicado(p) {
   document.getElementById('modalDuplicado').classList.remove('hidden');
 }
 
+function _msToggle(bodyId, chevId) {
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (chev) chev.style.transform = open ? 'rotate(-90deg)' : '';
+}
+
 function fecharModalStatus() {
-  const modal = document.getElementById('modalStatus');
-  if (modal._wheelHandler) {
-    modal.removeEventListener('wheel', modal._wheelHandler);
-    modal._wheelHandler = null;
-  }
-  modal.classList.add('hidden');
+  document.getElementById('modalStatus').classList.add('hidden');
   document.body.style.overflow = '';
 }
 
@@ -4387,12 +4403,34 @@ function abrirModalStatus(status) {
     ul.innerHTML = '<p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">Nenhum produto neste status.</p>';
   } else {
     let html = '';
+    let fabIdx = 0;
     Object.entries(groups).forEach(([fab, redes]) => {
+      const fabId   = `ms-fab-body-${fabIdx}`;
+      const fabChev = `ms-fab-chev-${fabIdx}`;
+      const fabOpen = fabIdx === 0; // primeira fábrica começa aberta
+      const totalFab = Object.values(redes).reduce((s, prods) => s + Object.keys(prods).length, 0);
       html += `<div class="ms-fab-group">
-        <div class="ms-fab-header"><i class="ti ti-building-factory-2" aria-hidden="true"></i> ${esc(fab)}</div>`;
+        <div class="ms-fab-header" onclick="_msToggle('${fabId}','${fabChev}')">
+          <i class="ti ti-building-factory-2" aria-hidden="true"></i>
+          ${esc(fab)}
+          <span class="ms-fab-badge">${totalFab} produto${totalFab>1?'s':''}</span>
+          <i class="ti ti-chevron-down ms-fab-chev" id="${fabChev}" style="transform:${fabOpen?'':'rotate(-90deg)'}" aria-hidden="true"></i>
+        </div>
+        <div class="ms-fab-body" id="${fabId}" style="display:${fabOpen?'':'none'}">`;
+      let redeIdx = 0;
       Object.entries(redes).forEach(([rede, prods]) => {
+        const redeId   = `ms-rede-body-${fabIdx}-${redeIdx}`;
+        const redeChev = `ms-rede-chev-${fabIdx}-${redeIdx}`;
+        const redeOpen = redeIdx === 0 && fabOpen; // primeira rede da primeira fábrica aberta
+        const totalRede = Object.keys(prods).length;
         html += `<div class="ms-rede-group">
-          <div class="ms-rede-header"><i class="ti ti-store" aria-hidden="true"></i> ${esc(rede)}</div>`;
+          <div class="ms-rede-header" onclick="_msToggle('${redeId}','${redeChev}')">
+            <i class="ti ti-store" aria-hidden="true"></i>
+            ${esc(rede)}
+            <span class="ms-rede-badge">${totalRede}</span>
+            <i class="ti ti-chevron-down ms-rede-chev" id="${redeChev}" style="transform:${redeOpen?'':'rotate(-90deg)'}" aria-hidden="true"></i>
+          </div>
+          <div class="ms-rede-body" id="${redeId}" style="display:${redeOpen?'':'none'}">`;
         Object.entries(prods).forEach(([prod, e]) => {
           const undFmt = e.und ? ' ' + e.und.charAt(0).toUpperCase() + e.und.slice(1).toLowerCase() : '';
           const qtdTxt = `${e.qtd}${undFmt}`;
@@ -4405,23 +4443,16 @@ function abrirModalStatus(status) {
             <span class="ms-prod-dias" style="background:${c.diasBg};color:${c.diasColor}">${c.diasFmt(e.dias)}</span>
           </div>`;
         });
-        html += `</div>`;
+        html += `</div></div>`; // fecha ms-rede-body + ms-rede-group
+        redeIdx++;
       });
-      html += `</div>`;
+      html += `</div></div>`; // fecha ms-fab-body + ms-fab-group
+      fabIdx++;
     });
     ul.innerHTML = html;
   }
-  const modal = document.getElementById('modalStatus');
-  modal.classList.remove('hidden');
+  document.getElementById('modalStatus').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
-  // Capturar scroll do mouse e redirecionar para a lista
-  modal._wheelHandler = function(e) {
-    const lista = document.getElementById('modalStatusLista');
-    if (lista) { lista.scrollTop += e.deltaY; }
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  modal.addEventListener('wheel', modal._wheelHandler, { passive: false });
 }
 
 function fecharModalDuplicado() {
