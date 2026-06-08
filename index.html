@@ -4559,81 +4559,26 @@ function abrirModalStatus(status) {
   document.getElementById('modalStatusSub').textContent     = c.subFn(lista.length);
   document.getElementById('modalStatusBtn').style.background = c.btnBg;
 
-  // agrupar: Fábrica → Rede → Produto → { qtd somada, dias mínimo, und, lojas count }
-  const groups = {};
-  lista.forEach(p => {
-    const fab    = p.fabrica || '—';
-    const lj     = lojas.find(l => normTxt(l.nome) === normTxt(p.loja));
-    const rede   = (lj && lj.rede) ? lj.rede : (p.loja || '—');
-    const prod   = p.produto || '—';
-    const d      = diasRestantes(p.validade);
-    const qtd    = Number(p.quantidade) || 0;
-    const und    = p.und || '';
-    if (!groups[fab]) groups[fab] = {};
-    if (!groups[fab][rede]) groups[fab][rede] = {};
-    if (!groups[fab][rede][prod]) {
-      groups[fab][rede][prod] = { qtd: 0, und, dias: d, lojas: 0 };
-    }
-    const entry = groups[fab][rede][prod];
-    entry.qtd  += qtd;
-    entry.lojas += 1;
-    // data mais próxima do vencimento (menor dias = mais urgente)
-    if (d < entry.dias) { entry.dias = d; entry.und = und; }
-  });
-
-  // renderizar
+  // renderizar — um card por ocorrência
   const ul = document.getElementById('modalStatusLista');
   if (!lista.length) {
     ul.innerHTML = '<p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">Nenhum produto neste status.</p>';
   } else {
-    let html = '';
-    let fabIdx = 0;
-    Object.entries(groups).forEach(([fab, redes]) => {
-      const fabId   = `ms-fab-body-${fabIdx}`;
-      const fabChev = `ms-fab-chev-${fabIdx}`;
-      const fabOpen = fabIdx === 0; // primeira fábrica começa aberta
-      const totalFab = Object.values(redes).reduce((s, prods) => s + Object.keys(prods).length, 0);
-      html += `<div class="ms-fab-group">
-        <div class="ms-fab-header" onclick="_msToggle('${fabId}','${fabChev}')">
-          <i class="ti ti-building-factory-2" aria-hidden="true"></i>
-          ${esc(fab)}
-          <span class="ms-fab-badge">${totalFab} produto${totalFab>1?'s':''}</span>
-          <i class="ti ti-chevron-down ms-fab-chev" id="${fabChev}" style="transform:${fabOpen?'':'rotate(-90deg)'}" aria-hidden="true"></i>
+    ul.innerHTML = lista.map(p => {
+      const d      = diasRestantes(p.validade);
+      const qtdTxt = `${p.quantidade||0}${p.und ? ' ' + p.und.charAt(0).toUpperCase() + p.und.slice(1).toLowerCase() : ''}`;
+      return `<div style="background:${c.diasBg};border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;border:0.5px solid ${c.headBorder}">
+        <div style="flex:1;min-width:0;margin-right:10px">
+          <p style="font-size:13px;font-weight:500;color:#1e293b;margin:0 0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.produto||'—')}</p>
+          <p style="font-size:11px;color:#64748b;margin:0 0 1px">${esc(p.loja||'—')} · ${esc(p.uf||'—')}</p>
+          <p style="font-size:11px;color:#64748b;margin:0">${esc(p.fabrica||'—')} · ${qtdTxt}</p>
         </div>
-        <div class="ms-fab-body" id="${fabId}" style="display:${fabOpen?'':'none'}">`;
-      let redeIdx = 0;
-      Object.entries(redes).forEach(([rede, prods]) => {
-        const redeId   = `ms-rede-body-${fabIdx}-${redeIdx}`;
-        const redeChev = `ms-rede-chev-${fabIdx}-${redeIdx}`;
-        const redeOpen = redeIdx === 0 && fabOpen; // primeira rede da primeira fábrica aberta
-        const totalRede = Object.keys(prods).length;
-        html += `<div class="ms-rede-group">
-          <div class="ms-rede-header" onclick="_msToggle('${redeId}','${redeChev}')">
-            <i class="ti ti-store" aria-hidden="true"></i>
-            ${esc(rede)}
-            <span class="ms-rede-badge">${totalRede}</span>
-            <i class="ti ti-chevron-down ms-rede-chev" id="${redeChev}" style="transform:${redeOpen?'':'rotate(-90deg)'}" aria-hidden="true"></i>
-          </div>
-          <div class="ms-rede-body" id="${redeId}" style="display:${redeOpen?'':'none'}">`;
-        Object.entries(prods).forEach(([prod, e]) => {
-          const undFmt = e.und ? ' ' + e.und.charAt(0).toUpperCase() + e.und.slice(1).toLowerCase() : '';
-          const qtdTxt = `${e.qtd}${undFmt}`;
-          const lojaBadge = e.lojas > 1
-            ? `<span style="font-size:8px;background:#e0e7ff;color:#3730a3;border-radius:99px;padding:1px 5px;margin-left:3px;font-weight:700">${e.lojas} lojas</span>`
-            : '';
-          html += `<div class="ms-prod-row">
-            <span class="ms-prod-name">${esc(prod)}${lojaBadge}</span>
-            <span class="ms-prod-qty">${qtdTxt}</span>
-            <span class="ms-prod-dias" style="background:${c.diasBg};color:${c.diasColor}">${c.diasFmt(e.dias)}</span>
-          </div>`;
-        });
-        html += `</div></div>`; // fecha ms-rede-body + ms-rede-group
-        redeIdx++;
-      });
-      html += `</div></div>`; // fecha ms-fab-body + ms-fab-group
-      fabIdx++;
-    });
-    ul.innerHTML = html;
+        <div style="text-align:right;flex-shrink:0">
+          <p style="font-size:12px;font-weight:500;color:${c.diasColor};margin:0 0 2px">${c.diasFmt(d)}</p>
+          <p style="font-size:10px;color:#94a3b8;margin:0">${fmtData(p.validade)}</p>
+        </div>
+      </div>`;
+    }).join('');
   }
   document.getElementById('modalStatus').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
