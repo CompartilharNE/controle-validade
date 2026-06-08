@@ -376,15 +376,16 @@
           </select>
           <input id="buscaCatalogo" type="text" placeholder="🔍 Buscar..."
             oninput="renderCatalogo()" class="border border-slate-200 rounded-lg px-3 py-1 text-sm w-36" />
-          <button onclick="document.getElementById('importCatalogoInput').click()" class="flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg px-3 py-1.5 transition border border-blue-200">📥 Importar</button>
-          <button onclick="exportarCatalogo()" class="flex items-center gap-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold rounded-lg px-3 py-1.5 transition border border-green-200">📤 Exportar</button>
+          <button onclick="abrirModalImportCatalogo()" class="flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg px-3 py-1.5 transition border border-blue-200">📥 Importar</button>
+          <button onclick="abrirModalExportCatalogo()" class="flex items-center gap-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold rounded-lg px-3 py-1.5 transition border border-green-200">📤 Exportar</button>
           <button onclick="abrirModalImportFotos()" class="flex items-center gap-1 text-xs font-semibold rounded-lg px-3 py-1.5 transition border" style="background:#fef3c7;color:#92400e;border-color:#fde68a">🖼️ Foto</button>
           <input type="file" id="importCatalogoInput" accept=".xlsx" class="hidden" onchange="processarImportCatalogo(this)" />
+          <input type="file" id="importCodigosRedesInput" accept=".xlsx" class="hidden" onchange="processarImportCodigosRedes(this)" />
           <input type="file" id="importFotosInput" accept="image/*" multiple webkitdirectory class="hidden" onchange="processarImportFotos(this)" />
         </div>
         <div class="overflow-x-auto">
           <table>
-            <thead><tr><th>Fábrica</th><th>Código</th><th>Nome do Produto</th><th style="text-align:center">Foto</th><th>EAN</th><th>UND</th><th>Qtde CX</th><th>ShelfLife</th><th>Ação</th></tr></thead>
+            <thead><tr><th>Fábrica</th><th>Código</th><th>Nome do Produto</th><th style="text-align:center">Foto</th><th>EAN</th><th>UND</th><th>Qtde CX</th><th>ShelfLife</th><th style="text-align:center">Redes</th><th>Ação</th></tr></thead>
             <tbody id="corpoCatalogo"></tbody>
           </table>
         </div>
@@ -1790,6 +1791,70 @@
   </div>
 </div>
 
+<!-- Modal Selecionar Tipo Importar Catálogo -->
+<div id="modalImportTipo" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-xs shadow-2xl overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4" style="border-bottom:0.5px solid #e2e8f0">
+      <span class="font-semibold text-slate-700 text-sm">O que deseja importar?</span>
+      <button onclick="document.getElementById('modalImportTipo').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
+    </div>
+    <div class="p-3 flex flex-col gap-2">
+      <button onclick="document.getElementById('modalImportTipo').classList.add('hidden');document.getElementById('importCatalogoInput').click()" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:0.5px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer;text-align:left;width:100%">
+        <div style="width:36px;height:36px;border-radius:8px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ti-package" style="font-size:18px;color:#1d4ed8" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:#1e293b">Produtos fábrica</div>
+          <div style="font-size:11px;color:#64748b">EAN, nome, código, shelf life…</div>
+        </div>
+        <i class="ti ti-chevron-right" style="font-size:14px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
+      </button>
+      <button onclick="document.getElementById('modalImportTipo').classList.add('hidden');document.getElementById('importCodigosRedesInput').click()" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:0.5px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer;text-align:left;width:100%">
+        <div style="width:36px;height:36px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ti-building-store" style="font-size:18px;color:#16a34a" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:#1e293b">Códigos de rede</div>
+          <div style="font-size:11px;color:#64748b">Cód. fábrica · Rede · Cód. da rede</div>
+        </div>
+        <i class="ti ti-chevron-right" style="font-size:14px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Selecionar Tipo Exportar Catálogo -->
+<div id="modalExportTipo" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-xs shadow-2xl overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4" style="border-bottom:0.5px solid #e2e8f0">
+      <span class="font-semibold text-slate-700 text-sm">O que deseja exportar?</span>
+      <button onclick="document.getElementById('modalExportTipo').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
+    </div>
+    <div class="p-3 flex flex-col gap-2">
+      <button onclick="document.getElementById('modalExportTipo').classList.add('hidden');exportarCatalogo()" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:0.5px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer;text-align:left;width:100%">
+        <div style="width:36px;height:36px;border-radius:8px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ti-package" style="font-size:18px;color:#1d4ed8" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:#1e293b">Produtos fábrica</div>
+          <div style="font-size:11px;color:#64748b">Exporta catálogo completo</div>
+        </div>
+        <i class="ti ti-chevron-right" style="font-size:14px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
+      </button>
+      <button onclick="document.getElementById('modalExportTipo').classList.add('hidden');exportarCodigosRedes()" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:0.5px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer;text-align:left;width:100%">
+        <div style="width:36px;height:36px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ti-building-store" style="font-size:18px;color:#16a34a" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:#1e293b">Códigos de rede</div>
+          <div style="font-size:11px;color:#64748b">Exporta todos os códigos por rede</div>
+        </div>
+        <i class="ti ti-chevron-right" style="font-size:14px;color:#94a3b8;margin-left:auto" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Importar Fotos Catálogo -->
 <div id="modalImportFotos" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
@@ -2044,6 +2109,20 @@
           <input id="ee_foto" type="file" accept="image/*" onchange="previewFotoEANEdit(this)" class="hidden" />
         </label>
         <div id="ee_fotoPreview" class="hidden mt-2 w-full h-24 rounded-lg overflow-hidden flex items-center justify-center" style="background:#ffffff"></div>
+      </div>
+      <!-- Códigos de Rede -->
+      <div class="flex flex-col gap-1 col-span-2">
+        <label class="text-xs font-medium text-slate-600">Códigos de Rede</label>
+        <div style="border:0.5px solid #e2e8f0;border-radius:8px;padding:8px;background:#f8fafc">
+          <div id="ee_redesLista" class="flex flex-col gap-1 mb-2"></div>
+          <div class="flex gap-1">
+            <select id="ee_redesSel" style="flex:1;border:0.5px solid #e2e8f0;border-radius:6px;padding:5px 8px;font-size:11px;background:#fff;color:#334155">
+              <option value="">Selecionar rede...</option>
+            </select>
+            <input id="ee_redesCod" type="text" placeholder="Código da rede" style="flex:1;border:0.5px solid #e2e8f0;border-radius:6px;padding:5px 8px;font-size:11px" />
+            <button onclick="_eeAddRede()" style="background:#0ea5e9;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">+</button>
+          </div>
+        </div>
       </div>
       <div class="col-span-2 flex gap-2 pt-1">
         <button onclick="salvarEdicaoEAN()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm transition">Salvar</button>
@@ -2941,6 +3020,66 @@ async function exportarCatalogo() {
   await _downloadExcel(wb,'cadastro_produtos.xlsx');
 }
 
+function abrirModalImportCatalogo() {
+  document.getElementById('modalImportTipo').classList.remove('hidden');
+}
+function abrirModalExportCatalogo() {
+  document.getElementById('modalExportTipo').classList.remove('hidden');
+}
+
+async function exportarCodigosRedes() {
+  if (typeof ExcelJS === 'undefined') { showToast('⚠️ Aguarde o carregamento da biblioteca...','#92400e'); return; }
+  showToast('⏳ Gerando Excel...','#1e3a8a');
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Códigos de Rede');
+  const cols = ['#','Código Fábrica','Nome do Produto','Rede','Código da Rede'];
+  await _cabecalhoExcel(wb, ws, 'CONTROLE DE VALIDADE — CÓDIGOS DE REDE', cols.length);
+  const hr = ws.getRow(5); hr.height = 18;
+  cols.forEach((c,i) => { const cell=hr.getCell(i+1); _estiloCabecalho(cell); cell.value=c; });
+  let row = 0;
+  catalogo.forEach(p => {
+    const redes = Object.entries(p.codigosRedes || {});
+    if (!redes.length) return;
+    redes.forEach(([rede, codRede]) => {
+      const r = ws.addRow([++row, p.codigo||'', p.nome||'', rede, codRede]);
+      _estiloLinha(r, row-1);
+    });
+  });
+  if (!row) { showToast('Nenhum código de rede cadastrado.','#92400e'); return; }
+  [6,18,36,24,18].forEach((w,i) => { ws.getColumn(i+1).width = w; });
+  await _downloadExcel(wb,'codigos_de_rede.xlsx');
+}
+
+async function processarImportCodigosRedes(input) {
+  if (!input.files[0]) return;
+  try {
+    showToast('⏳ Importando...','#1e3a8a');
+    const wb = await _lerExcelImport(input.files[0]);
+    const ws = wb.worksheets[0];
+    let atualizados = 0, naoEncontrados = 0;
+    ws.eachRow((row, rn) => {
+      if (rn <= 5) return;
+      const codigoFab = (row.getCell(2).value||'').toString().trim();
+      const rede      = (row.getCell(4).value||'').toString().trim();
+      const codRede   = (row.getCell(5).value||'').toString().trim();
+      if (!codigoFab || !rede || !codRede) return;
+      const idx = catalogo.findIndex(p => (p.codigo||'').trim() === codigoFab);
+      if (idx === -1) { naoEncontrados++; return; }
+      if (!catalogo[idx].codigosRedes) catalogo[idx].codigosRedes = {};
+      catalogo[idx].codigosRedes[rede] = codRede;
+      FS_CATALOGO.doc(String(catalogo[idx].id)).set(catalogo[idx]);
+      atualizados++;
+    });
+    renderCatalogo();
+    const msg = [
+      atualizados   ? `${atualizados} código(s) importado(s)`       : '',
+      naoEncontrados ? `${naoEncontrados} produto(s) não encontrado(s)` : ''
+    ].filter(Boolean).join(' · ');
+    showToast(`✅ ${msg || 'Nenhuma alteração'}`, '#166534');
+  } catch(e) { showToast('❌ Erro ao importar: '+e.message,'#991b1b'); }
+  input.value = '';
+}
+
 async function exportarFabricas() {
   showToast('⏳ Gerando Excel...','#1e3a8a');
   const wb = new ExcelJS.Workbook();
@@ -3082,7 +3221,7 @@ async function processarImportCatalogo(input) {
         FS_CATALOGO.doc(String(catalogo[idx].id)).set(catalogo[idx]);
         atualizados++;
       } else {
-        const _ci = { id:Date.now()+novos, ean, nome, codigo, fabrica, und, qtdeCaixa, shelfLife, foto:null };
+        const _ci = { id:Date.now()+novos, ean, nome, codigo, fabrica, und, qtdeCaixa, shelfLife, foto:null, codigosRedes:{} };
         catalogo.push(_ci);
         FS_CATALOGO.doc(String(_ci.id)).set(_ci);
         novos++;
@@ -3416,6 +3555,7 @@ function renderCatalogo() {
     <td>${p.und?`<span style="display:inline-block;background:#eff6ff;color:#1d4ed8;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">${esc(p.und)}</span>`:'—'}</td>
     <td>${(p.qtdeCaixa&&p.und)?`<span style="display:inline-block;background:#f0fdf4;color:#166534;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">${esc(p.qtdeCaixa)} ${esc(p.und)}</span>`:'—'}</td>
     <td>${p.shelfLife?`<span style="display:inline-block;background:#eff6ff;color:#1e40af;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">${esc(p.shelfLife)} dias</span>`:'—'}</td>
+    <td style="text-align:center">${(()=>{const n=Object.keys(p.codigosRedes||{}).length;return n?`<span style="display:inline-block;background:#f0fdf4;color:#15803d;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:600">${n} rede${n>1?'s':''}</span>`:'<span style="color:#94a3b8;font-size:12px">—</span>';})()}</td>
     <td class="text-center">
       <button onclick="abrirEditEAN(${p.id})" class="text-blue-500 hover:text-blue-700 font-bold text-base px-1" title="Editar">✏️</button>
       <button onclick="deletarProdutoCatalogo(${p.id})" class="text-red-500 hover:text-red-700 font-bold text-lg px-1" title="Excluir">×</button>
@@ -7617,7 +7757,47 @@ function abrirEditEAN(id) {
   }
   window._editEANFoto = item.foto || null;
   window._editEANId = id;
+  // Códigos de rede
+  window._editEANCodRedes = Object.assign({}, item.codigosRedes || {});
+  // Popular select de redes
+  const redes = [...new Set(lojas.map(l => l.rede).filter(Boolean))].sort();
+  const sel = document.getElementById('ee_redesSel');
+  if (sel) {
+    sel.innerHTML = '<option value="">Selecionar rede...</option>' + redes.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  }
+  document.getElementById('ee_redesCod').value = '';
+  _eeRenderRedes();
   document.getElementById('editEANModal').classList.remove('hidden');
+}
+function _eeRenderRedes() {
+  const ul = document.getElementById('ee_redesLista');
+  if (!ul) return;
+  const obj = window._editEANCodRedes || {};
+  const keys = Object.keys(obj);
+  if (!keys.length) {
+    ul.innerHTML = '<p style="font-size:11px;color:#94a3b8;text-align:center;padding:4px 0">Nenhum código de rede cadastrado.</p>';
+    return;
+  }
+  ul.innerHTML = keys.map(r => `
+    <div style="display:flex;align-items:center;gap:6px;background:#fff;border:0.5px solid #e2e8f0;border-radius:6px;padding:4px 8px">
+      <span style="font-size:11px;font-weight:500;color:#334155;flex:1">${esc(r)}</span>
+      <span style="font-size:11px;font-family:monospace;color:#1d4ed8;background:#eff6ff;border-radius:4px;padding:1px 6px">${esc(obj[r])}</span>
+      <button data-rede="${esc(r)}" onclick="_eeRemoveRede(this.dataset.rede)" style="background:none;border:none;color:#dc2626;font-size:14px;cursor:pointer;line-height:1;padding:0">×</button>
+    </div>`).join('');
+}
+function _eeAddRede() {
+  const rede = document.getElementById('ee_redesSel').value.trim();
+  const cod  = document.getElementById('ee_redesCod').value.trim();
+  if (!rede) { showToast('⚠️ Selecione uma rede.','#92400e'); return; }
+  if (!cod)  { showToast('⚠️ Informe o código.','#92400e'); return; }
+  window._editEANCodRedes[rede] = cod;
+  document.getElementById('ee_redesSel').value = '';
+  document.getElementById('ee_redesCod').value = '';
+  _eeRenderRedes();
+}
+function _eeRemoveRede(rede) {
+  delete window._editEANCodRedes[rede];
+  _eeRenderRedes();
 }
 function previewFotoEANEdit(input) {
   if (!input.files || !input.files[0]) return;
@@ -7647,6 +7827,7 @@ function salvarEdicaoEAN() {
   catalogo[idx].shelfLife = document.getElementById('ee_shelflife').value.trim();
   catalogo[idx].fabrica = document.getElementById('ee_fabrica').value;
   if (window._editEANFoto !== undefined) catalogo[idx].foto = window._editEANFoto;
+  catalogo[idx].codigosRedes = Object.assign({}, window._editEANCodRedes || {});
   FS_CATALOGO.doc(String(id)).set(catalogo[idx]);
   renderCatalogo();
   document.getElementById('editEANModal').classList.add('hidden');
