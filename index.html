@@ -57,9 +57,9 @@
     ::-webkit-scrollbar { height: 6px; width: 6px; }
     ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    #modalStatusLista::-webkit-scrollbar { width: 5px; }
-    #modalStatusLista::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    #modalStatusLista::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    #modalStatusLista::-webkit-scrollbar { width: 7px; }
+    #modalStatusLista::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    #modalStatusLista::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
 
     /* Modal Status — layout agrupado */
     .ms-fab-group { margin:5px 10px; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; }
@@ -1672,7 +1672,7 @@
     </div>
     <p id="modalStatusSub" class="text-xs text-slate-500 px-5 pb-2 flex-shrink-0"></p>
     <div style="flex:1;min-height:0;position:relative;overflow:hidden">
-      <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-2" style="overflow-y:scroll;scrollbar-width:thin;scrollbar-color:#cbd5e1 #f1f5f9;height:100%;overscroll-behavior:contain"></div>
+      <div id="modalStatusLista" class="flex flex-col gap-2 px-4 pb-2" style="overflow-y:scroll;scrollbar-width:thin;scrollbar-color:#94a3b8 #e2e8f0;height:100%;overscroll-behavior:contain"></div>
       <div id="modalStatusShadow" style="position:absolute;bottom:0;left:0;right:0;height:32px;background:linear-gradient(transparent,rgba(255,255,255,.97));pointer-events:none"></div>
     </div>
     <div style="text-align:center;font-size:10px;color:#94a3b8;padding:4px 0;border-top:0.5px solid #e2e8f0;flex-shrink:0" id="modalStatusScrollHint">
@@ -4314,7 +4314,12 @@ function abrirModalDuplicado(p) {
 }
 
 function fecharModalStatus() {
-  document.getElementById('modalStatus').classList.add('hidden');
+  const modal = document.getElementById('modalStatus');
+  if (modal._wheelHandler) {
+    modal.removeEventListener('wheel', modal._wheelHandler);
+    modal._wheelHandler = null;
+  }
+  modal.classList.add('hidden');
   document.body.style.overflow = '';
 }
 
@@ -4412,8 +4417,17 @@ function abrirModalStatus(status) {
     });
     ul.innerHTML = html;
   }
-  document.getElementById('modalStatus').classList.remove('hidden');
+  const modal = document.getElementById('modalStatus');
+  modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+  // Capturar scroll do mouse e redirecionar para a lista
+  modal._wheelHandler = function(e) {
+    const lista = document.getElementById('modalStatusLista');
+    if (lista) { lista.scrollTop += e.deltaY; }
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  modal.addEventListener('wheel', modal._wheelHandler, { passive: false });
   // Sombra e hint: mostrar/ocultar conforme scroll
   setTimeout(() => {
     const lista  = document.getElementById('modalStatusLista');
