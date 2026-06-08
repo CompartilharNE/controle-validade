@@ -1833,8 +1833,14 @@
       <div id="ma-step2" style="display:none;padding:14px 16px">
         <p style="font-size:11px;font-weight:500;color:#64748b;margin:0 0 6px;text-transform:uppercase;letter-spacing:.04em">Etapa 2 — Produto</p>
         <div id="ma-loja-tag" style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;border:0.5px solid #bbf7d0;border-radius:6px;padding:4px 10px;font-size:11px;color:#15803d;margin-bottom:10px"></div>
-        <input id="ma-busca-prod" type="text" placeholder="Código da rede, EAN ou nome..." oninput="_maFiltrarProdutos(this.value)"
-          style="width:100%;border:0.5px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;box-sizing:border-box"/>
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <input id="ma-busca-prod" type="text" placeholder="Código da rede, EAN ou nome..." oninput="_maFiltrarProdutos(this.value)"
+            style="flex:1;border:0.5px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;box-sizing:border-box;min-width:0"/>
+          <button type="button" onclick="abrirScanner(_maPreencherEAN)" title="Escanear código de barras"
+            style="flex-shrink:0;width:38px;height:38px;background:#1e3a5f;border:none;border-radius:8px;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center">
+            <i class="ti ti-camera" style="font-size:18px" aria-hidden="true"></i>
+          </button>
+        </div>
         <div id="ma-lista-prods" style="display:flex;flex-direction:column;gap:5px"></div>
       </div>
 
@@ -1843,17 +1849,27 @@
         <p style="font-size:11px;font-weight:500;color:#64748b;margin:0 0 6px;text-transform:uppercase;letter-spacing:.04em">Etapa 3 — Validade e quantidade</p>
         <div id="ma-prod-tag" style="background:#eff6ff;border:0.5px solid #bfdbfe;border-radius:6px;padding:6px 10px;font-size:12px;color:#1e40af;margin-bottom:12px;font-weight:500"></div>
         <label style="font-size:11px;color:#64748b;display:block;margin-bottom:4px">Data de validade *</label>
-        <input id="ma-validade" type="date" oninput="_maValidarData()"
+        <input id="ma-validade" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA"
+          oninput="mascaraData(this);_maValidarData()"
           style="width:100%;border:0.5px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:6px;box-sizing:border-box"/>
         <div id="ma-val-warn" style="display:none;background:#fef9c3;border-radius:6px;padding:7px 10px;font-size:11px;color:#854d0e;margin-bottom:8px"></div>
         <div id="ma-val-ok" style="display:none;background:#f0fdf4;border-radius:6px;padding:7px 10px;font-size:11px;color:#15803d;margin-bottom:8px"></div>
         <label style="font-size:11px;color:#64748b;display:block;margin-bottom:4px;margin-top:4px">Quantidade *</label>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
           <input id="ma-qtde" type="number" min="0.01" step="0.01" placeholder="Ex: 2"
             style="flex:1;border:0.5px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;box-sizing:border-box"/>
           <span id="ma-und-label" style="font-size:13px;color:#334155;min-width:32px;font-weight:500"></span>
         </div>
-        <div id="ma-shelf-info" style="background:#f8fafc;border-radius:6px;padding:7px 10px;font-size:11px;color:#64748b"></div>
+        <div id="ma-caixa-info" style="display:none;font-size:11px;color:#64748b;margin-bottom:10px"></div>
+        <label style="font-size:11px;color:#64748b;display:block;margin-bottom:4px;margin-top:6px">Preço (R$)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="ma-preco" type="number" min="0" step="0.01" placeholder="0,00"
+            style="flex:1;border:0.5px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;box-sizing:border-box"/>
+          <button type="button" onclick="_maAbrirConcorrencia()"
+            style="display:inline-flex;align-items:center;gap:5px;background:#fff7ed;color:#c2410c;border:0.5px solid #fed7aa;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">
+            <i class="ti ti-chart-bar" style="font-size:14px" aria-hidden="true"></i> Concorrência
+          </button>
+        </div>
       </div>
 
       <!-- STEP 4: Confirmação -->
@@ -7875,6 +7891,7 @@ function salvarEdicao() {
     document.getElementById('ma-busca-prod').value = '';
     document.getElementById('ma-validade').value = '';
     document.getElementById('ma-qtde').value = '';
+    document.getElementById('ma-preco').value = '';
     _maIrStep(1);
     _maRenderLojas('');
     document.getElementById('meAjudaModal').classList.remove('hidden');
@@ -7992,6 +8009,19 @@ function salvarEdicao() {
     }).join('');
   }
 
+  window._maPreencherEAN = function(ean) {
+    const p = catalogo.find(x => x.ean === ean);
+    if (p) {
+      _maSelecionarProd(p.id);
+      showToast('✅ Produto identificado: '+p.nome,'#166534');
+    } else {
+      // EAN não encontrado no catálogo — preenche o campo de busca
+      const inp = document.getElementById('ma-busca-prod');
+      if (inp) { inp.value = ean; _maRenderProdutos(ean); }
+      showToast('⚠️ EAN não encontrado no catálogo.','#92400e');
+    }
+  };
+
   window._maSelecionarProd = function(id) {
     const p = catalogo.find(x => x.id === id);
     if (!p) return;
@@ -8004,22 +8034,41 @@ function salvarEdicao() {
     if (!_maProdObj) { showToast('⚠️ Selecione um produto.','#92400e'); return; }
     document.getElementById('ma-prod-tag').textContent = _maProdObj.nome + ' · ' + (_maProdObj.fabrica||'');
     document.getElementById('ma-und-label').textContent = _maProdObj.und || '';
-    const shelf = _maProdObj.shelfLife;
-    document.getElementById('ma-shelf-info').innerHTML =
-      `<i class="ti ti-info-circle" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Shelf life: <strong>${shelf||'—'}</strong> dias${_maProdObj.qtdeCaixa?' · '+_maProdObj.qtdeCaixa+' '+(_maProdObj.und||'')+'  por caixa':''}`;
+    const caixaEl = document.getElementById('ma-caixa-info');
+    if (_maProdObj.qtdeCaixa && _maProdObj.und) {
+      caixaEl.style.display = 'block';
+      caixaEl.innerHTML = `<i class="ti ti-info-circle" style="font-size:11px;vertical-align:-1px" aria-hidden="true"></i> ${_maProdObj.qtdeCaixa} ${_maProdObj.und} por caixa`;
+    } else { caixaEl.style.display = 'none'; }
     document.getElementById('ma-val-warn').style.display = 'none';
     document.getElementById('ma-val-ok').style.display = 'none';
     _maIrStep(3);
   }
 
-  // STEP 3 — Validação de data
+  window._maAbrirConcorrencia = function() {
+    // Pré-preenche o preço no campo do formulário principal e abre o modal de concorrência
+    const preco = document.getElementById('ma-preco').value;
+    const fPreco = document.getElementById('f_preco');
+    if (fPreco && preco) fPreco.value = preco;
+    abrirModalConcorrencia();
+  };
+
+  // STEP 3 — Validação de data (DD/MM/AAAA)
+  function _maParseData(str) {
+    if (!str || str.length < 10) return null;
+    const [d,m,y] = str.split('/');
+    if (!d||!m||!y||y.length<4) return null;
+    const dt = new Date(Number(y), Number(m)-1, Number(d));
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+
   window._maValidarData = function() {
     const v = document.getElementById('ma-validade').value;
     const warn = document.getElementById('ma-val-warn');
     const ok   = document.getElementById('ma-val-ok');
-    if (!v || !_maProdObj) { warn.style.display='none'; ok.style.display='none'; return; }
+    if (!v || v.length < 10 || !_maProdObj) { warn.style.display='none'; ok.style.display='none'; return; }
+    const dt = _maParseData(v);
+    if (!dt) { warn.style.display='none'; ok.style.display='none'; return; }
     const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const dt   = new Date(v);
     const dias = Math.round((dt - hoje) / 86400000);
     const shelf = Number(_maProdObj.shelfLife) || 0;
     if (dias < 0) {
@@ -8037,22 +8086,23 @@ function salvarEdicao() {
   function _maProxStep4() {
     const v = document.getElementById('ma-validade').value;
     const q = document.getElementById('ma-qtde').value;
-    if (!v) { showToast('⚠️ Informe a data de validade.','#92400e'); return; }
+    if (!v || v.length < 10) { showToast('⚠️ Informe a data de validade.','#92400e'); return; }
+    const dt = _maParseData(v);
+    if (!dt) { showToast('⚠️ Data inválida. Use DD/MM/AAAA.','#92400e'); return; }
     if (!q || Number(q) <= 0) { showToast('⚠️ Informe a quantidade.','#92400e'); return; }
-    // Montar resumo
-    const dt   = new Date(v);
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const dias = Math.round((dt - hoje) / 86400000);
-    const fmt  = dt.toLocaleDateString('pt-BR');
     const cor  = dias < 0 ? '#dc2626' : dias <= 20 ? '#b45309' : '#15803d';
+    const preco = document.getElementById('ma-preco').value;
     const linhas = [
       ['Loja',    esc(_maLojaObj.nome)],
       ['Rede',    esc(_maLojaObj.rede||'—')],
       ['Produto', `<strong>${esc(_maProdObj.nome)}</strong>`],
       ['Fábrica', esc(_maProdObj.fabrica||'—')],
       _maProdObj._codRede ? ['Cód. rede', `<span style="font-family:monospace">${esc(_maProdObj._codRede)}</span>`] : null,
-      ['Validade', `<span style="color:${cor};font-weight:500">${fmt}</span>`],
+      ['Validade', `<span style="color:${cor};font-weight:500">${v}</span>`],
       ['Quantidade', esc(q)+' '+esc(_maProdObj.und||'')],
+      preco ? ['Preço', 'R$ '+Number(preco).toFixed(2).replace('.',',')] : null,
     ].filter(Boolean);
     document.getElementById('ma-resumo').innerHTML = linhas.map((r,i) =>
       `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;${i<linhas.length-1?'border-bottom:0.5px solid #f1f5f9':''}">
@@ -8083,11 +8133,14 @@ function salvarEdicao() {
     if (fabHint) fabHint.style.display = 'none';
     // Preencher produto (chama _travarFabrica internamente)
     _confirmarProdutoForm(_maProdObj.nome, _maProdObj.ean||'', _maProdObj.codigo||'', _maProdObj.und||'');
-    // Preencher validade (converter YYYY-MM-DD → DD/MM/AAAA)
-    const [ano,mes,dia] = v.split('-');
-    document.getElementById('f_validade').value = dia+'/'+mes+'/'+ano;
-    // Preencher quantidade e UND
+    // Preencher validade (já em DD/MM/AAAA)
+    document.getElementById('f_validade').value = v;
+    // Preencher quantidade
     document.getElementById('f_quantidade').value = q;
+    // Preencher preço
+    const preco = document.getElementById('ma-preco').value;
+    const fPreco = document.getElementById('f_preco');
+    if (fPreco && preco) fPreco.value = preco;
     // Fechar modal e submeter
     fecharMeAjuda();
     // Scroll ao form e submeter
