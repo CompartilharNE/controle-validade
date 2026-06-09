@@ -185,7 +185,7 @@
     body.dark #mainApp h1, body.dark #mainApp h2 { color: #e2e8f0 !important; }
     body.dark #prodForm label { color: #e2e8f0 !important; }
     body.dark .text-blue-600 { color: #93c5fd !important; }
-    body.dark #btnMeAjuda { background: #0c2a52 !important; color: #93c5fd !important; border-color: #2563eb !important; }
+    body.dark #btnMeAjuda { background: #0c2a52 !important; color: #93c5fd !important; border-bottom-color: #061628 !important; box-shadow: 0 4px 12px rgba(12,42,82,.6) !important; }
     body.dark #btnConcorrencia { background: #2d0908 !important; color: #fca5a5 !important; border-color: #991b1b !important; }
   </style>
 </head>
@@ -715,8 +715,8 @@
     <div class="bg-white rounded-2xl shadow p-4 mb-6">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <h2 class="text-base font-semibold" style="color:#1e3a5f">➕ Adicionar Produto</h2>
-        <button id="btnMeAjuda" onclick="abrirMeAjuda()" style="display:inline-flex;align-items:center;background:#eff6ff;color:#1e3a5f;border:1.5px solid #bfdbfe;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s;letter-spacing:.4px;text-transform:uppercase">
-          ME AJUDA
+        <button id="btnMeAjuda" onclick="abrirMeAjuda()" style="display:inline-flex;align-items:center;gap:7px;background:#1e3a5f;color:#fff;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase;box-shadow:0 4px 12px rgba(30,58,95,.45);transition:box-shadow .15s,transform .1s">
+          <i class="ti ti-help-circle" style="font-size:16px" aria-hidden="true"></i> ME AJUDA
         </button>
       </div>
       <form id="prodForm" class="grid grid-cols-2 gap-3">
@@ -875,8 +875,11 @@
         <div class="flex flex-col gap-1 col-span-2">
           <label class="text-sm font-semibold" style="color:#272a4a">Validade *</label>
           <input id="f_validade" type="text" placeholder="DD/MM/AAAA"
-            maxlength="10" inputmode="numeric" oninput="mascaraData(this)"
+            maxlength="10" inputmode="numeric" oninput="mascaraData(this);_validarDataForm()"
             class="border border-slate-300 rounded-lg px-3 py-2 text-sm" required />
+          <div id="f_val_warn" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:8px 10px;font-size:12px;color:#991b1b;margin-top:2px"></div>
+          <div id="f_val_warn_y" style="display:none;background:#fef9c3;border:1px solid #fde047;border-radius:6px;padding:8px 10px;font-size:12px;color:#854d0e;margin-top:2px"></div>
+          <div id="f_val_ok" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:8px 10px;font-size:12px;color:#15803d;margin-top:2px"></div>
         </div>
 
         <div class="flex flex-col gap-1 col-span-2">
@@ -1931,7 +1934,8 @@
             oninput="mascaraData(this);_maValidarData()"
             style="width:100%;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:15px;box-sizing:border-box;background:#fff"/>
         </div>
-        <div id="ma-val-warn" style="display:none;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px 12px;font-size:13px;color:#854d0e"></div>
+        <div id="ma-val-warn" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px 12px;font-size:13px;color:#991b1b"></div>
+        <div id="ma-val-warn-y" style="display:none;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px 12px;font-size:13px;color:#854d0e"></div>
         <div id="ma-val-ok" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;font-size:13px;color:#15803d"></div>
         <div>
           <div style="font-size:15px;font-weight:500;color:#272a4a;margin-bottom:8px">Quantidade <span style="font-size:14px;color:#d82621">*</span></div>
@@ -4068,6 +4072,46 @@ function _onBlurFabrica() {
   }, 150);
 }
 
+function _validarDataForm() {
+  const v = document.getElementById('f_validade').value;
+  const warn  = document.getElementById('f_val_warn');
+  const warnY = document.getElementById('f_val_warn_y');
+  const ok    = document.getElementById('f_val_ok');
+  const inp   = document.getElementById('f_validade');
+  if (!warn || !ok) return;
+  const hide = () => {
+    warn.style.display='none'; warnY.style.display='none'; ok.style.display='none';
+    inp.style.borderColor=''; inp.style.background='';
+  };
+  if (!v || v.length < 10) { hide(); return; }
+  const parts = v.split('/');
+  if (parts.length < 3) { hide(); return; }
+  const dt = new Date(Number(parts[2]), Number(parts[1])-1, Number(parts[0]));
+  if (isNaN(dt.getTime())) { hide(); return; }
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const dias = Math.round((dt - hoje) / 86400000);
+  const prodNome = (document.getElementById('f_produto')?.value || '').trim();
+  const cat = catalogo.find(p => p.nome === prodNome);
+  const shelf = cat ? (Number(cat.shelfLife) || 0) : 0;
+  if (dias < 0) {
+    warn.style.display='block'; warnY.style.display='none'; ok.style.display='none';
+    warn.innerHTML = '<i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Produto já vencido ('+Math.abs(dias)+' dia(s) atrás).';
+    inp.style.borderColor='#fca5a5'; inp.style.background='#fff5f5';
+  } else if (dias <= 20) {
+    warnY.style.display='block'; warn.style.display='none'; ok.style.display='none';
+    warnY.innerHTML = '<i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Vence em '+dias+' dia(s) — atenção!';
+    inp.style.borderColor='#fde047'; inp.style.background='';
+  } else if (shelf && dias > shelf * 1.1) {
+    warnY.style.display='block'; warn.style.display='none'; ok.style.display='none';
+    warnY.innerHTML = '<i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Data acima do shelf life de '+shelf+' dias. Verifique antes de continuar.';
+    inp.style.borderColor='#fde047'; inp.style.background='';
+  } else {
+    ok.style.display='block'; warn.style.display='none'; warnY.style.display='none';
+    ok.innerHTML = '<i class="ti ti-check" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Validade dentro do shelf life ('+dias+' dia(s) restante(s)).';
+    inp.style.borderColor='#bbf7d0'; inp.style.background='';
+  }
+}
+
 function _travarFabrica() {
   const el = document.getElementById('f_fabrica');
   if (!el) return;
@@ -4126,6 +4170,9 @@ function _limparProdutoForm() {
   document.getElementById('f_und_hint').style.display = 'none';
   const caixaEl2 = document.getElementById('f_caixa_info');
   if (caixaEl2) caixaEl2.style.display = 'none';
+  // Resetar feedback de validade ao trocar produto
+  ['f_val_warn','f_val_warn_y','f_val_ok'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+  const fv = document.getElementById('f_validade'); if(fv) { fv.style.borderColor=''; fv.style.background=''; }
   _liberarFabrica();
   _fecharSugestoesProduto();
   setTimeout(() => { const b = document.getElementById('f_produto_busca'); if(b) b.focus(); }, 50);
@@ -4324,7 +4371,7 @@ function _confirmarLoja(nome, rede, uf, cnpj) {
   _fecharSugestoesLoja();
   document.getElementById('f_loja_input_wrap').style.display = 'none';
   document.getElementById('f_loja_card_nome').textContent = nome;
-  document.getElementById('f_loja_card_info').textContent = [rede,uf].filter(Boolean).join(' · ') + (cnpj ? ' — '+cnpj : '');
+  document.getElementById('f_loja_card_info').textContent = rede || '';
   document.getElementById('f_loja_card').style.display = 'flex';
   // Mostrar aviso de filtro por rede
   const aviso = document.getElementById('f_filtro_rede_aviso');
@@ -8412,6 +8459,7 @@ function salvarEdicao() {
       caixaEl.innerHTML = `<i class="ti ti-info-circle" style="font-size:11px;vertical-align:-1px" aria-hidden="true"></i> ${_maProdObj.qtdeCaixa} ${_maProdObj.und} por caixa`;
     } else { caixaEl.style.display = 'none'; }
     document.getElementById('ma-val-warn').style.display = 'none';
+    document.getElementById('ma-val-warn-y').style.display = 'none';
     document.getElementById('ma-val-ok').style.display = 'none';
     _maIrStep(3);
   }
@@ -8434,24 +8482,34 @@ function salvarEdicao() {
   }
 
   window._maValidarData = function() {
-    const v = document.getElementById('ma-validade').value;
+    const v    = document.getElementById('ma-validade').value;
     const warn = document.getElementById('ma-val-warn');
+    const warnY= document.getElementById('ma-val-warn-y');
     const ok   = document.getElementById('ma-val-ok');
-    if (!v || v.length < 10 || !_maProdObj) { warn.style.display='none'; ok.style.display='none'; return; }
+    const inp  = document.getElementById('ma-validade');
+    const hide = () => { warn.style.display='none'; warnY.style.display='none'; ok.style.display='none'; inp.style.borderColor=''; };
+    if (!v || v.length < 10 || !_maProdObj) { hide(); return; }
     const dt = _maParseData(v);
-    if (!dt) { warn.style.display='none'; ok.style.display='none'; return; }
+    if (!dt) { hide(); return; }
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const dias = Math.round((dt - hoje) / 86400000);
     const shelf = Number(_maProdObj.shelfLife) || 0;
     if (dias < 0) {
-      warn.style.display='block'; ok.style.display='none';
+      warn.style.display='block'; warnY.style.display='none'; ok.style.display='none';
       warn.innerHTML = '<i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Produto já vencido ('+Math.abs(dias)+' dia(s) atrás).';
+      inp.style.borderColor='#fca5a5';
+    } else if (dias <= 20) {
+      warnY.style.display='block'; warn.style.display='none'; ok.style.display='none';
+      warnY.innerHTML = '<i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Vence em '+dias+' dia(s) — atenção!';
+      inp.style.borderColor='#fde047';
     } else if (shelf && dias > shelf * 1.1) {
-      warn.style.display='block'; ok.style.display='none';
-      warn.innerHTML = '<i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Data acima do shelf life de '+shelf+' dias. Verifique antes de continuar.';
+      warnY.style.display='block'; warn.style.display='none'; ok.style.display='none';
+      warnY.innerHTML = '<i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Data acima do shelf life de '+shelf+' dias. Verifique antes de continuar.';
+      inp.style.borderColor='#fde047';
     } else {
-      ok.style.display='block'; warn.style.display='none';
+      ok.style.display='block'; warn.style.display='none'; warnY.style.display='none';
       ok.innerHTML = '<i class="ti ti-check" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Validade dentro do shelf life ('+dias+' dia(s) restante(s)).';
+      inp.style.borderColor='#bbf7d0';
     }
   };
 
@@ -8510,6 +8568,7 @@ function salvarEdicao() {
     _confirmarProdutoForm(_maProdObj.nome, _maProdObj.ean||'', _maProdObj.codigo||'', _maProdObj.und||'');
     // Preencher validade (já em DD/MM/AAAA)
     document.getElementById('f_validade').value = v;
+    _validarDataForm();
     // Preencher quantidade
     document.getElementById('f_quantidade').value = q;
     // Preencher preço (converte "12,90" → "12.90" para o campo numérico)
