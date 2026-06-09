@@ -3957,7 +3957,13 @@ function _filtrarSugestoesProduto(texto) {
   const rede = lojaObj ? (lojaObj.rede || '') : '';
 
   let lista = catalogo;
-  if (rede) lista = lista.filter(p => (p.codigosRedes||{})[rede]);
+  if (rede) {
+    const redeNorm = normTxt(rede);
+    lista = lista.filter(p => {
+      const codes = p.codigosRedes || {};
+      return Object.keys(codes).some(k => normTxt(k) === redeNorm && codes[k]);
+    });
+  }
   if (fabrica) lista = lista.filter(p => (p.fabrica || '') === fabrica);
   if (busca) lista = lista.filter(p =>
     p.nome.toLowerCase().includes(busca) ||
@@ -8217,6 +8223,15 @@ function salvarEdicao() {
   // STEP 2 — Produtos
   window._maFiltrarProdutos = function(q) { _maRenderProdutos(q); };
 
+  // Busca código de rede com comparação normalizada (ignora acentos e maiúsculas)
+  function _maGetCodRede(p, rede) {
+    if (!rede) return '';
+    const codes = p.codigosRedes || {};
+    const redeNorm = normTxt(rede);
+    const key = Object.keys(codes).find(k => normTxt(k) === redeNorm);
+    return key ? (codes[key] || '') : '';
+  }
+
   function _maRenderProdutos(q) {
     const el = document.getElementById('ma-lista-prods');
     if (!q || !q.trim()) { el.innerHTML = ''; return; }
@@ -8224,7 +8239,7 @@ function salvarEdicao() {
     const rede = (_maLojaObj && _maLojaObj.rede) || '';
     const qn = q.toLowerCase();
     let lista = catalogo.map(p => {
-      const codRede = rede ? (p.codigosRedes||{})[rede] || '' : '';
+      const codRede = _maGetCodRede(p, rede);
       return {...p, _codRede: codRede};
     });
     if (_maFabricaSel) lista = lista.filter(p => (p.fabrica||'') === _maFabricaSel);
@@ -8268,7 +8283,7 @@ function salvarEdicao() {
     const p = catalogo.find(x => x.id === id);
     if (!p) return;
     const rede = (_maLojaObj && _maLojaObj.rede) || '';
-    _maProdObj = {...p, _codRede: (p.codigosRedes||{})[rede] || ''};
+    _maProdObj = {...p, _codRede: _maGetCodRede(p, rede)};
     // Mostra card verde acima, esconde busca
     document.getElementById('ma-prod-sel-nome').textContent = _maProdObj.nome;
     document.getElementById('ma-prod-sel-sub').textContent  = (_maProdObj.fabrica||'') + (_maProdObj._codRede ? ' · Cód: ' + _maProdObj._codRede : '');
