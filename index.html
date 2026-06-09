@@ -1834,14 +1834,22 @@
         </div>
         <div>
           <label style="font-size:13px;font-weight:500;color:#334155;display:block;margin-bottom:8px">🔍 Buscar loja</label>
-          <input id="ma-busca-loja" type="text" placeholder="Digite o nome da loja..." oninput="_maFiltrarLojas(this.value)"
-            style="width:100%;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:15px;box-sizing:border-box;background:#fff"/>
+          <!-- Selecionada (aparece acima, esconde busca) -->
+          <div id="ma-loja-sel" style="display:none;align-items:center;gap:12px;padding:12px 14px;border:2px solid #bbf7d0;border-radius:10px;background:#f0fdf4;margin-bottom:8px">
+            <i class="ti ti-check" style="font-size:20px;color:#15803d;flex-shrink:0" aria-hidden="true"></i>
+            <div style="flex:1;min-width:0">
+              <div id="ma-loja-sel-nome" style="font-size:14px;font-weight:500;color:#15803d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+              <div id="ma-loja-sel-rede" style="font-size:12px;color:#16a34a;margin-top:2px"></div>
+            </div>
+            <button type="button" onclick="_maLimparLoja()" style="background:none;border:none;cursor:pointer;color:#15803d;font-size:22px;line-height:1;padding:0;opacity:.8;flex-shrink:0" aria-label="remover loja">×</button>
+          </div>
+          <!-- Busca (some ao selecionar) -->
+          <div id="ma-loja-search">
+            <input id="ma-busca-loja" type="text" placeholder="Digite o nome da loja..." oninput="_maFiltrarLojas(this.value)"
+              style="width:100%;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:15px;box-sizing:border-box;background:#fff;margin-bottom:8px"/>
+            <div id="ma-lista-lojas" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
         </div>
-        <div id="ma-lista-lojas-hint" style="text-align:center;padding:20px 0;color:#94a3b8;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px">
-          <i class="ti ti-search" style="font-size:28px;color:#cbd5e1" aria-hidden="true"></i>
-          <span>Digite para buscar a loja</span>
-        </div>
-        <div id="ma-lista-lojas" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
 
       <!-- STEP 2: Produto -->
@@ -1859,40 +1867,46 @@
         <!-- Filtro de fábrica -->
         <div>
           <label style="font-size:13px;font-weight:500;color:#334155;display:block;margin-bottom:8px">🏭 Fábrica <span style="font-size:11px;font-weight:400;color:#94a3b8">(opcional)</span></label>
-          <div style="position:relative">
-            <input id="ma-busca-fab" type="text" placeholder="Digite a fábrica..." oninput="_maFiltrarFabrica(this.value)"
-              style="width:100%;border:2px solid #e2e8f0;border-radius:10px;padding:12px 40px 12px 14px;font-size:15px;box-sizing:border-box;background:#fff"/>
-            <i class="ti ti-building-factory-2" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:#94a3b8;pointer-events:none" aria-hidden="true"></i>
+          <!-- Selecionada (aparece acima, esconde busca) -->
+          <div id="ma-fab-selecionada" style="display:none;align-items:center;gap:8px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:10px 14px;margin-bottom:0;font-size:14px;font-weight:500;color:#15803d">
+            <i class="ti ti-check" style="font-size:16px;flex-shrink:0" aria-hidden="true"></i>
+            <span id="ma-fab-chip-label" style="flex:1"></span>
+            <button type="button" onclick="_maLimparFabrica()" style="background:none;border:none;cursor:pointer;color:#15803d;padding:0;font-size:20px;line-height:1;opacity:.8" aria-label="remover fábrica">×</button>
           </div>
-          <div id="ma-fab-hint" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 0;gap:6px;color:#94a3b8">
-            <i class="ti ti-building-factory-2" style="font-size:24px;color:#cbd5e1" aria-hidden="true"></i>
-            <span style="font-size:13px">Digite para filtrar por fábrica</span>
-          </div>
-          <div id="ma-lista-fab" style="display:none;flex-direction:column;gap:6px;margin-top:6px"></div>
-          <div id="ma-fab-selecionada" style="display:none;margin-top:8px">
-            <span style="display:inline-flex;align-items:center;gap:8px;background:#f0fdf4;color:#15803d;border:1.5px solid #bbf7d0;border-radius:10px;padding:9px 14px;font-size:14px;font-weight:500">
-              <i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>
-              <span id="ma-fab-chip-label"></span>
-              <button type="button" onclick="_maLimparFabrica()" style="background:none;border:none;cursor:pointer;color:#15803d;padding:0;font-size:18px;line-height:1;opacity:.8;margin-left:2px" aria-label="remover fábrica">×</button>
-            </span>
+          <!-- Busca (some ao selecionar) -->
+          <div id="ma-fab-search">
+            <div style="position:relative">
+              <input id="ma-busca-fab" type="text" placeholder="Digite a fábrica..." oninput="_maFiltrarFabrica(this.value)"
+                style="width:100%;border:2px solid #e2e8f0;border-radius:10px;padding:12px 40px 12px 14px;font-size:15px;box-sizing:border-box;background:#fff"/>
+              <i class="ti ti-building-factory-2" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:#94a3b8;pointer-events:none" aria-hidden="true"></i>
+            </div>
+            <div id="ma-lista-fab" style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div>
           </div>
         </div>
         <!-- Busca de produto -->
         <div style="border-top:1.5px solid #e2e8f0;padding-top:14px">
           <label style="font-size:13px;font-weight:500;color:#334155;display:block;margin-bottom:8px">📦 Produto</label>
-          <div style="display:flex;gap:8px;margin-bottom:8px">
-            <input id="ma-busca-prod" type="text" placeholder="Nome, EAN ou código..." oninput="_maFiltrarProdutos(this.value)"
-              style="flex:1;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:15px;box-sizing:border-box;min-width:0;background:#fff"/>
-            <button type="button" onclick="abrirScanner(_maPreencherEAN)" title="Escanear código de barras"
-              style="flex-shrink:0;width:46px;height:46px;background:#1e3a5f;border:none;border-radius:10px;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center">
-              <i class="ti ti-camera" style="font-size:22px" aria-hidden="true"></i>
-            </button>
+          <!-- Selecionado (aparece acima, esconde busca) -->
+          <div id="ma-prod-sel" style="display:none;align-items:center;gap:12px;padding:12px 14px;border:2px solid #bbf7d0;border-radius:10px;background:#f0fdf4;margin-bottom:8px">
+            <i class="ti ti-check" style="font-size:20px;color:#15803d;flex-shrink:0" aria-hidden="true"></i>
+            <div style="flex:1;min-width:0">
+              <div id="ma-prod-sel-nome" style="font-size:14px;font-weight:500;color:#15803d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+              <div id="ma-prod-sel-sub" style="font-size:12px;color:#16a34a;margin-top:2px"></div>
+            </div>
+            <button type="button" onclick="_maLimparProd()" style="background:none;border:none;cursor:pointer;color:#15803d;font-size:22px;line-height:1;padding:0;opacity:.8;flex-shrink:0" aria-label="remover produto">×</button>
           </div>
-          <div id="ma-prod-hint" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 0;gap:6px;color:#94a3b8">
-            <i class="ti ti-search" style="font-size:24px;color:#cbd5e1" aria-hidden="true"></i>
-            <span style="font-size:13px">Digite para buscar o produto</span>
+          <!-- Busca (some ao selecionar) -->
+          <div id="ma-prod-search">
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <input id="ma-busca-prod" type="text" placeholder="Nome, EAN ou código..." oninput="_maFiltrarProdutos(this.value)"
+                style="flex:1;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:15px;box-sizing:border-box;min-width:0;background:#fff"/>
+              <button type="button" onclick="abrirScanner(_maPreencherEAN)" title="Escanear código de barras"
+                style="flex-shrink:0;width:46px;height:46px;background:#1e3a5f;border:none;border-radius:10px;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center">
+                <i class="ti ti-camera" style="font-size:22px" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div id="ma-lista-prods" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
-          <div id="ma-lista-prods" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
       </div>
 
@@ -1927,11 +1941,14 @@
         </div>
         <div>
           <label style="font-size:13px;font-weight:500;color:#334155;display:block;margin-bottom:8px">💰 Preço (R$)</label>
-          <div style="display:flex;gap:10px;align-items:center">
-            <input id="ma-preco" type="number" min="0" step="0.01" placeholder="0,00"
-              style="flex:1;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:15px;box-sizing:border-box;background:#fff"/>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="display:flex;align-items:center;background:#fff;border:2px solid #e2e8f0;border-radius:10px;padding:0 12px;flex:0 0 120px">
+              <span style="font-size:13px;color:#94a3b8;margin-right:4px;flex-shrink:0">R$</span>
+              <input id="ma-preco" type="number" min="0" step="0.01" placeholder="0,00"
+                style="border:none;outline:none;width:100%;font-size:15px;padding:12px 0;background:transparent;color:#1e293b;min-width:0"/>
+            </div>
             <button type="button" onclick="_maAbrirConcorrencia()"
-              style="display:inline-flex;align-items:center;gap:6px;background:#fff7ed;color:#c2410c;border:1.5px solid #fed7aa;border-radius:10px;padding:12px 14px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap">
+              style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff7ed;color:#c2410c;border:1.5px solid #fed7aa;border-radius:10px;padding:12px 10px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap">
               <i class="ti ti-chart-bar" style="font-size:16px" aria-hidden="true"></i> Concorrência
             </button>
           </div>
@@ -8011,33 +8028,13 @@ function salvarEdicao() {
 
   function _maRenderLojas(q) {
     const qn = (q||'').toLowerCase();
-    const hint = document.getElementById('ma-lista-lojas-hint');
-    const el   = document.getElementById('ma-lista-lojas');
-    // Se tem loja selecionada, mostra só ela em verde com X
-    if (_maLojaObj) {
-      if (hint) hint.style.display = 'none';
-      const l = _maLojaObj;
-      el.innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid #bbf7d0;border-radius:10px;background:#f0fdf4">
-        <i class="ti ti-check" style="font-size:20px;color:#15803d;flex-shrink:0" aria-hidden="true"></i>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:500;color:#15803d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.nome)}</div>
-          <div style="font-size:12px;color:#16a34a;margin-top:2px">${esc(l.rede||'—')}</div>
-        </div>
-        <button type="button" onclick="_maLimparLoja()" style="background:none;border:none;cursor:pointer;color:#15803d;font-size:22px;line-height:1;padding:0;opacity:.8;flex-shrink:0" aria-label="remover loja">×</button>
-      </div>`;
-      return;
-    }
-    if (!qn) {
-      if (hint) hint.style.display = 'flex';
-      el.innerHTML = '';
-      return;
-    }
-    if (hint) hint.style.display = 'none';
+    const el  = document.getElementById('ma-lista-lojas');
+    if (!qn) { el.innerHTML = ''; return; }
     const ufSessao = (sessao && sessao.uf) ? sessao.uf : '';
     let lista = lojas;
     if (ufSessao) lista = lista.filter(l => !l.uf || l.uf === ufSessao);
     lista = lista.filter(l => l.nome.toLowerCase().includes(qn) || (l.rede||'').toLowerCase().includes(qn));
-    if (!lista.length) { el.innerHTML = '<p style="font-size:12px;color:#94a3b8;text-align:center;padding:12px 0">Nenhuma loja encontrada.</p>'; return; }
+    if (!lista.length) { el.innerHTML = '<p style="font-size:13px;color:#94a3b8;text-align:center;padding:12px 0">Nenhuma loja encontrada.</p>'; return; }
     el.innerHTML = lista.slice(0,30).map(l =>
       `<div onclick="_maSelecionarLoja(${l.id})" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer">
         <i class="ti ti-building-store" style="font-size:20px;color:#16a34a;flex-shrink:0" aria-hidden="true"></i>
@@ -8051,12 +8048,21 @@ function salvarEdicao() {
 
   window._maSelecionarLoja = function(id) {
     _maLojaObj = lojas.find(l => l.id === id) || null;
-    _maRenderLojas(document.getElementById('ma-busca-loja').value);
+    if (!_maLojaObj) return;
+    // Mostra card verde acima, esconde busca
+    const sel = document.getElementById('ma-loja-sel');
+    sel.style.display = 'flex';
+    document.getElementById('ma-loja-sel-nome').textContent = _maLojaObj.nome;
+    document.getElementById('ma-loja-sel-rede').textContent = _maLojaObj.rede || '';
+    document.getElementById('ma-loja-search').style.display = 'none';
   };
 
   window._maLimparLoja = function() {
     _maLojaObj = null;
-    _maRenderLojas(document.getElementById('ma-busca-loja').value);
+    document.getElementById('ma-loja-sel').style.display = 'none';
+    document.getElementById('ma-loja-search').style.display = 'block';
+    document.getElementById('ma-busca-loja').value = '';
+    document.getElementById('ma-lista-lojas').innerHTML = '';
   };
 
   function _maProxStep2() {
@@ -8065,13 +8071,16 @@ function salvarEdicao() {
     _maFabricaSel = null;
     const rede = _maLojaObj.rede || '';
     document.getElementById('ma-loja-tag').innerHTML =
-      `<i class="ti ti-building-store" style="font-size:13px" aria-hidden="true"></i> ${esc(_maLojaObj.nome)}${rede?' <span style="opacity:.7">· '+esc(rede)+'</span>':''}`;
-    document.getElementById('ma-busca-prod').value = '';
-    document.getElementById('ma-busca-fab').value = '';
-    document.getElementById('ma-fab-hint').style.display = 'flex';
-    document.getElementById('ma-lista-fab').style.display = 'none';
+      `<i class="ti ti-building-store" style="font-size:16px" aria-hidden="true"></i> ${esc(_maLojaObj.nome)}${rede?' <span style="opacity:.7;margin-left:4px">· '+esc(rede)+'</span>':''}`;
+    // Reset fábrica
     document.getElementById('ma-fab-selecionada').style.display = 'none';
-    document.getElementById('ma-prod-hint').style.display = 'flex';
+    document.getElementById('ma-fab-search').style.display = 'block';
+    document.getElementById('ma-busca-fab').value = '';
+    document.getElementById('ma-lista-fab').innerHTML = '';
+    // Reset produto
+    document.getElementById('ma-prod-sel').style.display = 'none';
+    document.getElementById('ma-prod-search').style.display = 'block';
+    document.getElementById('ma-busca-prod').value = '';
     document.getElementById('ma-lista-prods').innerHTML = '';
     _maIrStep(2);
   }
@@ -8104,19 +8113,18 @@ function salvarEdicao() {
 
   window._maSelecionarFabrica = function(f) {
     _maFabricaSel = f;
-    document.getElementById('ma-busca-fab').value = '';
-    document.getElementById('ma-fab-hint').style.display = 'flex';
-    document.getElementById('ma-lista-fab').style.display = 'none';
     document.getElementById('ma-fab-chip-label').textContent = f;
-    document.getElementById('ma-fab-selecionada').style.display = 'block';
+    document.getElementById('ma-fab-selecionada').style.display = 'flex';
+    document.getElementById('ma-fab-search').style.display = 'none';
     _maRenderProdutos(document.getElementById('ma-busca-prod').value);
   };
 
   window._maLimparFabrica = function() {
     _maFabricaSel = null;
     document.getElementById('ma-fab-selecionada').style.display = 'none';
+    document.getElementById('ma-fab-search').style.display = 'block';
     document.getElementById('ma-busca-fab').value = '';
-    document.getElementById('ma-fab-hint').style.display = 'flex';
+    document.getElementById('ma-lista-fab').innerHTML = '';
     _maRenderProdutos(document.getElementById('ma-busca-prod').value);
   };
 
@@ -8124,28 +8132,9 @@ function salvarEdicao() {
   window._maFiltrarProdutos = function(q) { _maRenderProdutos(q); };
 
   function _maRenderProdutos(q) {
-    const hint = document.getElementById('ma-prod-hint');
-    const el   = document.getElementById('ma-lista-prods');
-    if (!q || !q.trim()) {
-      hint.style.display = 'flex';
-      el.innerHTML = '';
-      return;
-    }
-    // Se tem produto selecionado, mostra só ele em verde com X
-    if (_maProdObj) {
-      hint.style.display = 'none';
-      const p = _maProdObj;
-      el.innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid #bbf7d0;border-radius:10px;background:#f0fdf4">
-        <i class="ti ti-check" style="font-size:20px;color:#15803d;flex-shrink:0" aria-hidden="true"></i>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:500;color:#15803d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.nome)}</div>
-          <div style="font-size:12px;color:#16a34a;margin-top:2px">${esc(p.fabrica||'—')}${p._codRede?' · <span style="font-weight:500">Cód: '+esc(p._codRede)+'</span>':''}</div>
-        </div>
-        <button type="button" onclick="_maLimparProd()" style="background:none;border:none;cursor:pointer;color:#15803d;font-size:22px;line-height:1;padding:0;opacity:.8;flex-shrink:0" aria-label="remover produto">×</button>
-      </div>`;
-      return;
-    }
-    hint.style.display = 'none';
+    const el = document.getElementById('ma-lista-prods');
+    if (!q || !q.trim()) { el.innerHTML = ''; return; }
+    if (_maProdObj) return;
     const rede = (_maLojaObj && _maLojaObj.rede) || '';
     const qn = q.toLowerCase();
     let lista = catalogo.map(p => {
@@ -8194,12 +8183,19 @@ function salvarEdicao() {
     if (!p) return;
     const rede = (_maLojaObj && _maLojaObj.rede) || '';
     _maProdObj = {...p, _codRede: (p.codigosRedes||{})[rede] || ''};
-    _maRenderProdutos(document.getElementById('ma-busca-prod').value);
+    // Mostra card verde acima, esconde busca
+    document.getElementById('ma-prod-sel-nome').textContent = _maProdObj.nome;
+    document.getElementById('ma-prod-sel-sub').textContent  = (_maProdObj.fabrica||'') + (_maProdObj._codRede ? ' · Cód: ' + _maProdObj._codRede : '');
+    document.getElementById('ma-prod-sel').style.display    = 'flex';
+    document.getElementById('ma-prod-search').style.display = 'none';
   };
 
   window._maLimparProd = function() {
     _maProdObj = null;
-    _maRenderProdutos(document.getElementById('ma-busca-prod').value);
+    document.getElementById('ma-prod-sel').style.display    = 'none';
+    document.getElementById('ma-prod-search').style.display = 'block';
+    document.getElementById('ma-busca-prod').value = '';
+    document.getElementById('ma-lista-prods').innerHTML = '';
   };
 
   function _maProxStep3() {
