@@ -7428,7 +7428,8 @@ function setView(v) {
 // ── SELLOUT ───────────────────────────────────
 // ══════════════════════════════════════════════
 
-let _soUFs = new Set(); // UFs selecionadas (vazio = todas)
+const _ALL_UFS_SO = ['AL','BA','PB','PE','RN','SE'];
+let _soUFs = new Set(_ALL_UFS_SO); // UFs selecionadas
 
 function toggleFiltrosSellOut() {
   const body    = document.getElementById('filtrosSellOutBody');
@@ -7454,7 +7455,7 @@ function _soRenderUFChips() {
     const vend = usuarios.find(u => u.role === 'vendedor' && u.nome === vendNome);
     ufsDisp = (vend?.ufs || []).slice().sort();
   } else {
-    ufsDisp = [...new Set(produtos.map(p => p.uf).filter(Boolean))].sort();
+    ufsDisp = _ALL_UFS_SO.slice();
   }
   wrap.innerHTML = ufsDisp.map(uf => {
     const sel = _soUFs.has(uf);
@@ -7489,9 +7490,9 @@ function _soOnVendedorChange() {
   const vendNome = vendSel?.value || '';
   if (vendNome) {
     const vend = usuarios.find(u => u.role === 'vendedor' && u.nome === vendNome);
-    _soUFs = new Set(vend?.ufs || []);
+    _soUFs = new Set((vend?.ufs || []).slice().sort());
   } else {
-    _soUFs = new Set();
+    _soUFs = new Set(_ALL_UFS_SO);
   }
   renderSellOut();
 }
@@ -7523,7 +7524,7 @@ function renderSellOut() {
     const dias = diasRestantes(p.validade);
     if (dias < 10 || dias > 30) return false;
     if (fabFiltro && normTxt(p.fabrica || '') !== normTxt(fabFiltro)) return false;
-    if (ufsFiltro.size > 0 && !ufsFiltro.has(p.uf)) return false;
+    if (!ufsFiltro.has(p.uf)) return false;
     if (redeFiltro) {
       const redeDoLanc = lojaRedeMap[normTxt(p.loja || '')] || '';
       if (normTxt(redeDoLanc) !== normTxt(redeFiltro)) return false;
@@ -7618,7 +7619,7 @@ async function gerarExcelSellOut() {
     const dias = diasRestantes(p.validade);
     if (dias < 10 || dias > 30) return false;
     if (fabFiltro && normTxt(p.fabrica || '') !== normTxt(fabFiltro)) return false;
-    if (ufsFiltro.size > 0 && !ufsFiltro.has(p.uf)) return false;
+    if (!ufsFiltro.has(p.uf)) return false;
     if (redeFiltro) {
       const redeDoLanc = lojaRedeMap[normTxt(p.loja || '')] || '';
       if (normTxt(redeDoLanc) !== normTxt(redeFiltro)) return false;
@@ -7649,7 +7650,7 @@ async function gerarExcelSellOut() {
 
   showToast('⏳ Gerando Excel SellOut...','#1e3a8a');
 
-  const ufsStr  = ufsFiltro.size > 0 ? [...ufsFiltro].sort().join(', ') : 'Todas';
+  const ufsStr  = [...ufsFiltro].sort().join(', ') || 'Todas';
   const cliente = redeFiltro || 'Todas as Redes';
   const cols    = ['CLIENTE','LOJAS','COD. REDE','PRODUTO','CUSTO','R$ GONDOLA','QTDE KG/UND','VENCIMENTO','R$ AÇÃO','R$ SELLOUT','TOTAL'];
 
