@@ -186,7 +186,7 @@
     body.dark #prodForm label { color: #e2e8f0 !important; }
     body.dark .text-blue-600 { color: #93c5fd !important; }
     body.dark #btnMeAjuda { background: #0c2a52 !important; color: #93c5fd !important; border-bottom-color: #061628 !important; box-shadow: 0 4px 12px rgba(12,42,82,.6) !important; }
-    body.dark #btnConcorrencia { background: #2d0908 !important; color: #fca5a5 !important; border-color: #991b1b !important; }
+    body.dark #btnConcorrencia { background: #0c2a52 !important; color: #93c5fd !important; border-bottom-color: #061628 !important; box-shadow: 0 4px 12px rgba(12,42,82,.6) !important; }
   </style>
 </head>
 <body class="min-h-screen">
@@ -706,13 +706,33 @@
         <span id="cntWarn" onclick="abrirModalStatus('warning')" class="badge-warning text-xs font-semibold rounded-full px-3 py-1 cursor-pointer" title="Ver produtos em atenção">0 Atenção</span>
         <span id="cntOk" onclick="abrirModalStatus('ok')" class="badge-ok text-xs font-semibold rounded-full px-3 py-1 cursor-pointer" title="Ver produtos OK">0 OK</span>
         <span id="appUserBadge" class="bg-slate-200 text-slate-600 text-xs font-semibold rounded-full px-3 py-1"></span>
-        <button id="btnAdmin" onclick="abrirAdmin()" class="hidden text-white font-bold text-sm rounded-xl px-4 py-2 transition flex items-center gap-2" style="background:#27284a;" onmouseover="this.style.background='#1a1b33'" onmouseout="this.style.background='#27284a'"><i class="ti ti-layout-dashboard" style="font-size:18px" aria-hidden="true"></i> Cadastro</button>
-        <button id="btnSair" onclick="fazerLogout()" class="hidden text-white font-bold text-sm rounded-xl px-4 py-2 transition flex items-center gap-2" style="background:#d82621;position:absolute;top:0;right:0;" onmouseover="this.style.background='#b81e1a'" onmouseout="this.style.background='#d82621'"><i class="ti ti-logout" style="font-size:18px" aria-hidden="true"></i> Sair</button>
+        <button id="btnAdmin" onclick="abrirAdmin()" class="hidden text-white font-bold text-sm rounded-xl px-4 py-2 flex items-center gap-2" style="background:#1e3a5f;border:none;border-bottom:3px solid #0c1f35;box-shadow:0 4px 12px rgba(30,58,95,.45);cursor:pointer"><i class="ti ti-layout-dashboard" style="font-size:18px" aria-hidden="true"></i> Cadastro</button>
+        <button id="btnSair" onclick="fazerLogout()" class="hidden text-white font-bold text-sm rounded-xl px-4 py-2 flex items-center gap-2" style="background:#d82621;border:none;border-bottom:3px solid #8b1a16;box-shadow:0 4px 12px rgba(216,38,33,.4);position:absolute;top:0;right:0;cursor:pointer"><i class="ti ti-logout" style="font-size:18px" aria-hidden="true"></i> Sair</button>
       </div>
     </div>
 
+    <!-- Abas de navegação -->
+    <div id="viewToggleBar" class="hidden flex gap-2 mb-3 items-center">
+      <button id="btnViewProdutos" onclick="setView('produtos')"
+        style="background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 8px rgba(30,58,95,.35)">
+        <i class="ti ti-layout-list" style="font-size:14px" aria-hidden="true"></i> Produtos
+      </button>
+      <button id="btnViewLojas" onclick="setView('lojas')"
+        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+        <i class="ti ti-clock-exclamation" style="font-size:14px" aria-hidden="true"></i> Lojas
+      </button>
+      <button id="btnViewHistorico" onclick="setView('historico')"
+        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
+        <i class="ti ti-history" style="font-size:14px" aria-hidden="true"></i> Histórico
+      </button>
+      <button id="btnViewGraficos" onclick="setView('graficos')"
+        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+        <i class="ti ti-chart-bar" style="font-size:14px" aria-hidden="true"></i> Gráficos
+      </button>
+    </div>
+
     <!-- Formulário -->
-    <div class="bg-white rounded-2xl shadow p-4 mb-6">
+    <div id="formAdicionarWrap" class="bg-white rounded-2xl shadow p-4 mb-6">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <h2 class="text-base font-semibold" style="color:#1e3a5f">➕ Adicionar Produto</h2>
         <button id="btnMeAjuda" onclick="abrirMeAjuda()" style="display:inline-flex;align-items:center;gap:7px;background:#1e3a5f;color:#fff;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase;box-shadow:0 4px 12px rgba(30,58,95,.45);transition:box-shadow .15s,transform .1s">
@@ -928,7 +948,7 @@
               oninput="_mascaraPreco(this)"
               class="border border-slate-300 rounded-lg px-3 py-2 text-sm" style="flex:1" />
             <button type="button" id="btnConcorrencia" onclick="abrirModalConcorrencia()"
-              style="display:inline-flex;align-items:center;background:#fff1f0;color:#d82621;border:1.5px solid #fca5a5;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s">
+              style="display:inline-flex;align-items:center;background:#1e3a5f;color:#fff;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:.3px;box-shadow:0 4px 12px rgba(30,58,95,.45);transition:box-shadow .15s,transform .1s">
               Concorrência
             </button>
           </div>
@@ -936,34 +956,15 @@
 
         <div class="flex col-span-2 gap-2 pt-1">
           <button type="submit"
-            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm transition">
+            style="flex:1;background:#1e3a5f;color:#fff;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(30,58,95,.45);letter-spacing:.3px;transition:box-shadow .15s">
             Adicionar
           </button>
           <button type="button" onclick="limparForm()"
-            class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg px-4 py-2 text-sm transition">
+            style="background:#64748b;color:#fff;border:none;border-bottom:3px solid #334155;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(100,116,139,.4);letter-spacing:.3px;transition:box-shadow .15s">
             Limpar
           </button>
         </div>
       </form>
-    </div>
-
-    <!-- Toggle Produtos / Lojas sem lançamento -->
-    <div id="viewToggleBar" class="hidden flex gap-2 mb-3 items-center">
-      <button id="btnViewProdutos" onclick="setView('produtos')"
-        style="background:#0e2841;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-        <i class="ti ti-layout-list" style="font-size:14px" aria-hidden="true"></i> Produtos
-      </button>
-      <button id="btnViewLojas" onclick="setView('lojas')"
-        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-        <i class="ti ti-clock-exclamation" style="font-size:14px" aria-hidden="true"></i> Lojas
-      </button>
-      <button id="btnViewHistorico" onclick="setView('historico')" style="display:none;background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
-        <i class="ti ti-history" style="font-size:14px" aria-hidden="true"></i> Histórico
-      </button>
-      <button id="btnViewGraficos" onclick="setView('graficos')"
-        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-        <i class="ti ti-chart-bar" style="font-size:14px" aria-hidden="true"></i> Gráficos
-      </button>
     </div>
 
     <!-- Filtros -->
@@ -2792,7 +2793,7 @@ function entrarNoApp(user) {
   _viewAtual = 'produtos';
   setView('produtos');
   // Esconder form de adicionar produto para vendedor e diretor
-  const formContainer = document.getElementById('prodForm').closest('.bg-white');
+  const formContainer = document.getElementById('formAdicionarWrap');
   if (formContainer) formContainer.style.display = (user.role === 'vendedor' || user.role === 'diretor') ? 'none' : '';
   atualizarSelectFabricas();
   atualizarDatalistLojas();
@@ -7009,8 +7010,14 @@ function setView(v) {
   // Totais filtrados: só na aba Produtos
   const barTotais = document.getElementById('barTotaisFiltrados');
   if (barTotais) barTotais.style.display = v === 'produtos' ? '' : 'none';
-  if (btnGraf) { btnGraf.style.background=_offStyle; btnGraf.style.color='#64748b'; btnGraf.style.border='0.5px solid #cbd5e1'; }
-  if (btnHist) { btnHist.style.background=_offStyle; btnHist.style.color='#64748b'; btnHist.style.border='0.5px solid #cbd5e1'; }
+  if (btnGraf) { btnGraf.style.background=_offStyle; btnGraf.style.color='#64748b'; btnGraf.style.border='0.5px solid #cbd5e1'; btnGraf.style.borderBottom=''; btnGraf.style.boxShadow='none'; }
+  if (btnHist) { btnHist.style.background=_offStyle; btnHist.style.color='#64748b'; btnHist.style.border='0.5px solid #cbd5e1'; btnHist.style.borderBottom=''; btnHist.style.boxShadow='none'; }
+  // Ocultar formulário de adicionar produto quando não está na aba Produtos
+  const formWrap = document.getElementById('formAdicionarWrap');
+  if (formWrap) {
+    const roleHides = sessao?.role === 'vendedor' || sessao?.role === 'diretor';
+    formWrap.style.display = (v !== 'produtos' || roleHides) ? 'none' : '';
+  }
   // Filtros produtos (busca, selects, datas)
   const filtrosProd  = document.getElementById('filtroDataBadge')?.parentElement?.querySelector('.flex.flex-wrap.gap-3');
   const filtrosBusca = document.getElementById('filtroDataBadge')?.parentElement?.querySelector('.flex.flex-wrap.items-center.justify-between');
@@ -7027,9 +7034,9 @@ function setView(v) {
     if (filtrosLojas) filtrosLojas.classList.remove('hidden');
     if (cardFiltroProd) cardFiltroProd.style.display = 'none';
     document.getElementById('filtroDataBadge').style.display = 'none';
-    btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1';
-    btnLojas.style.background = '#0e2841';      btnLojas.style.color = 'white';  btnLojas.style.border = 'none';
-    if (btnGraf) { btnGraf.style.background='transparent'; btnGraf.style.color='#64748b'; btnGraf.style.border='0.5px solid #cbd5e1'; }
+    btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
+    btnLojas.style.background = '#1e3a5f';      btnLojas.style.color = 'white';  btnLojas.style.border = 'none'; btnLojas.style.borderBottom = '3px solid #0c1f35'; btnLojas.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)';
+    if (btnGraf) { btnGraf.style.background='transparent'; btnGraf.style.color='#64748b'; btnGraf.style.border='0.5px solid #cbd5e1'; btnGraf.style.borderBottom=''; btnGraf.style.boxShadow='none'; }
     // Restaurar e atualizar botão Gerar Excel → modo Lojas
     const btnXL = document.getElementById('btnExportCSV');
     const btnXLCtx = document.getElementById('btnExportCSVCtx');
@@ -7094,9 +7101,9 @@ function setView(v) {
       if (graficosDiv) graficosDiv.style.display = 'block';
       if (cardFiltroProd) cardFiltroProd.style.display = 'none';
       document.getElementById('filtroDataBadge').style.display = 'none';
-      btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1';
-      btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1';
-      if (btnGraf) { btnGraf.style.background = '#0e2841'; btnGraf.style.color = 'white'; btnGraf.style.border = 'none'; }
+      btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
+      btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none';
+      if (btnGraf) { btnGraf.style.background = '#1e3a5f'; btnGraf.style.color = 'white'; btnGraf.style.border = 'none'; btnGraf.style.borderBottom = '3px solid #0c1f35'; btnGraf.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)'; }
       // Ocultar botão Gerar Excel na view Gráficos
       const btnXLG = document.getElementById('btnExportCSV');
       if (btnXLG) { btnXLG.style.display = 'none'; btnXLG.classList.add('hidden'); }
@@ -7115,16 +7122,16 @@ function setView(v) {
       if (historicoDiv) historicoDiv.style.display = 'block';
       if (cardFiltroProd) cardFiltroProd.style.display = 'none';
       document.getElementById('filtroDataBadge').style.display = 'none';
-      btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1';
-      btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1';
-      if (btnHist) { btnHist.style.background = '#0e2841'; btnHist.style.color = 'white'; btnHist.style.border = 'none'; }
+      btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
+      btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none';
+      if (btnHist) { btnHist.style.background = '#1e3a5f'; btnHist.style.color = 'white'; btnHist.style.border = 'none'; btnHist.style.borderBottom = '3px solid #0c1f35'; btnHist.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)'; }
       const btnXLH = document.getElementById('btnExportCSV');
       if (btnXLH) { btnXLH.style.display = 'none'; btnXLH.classList.add('hidden'); }
       renderHistorico();
       return;
     }
-    btnProd.style.background  = '#0e2841';     btnProd.style.color = 'white';   btnProd.style.border = 'none';
-    btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1';
+    btnProd.style.background  = '#1e3a5f';     btnProd.style.color = 'white';   btnProd.style.border = 'none'; btnProd.style.borderBottom = '3px solid #0c1f35'; btnProd.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)';
+    btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none';
     // Restaurar botão Gerar Excel (pode ter sido ocultado na view Gráficos)
     const btnXL2 = document.getElementById('btnExportCSV');
     const btnXLCtx2 = document.getElementById('btnExportCSVCtx');
