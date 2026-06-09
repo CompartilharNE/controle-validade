@@ -818,6 +818,10 @@
 
         <div class="flex flex-col gap-1 col-span-2">
           <label class="text-xs font-medium text-slate-600">Nome do Produto ou EAN *</label>
+          <div id="f_filtro_rede_aviso" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:5px 9px;align-items:center;gap:5px">
+            <i class="ti ti-filter" style="font-size:11px;color:#1d4ed8" aria-hidden="true"></i>
+            <span id="f_filtro_rede_texto" style="font-size:11px;color:#1d4ed8"></span>
+          </div>
           <div id="f_produto_input_wrap" class="flex gap-2" style="position:relative">
             <div style="position:relative;flex:1">
               <i id="f_produto_icon" class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:#94a3b8;pointer-events:none;" aria-hidden="true"></i>
@@ -3947,7 +3951,13 @@ function _filtrarSugestoesProduto(texto) {
   const busca   = texto.toLowerCase();
   if (!busca) { drop.style.display = 'none'; return; }
 
+  // Filtro por rede da loja selecionada
+  const lojaVal = (document.getElementById('f_loja')?.value || '').trim();
+  const lojaObj = lojas.find(l => l.nome === lojaVal);
+  const rede = lojaObj ? (lojaObj.rede || '') : '';
+
   let lista = catalogo;
+  if (rede) lista = lista.filter(p => (p.codigosRedes||{})[rede]);
   if (fabrica) lista = lista.filter(p => (p.fabrica || '') === fabrica);
   if (busca) lista = lista.filter(p =>
     p.nome.toLowerCase().includes(busca) ||
@@ -4265,6 +4275,17 @@ function _confirmarLoja(nome, rede, uf, cnpj) {
   document.getElementById('f_loja_card_nome').textContent = nome;
   document.getElementById('f_loja_card_info').textContent = [rede,uf].filter(Boolean).join(' · ') + (cnpj ? ' — '+cnpj : '');
   document.getElementById('f_loja_card').style.display = 'flex';
+  // Mostrar aviso de filtro por rede
+  const aviso = document.getElementById('f_filtro_rede_aviso');
+  const avisoTxt = document.getElementById('f_filtro_rede_texto');
+  if (aviso && avisoTxt) {
+    if (rede) {
+      avisoTxt.textContent = 'Exibindo só produtos com código da rede ' + rede;
+      aviso.style.display = 'flex';
+    } else {
+      aviso.style.display = 'none';
+    }
+  }
 }
 
 function _limparLojaForm() {
@@ -4276,6 +4297,8 @@ function _limparLojaForm() {
   document.getElementById('f_loja_cnpj_erro').style.display = 'none';
   document.getElementById('f_loja_sel_aviso').style.display = 'none';
   document.getElementById('f_loja_icon').className = 'ti ti-search';
+  const aviso = document.getElementById('f_filtro_rede_aviso');
+  if (aviso) aviso.style.display = 'none';
   _fecharSugestoesLoja();
   setTimeout(() => { const b = document.getElementById('f_loja_busca'); if(b) b.focus(); }, 50);
 }
@@ -8205,11 +8228,8 @@ function salvarEdicao() {
       return {...p, _codRede: codRede};
     });
     if (_maFabricaSel) lista = lista.filter(p => (p.fabrica||'') === _maFabricaSel);
-    lista.sort((a,b) => {
-      if (a._codRede && !b._codRede) return -1;
-      if (!a._codRede && b._codRede) return 1;
-      return (a.fabrica||'').localeCompare(b.fabrica||'') || (a.codigo||'').localeCompare(b.codigo||'');
-    });
+    // Se a loja tem rede, mostrar só produtos com código cadastrado nessa rede
+    if (rede) lista = lista.filter(p => p._codRede);
     lista = lista.filter(p =>
       p.nome.toLowerCase().includes(qn) ||
       (p._codRede||'').toLowerCase().includes(qn) ||
@@ -8217,12 +8237,15 @@ function salvarEdicao() {
       (p.codigo||'').toLowerCase().includes(qn) ||
       (p.fabrica||'').toLowerCase().includes(qn)
     );
-    if (!lista.length) { el.innerHTML = '<p style="font-size:12px;color:#94a3b8;text-align:center;padding:12px 0">Nenhum produto encontrado.</p>'; return; }
+    if (!lista.length) {
+      el.innerHTML = `<p style="font-size:12px;color:#94a3b8;text-align:center;padding:12px 0">${rede ? 'Nenhum produto com código para a rede '+esc(rede)+'.' : 'Nenhum produto encontrado.'}</p>`;
+      return;
+    }
     el.innerHTML = lista.slice(0,40).map(p =>
       `<div onclick="_maSelecionarProd(${p.id})" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer">
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:500;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.nome)}</div>
-          <div style="font-size:12px;color:#64748b;margin-top:2px">${esc(p.fabrica||'—')}${p._codRede?' · <span style="color:#1d4ed8;font-weight:500">Cód: '+esc(p._codRede)+'</span>':' · <span style="color:#94a3b8">sem cód. de rede</span>'}</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px">${esc(p.fabrica||'—')}</div>
         </div>
       </div>`
     ).join('');
