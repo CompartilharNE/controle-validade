@@ -1036,14 +1036,6 @@
       </div><!-- fim filtrosPrincipalBody -->
     </div>
 
-    <!-- Botão Gerar Excel — entre filtro e tabela (Produtos / Lojas) -->
-    <div id="barExcelContextual" class="hidden flex justify-end mb-3">
-      <button id="btnExportCSV" onclick="gerarExcelContextual()"
-        style="background:#059669;color:white;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-        <i class="ti ti-file-spreadsheet" style="font-size:14px" aria-hidden="true"></i> Gerar Excel
-      </button>
-    </div>
-
     <!-- Card de filtros da view Lojas -->
     <div id="cardFiltrosLojas" class="hidden bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
       <div class="flex items-center justify-between cursor-pointer" onclick="toggleFiltrosLojasCard()">
@@ -1099,6 +1091,14 @@
         Nenhum produto cadastrado ainda.
       </div>
     </div>
+    <!-- Botão Gerar Excel — entre filtro e tabela (Produtos / Lojas) -->
+    <div id="barExcelContextual" class="hidden flex justify-end mb-3">
+      <button id="btnExportCSV" onclick="gerarExcelContextual()"
+        style="background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(30,58,95,.45)">
+        <i class="ti ti-file-spreadsheet" style="font-size:14px" aria-hidden="true"></i> Gerar Excel
+      </button>
+    </div>
+
     <!-- View: Lojas -->
     <!-- Legenda acima do resumo -->
     <div id="legendaLojas" class="hidden flex flex-wrap gap-4 items-center mb-2 px-1" style="font-size:11px;color:#64748b">
@@ -6448,7 +6448,7 @@ function gerarExcelContextual() {
 function _atualizarBtnExcelLojas() {
   const btn = document.getElementById('btnExportCSV');
   if (!btn) return;
-  btn.style.background = _viewAtual === 'lojas' ? '#1e3a5f' : '#059669';
+  btn.style.background = '#1e3a5f';
 }
 
 // ── Accordeão — Filtros página principal ─────
@@ -7139,7 +7139,7 @@ function setView(v) {
     if (btnXL2 && mostrarExcel) {
       btnXL2.style.display = 'inline-flex';
       btnXL2.classList.remove('hidden');
-      btnXL2.style.background = '#059669';
+      btnXL2.style.background = '#1e3a5f';
     }
     if (btnXLCtx2) btnXLCtx2.textContent = 'Produtos';
   }
