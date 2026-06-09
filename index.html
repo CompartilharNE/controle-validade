@@ -800,14 +800,17 @@
 
         <div class="flex flex-col gap-1 col-span-2">
           <label id="label_fabrica" class="text-sm font-semibold" style="color:#272a4a">Fábrica *</label>
-          <div style="position:relative">
-            <select id="f_fabrica" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white w-full" required
-              onchange="if(!(document.getElementById('f_produto')?.value)) _filtrarSugestoesProduto((document.getElementById('f_produto_busca')?.value||'').trim())">
-              <option value="">Selecione</option>
-              <option>Allfood</option><option>Bufalíssima</option><option>Prieto</option>
-              <option>Quatá</option><option>São Vicente</option><option>Villa Germania</option>
-            </select>
-            <i id="f_fabrica_lock" class="ti ti-lock" style="display:none;position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:13px;color:#94a3b8;pointer-events:none" aria-hidden="true"></i>
+          <div id="f_fabrica_wrap" style="position:relative">
+            <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:#94a3b8;pointer-events:none" aria-hidden="true"></i>
+            <input id="f_fabrica" type="text" placeholder="Digite para filtrar..."
+              oninput="_onDigitarFabrica(this)"
+              onfocus="_onFocoFabrica()"
+              onblur="_onBlurFabrica()"
+              autocomplete="off"
+              required
+              class="border border-slate-300 rounded-lg py-2 text-sm w-full" style="padding-left:32px;padding-right:10px" />
+            <i id="f_fabrica_lock" class="ti ti-lock" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:13px;color:#94a3b8;pointer-events:none" aria-hidden="true"></i>
+            <div id="fabricaSugestoes" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:0.5px solid #cbd5e1;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.10);z-index:200;max-height:200px;overflow-y:auto"></div>
           </div>
           <p id="f_fabrica_hint" style="display:none;font-size:11px;color:#15803d;margin-top:3px">
             <i class="ti ti-circle-check" style="font-size:11px" aria-hidden="true"></i> Definida pelo produto selecionado
@@ -858,7 +861,7 @@
             <i class="ti ti-circle-check" style="font-size:18px;color:#16a34a;flex-shrink:0" aria-hidden="true"></i>
             <div style="flex:1;min-width:0">
               <p id="f_produto_card_nome" style="font-size:13px;font-weight:600;color:#166534;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></p>
-              <p id="f_produto_card_info" style="font-size:11px;color:#15803d;margin:0;font-family:monospace"></p>
+              <p id="f_produto_card_info" style="display:none;font-size:11px;color:#15803d;margin:0;font-family:monospace"></p>
             </div>
             <button type="button" onclick="_limparProdutoForm()" style="background:none;border:none;color:#94a3b8;cursor:pointer;line-height:1;flex-shrink:0;padding:2px" title="Trocar produto">
               <i class="ti ti-x" style="font-size:14px" aria-hidden="true"></i>
@@ -870,7 +873,7 @@
         </div>
 
         <div class="flex flex-col gap-1 col-span-2">
-          <label class="text-sm font-semibold" style="color:#272a4a">Validade (DD/MM/AAAA) *</label>
+          <label class="text-sm font-semibold" style="color:#272a4a">Validade *</label>
           <input id="f_validade" type="text" placeholder="DD/MM/AAAA"
             maxlength="10" inputmode="numeric" oninput="mascaraData(this)"
             class="border border-slate-300 rounded-lg px-3 py-2 text-sm" required />
@@ -909,6 +912,7 @@
               </div>
             </div>
           </div>
+          <p id="f_caixa_info" style="display:none;font-size:11px;color:#64748b;margin-top:3px"></p>
           <p id="f_und_hint" style="display:none;font-size:11px;color:#15803d;margin-top:3px">
             <i class="ti ti-circle-check" style="font-size:11px" aria-hidden="true"></i> Preenchida automaticamente pelo cadastro
           </p>
@@ -3057,15 +3061,14 @@ function renderFabricas() {
 }
 
 function atualizarSelectFabricas() {
-  // Atualiza os selects de fábrica no formulário de produto e catálogo
-  ['f_fabrica', 'c_fabrica'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
+  // Atualiza o select de fábrica no catálogo (c_fabrica)
+  const sel = document.getElementById('c_fabrica');
+  if (sel) {
     const cur = sel.value;
     const opts = fabricas.map(f => `<option value="${esc(f.nome)}">${esc(f.nome)}</option>`).join('');
     sel.innerHTML = `<option value="">Selecione a fábrica</option>${opts}`;
     if (fabricas.find(f => f.nome === cur)) sel.value = cur;
-  });
+  }
 }
 
 // ── Admin: Lojas ─────────────────────────────
@@ -4009,16 +4012,69 @@ function _confirmarProdutoForm(nome, ean, codigo, und) {
     document.getElementById('f_und_lock').style.display = 'none';
     document.getElementById('f_und_hint').style.display = 'none';
   }
+  // Info qtde por caixa
+  const caixaEl = document.getElementById('f_caixa_info');
+  if (caixaEl) {
+    const cat = catalogo.find(p => p.nome === nome);
+    if (cat && cat.qtdeCaixa && und) {
+      caixaEl.innerHTML = `<i class="ti ti-info-circle" style="font-size:11px;vertical-align:-1px" aria-hidden="true"></i> ${cat.qtdeCaixa} ${und} por caixa`;
+      caixaEl.style.display = 'block';
+    } else {
+      caixaEl.style.display = 'none';
+    }
+  }
   _travarFabrica();
+}
+
+function _filtrarSugestoesFabrica(q) {
+  const drop = document.getElementById('fabricaSugestoes');
+  if (!drop) return;
+  const qn = normTxt(q);
+  if (!qn) { drop.style.display = 'none'; return; }
+  const lista = fabricas.filter(f => normTxt(f.nome).includes(qn)).slice(0, 15);
+  if (!lista.length) { drop.style.display = 'none'; return; }
+  drop.innerHTML = lista.map(f =>
+    `<div onmousedown="_selecionarFabrica('${f.nome.replace(/'/g,"\\'")}');event.preventDefault()"
+      style="padding:10px 14px;font-size:14px;color:#1e293b;cursor:pointer;border-bottom:0.5px solid #f1f5f9"
+      onmouseenter="this.style.background='#eff6ff'" onmouseleave="this.style.background=''">${esc(f.nome)}</div>`
+  ).join('');
+  drop.style.display = 'block';
+}
+
+function _selecionarFabrica(nome) {
+  const el = document.getElementById('f_fabrica');
+  if (el) el.value = nome;
+  document.getElementById('fabricaSugestoes').style.display = 'none';
+  if (!(document.getElementById('f_produto')?.value))
+    _filtrarSugestoesProduto((document.getElementById('f_produto_busca')?.value||'').trim());
+}
+
+function _onDigitarFabrica(inp) {
+  if (document.getElementById('f_produto')?.value) return;
+  _filtrarSugestoesFabrica(inp.value);
+  if (!(document.getElementById('f_produto')?.value))
+    _filtrarSugestoesProduto((document.getElementById('f_produto_busca')?.value||'').trim());
+}
+
+function _onFocoFabrica() {
+  const el = document.getElementById('f_fabrica');
+  if (el && el.value) _filtrarSugestoesFabrica(el.value);
+}
+
+function _onBlurFabrica() {
+  setTimeout(() => {
+    const drop = document.getElementById('fabricaSugestoes');
+    if (drop) drop.style.display = 'none';
+  }, 150);
 }
 
 function _travarFabrica() {
   const el = document.getElementById('f_fabrica');
   if (!el) return;
   const nomeFab = el.value || '';
-  // Ocultar select e mostrar card verde
   el.disabled = true;
-  el.style.display = 'none';
+  const wrap = document.getElementById('f_fabrica_wrap');
+  if (wrap) wrap.style.display = 'none';
   document.getElementById('f_fabrica_lock').style.display = 'none';
   document.getElementById('f_fabrica_hint').style.display = 'none';
   const card = document.getElementById('f_fabrica_card');
@@ -4034,10 +4090,10 @@ function _travarFabrica() {
 function _liberarFabrica() {
   const el = document.getElementById('f_fabrica');
   if (!el) return;
+  el.value = '';
   el.disabled = false;
-  el.style.display = '';
-  el.style.backgroundColor = '';
-  el.style.color = '';
+  const wrap = document.getElementById('f_fabrica_wrap');
+  if (wrap) wrap.style.display = '';
   document.getElementById('f_fabrica_lock').style.display = 'none';
   document.getElementById('f_fabrica_hint').style.display = 'none';
   const card = document.getElementById('f_fabrica_card');
@@ -4068,6 +4124,8 @@ function _limparProdutoForm() {
   if (card) card.style.display = 'none';
   document.getElementById('f_und_lock').style.display = 'none';
   document.getElementById('f_und_hint').style.display = 'none';
+  const caixaEl2 = document.getElementById('f_caixa_info');
+  if (caixaEl2) caixaEl2.style.display = 'none';
   _liberarFabrica();
   _fecharSugestoesProduto();
   setTimeout(() => { const b = document.getElementById('f_produto_busca'); if(b) b.focus(); }, 50);
@@ -4314,7 +4372,10 @@ function mostrarConfirmacaoProduto(cat) {
 }
 function confirmarProdutoSIM() {
   if (!_catItemPendente) return;
-  if (_catItemPendente.fabrica) document.getElementById('f_fabrica').value = _catItemPendente.fabrica;
+  if (_catItemPendente.fabrica) {
+    const fabEl = document.getElementById('f_fabrica');
+    if (fabEl) fabEl.value = _catItemPendente.fabrica;
+  }
   _confirmarProdutoForm(_catItemPendente.nome, _catItemPendente.ean||'', _catItemPendente.codigo||'', _catItemPendente.und||'');
   document.getElementById('confirmarProdutoModal').classList.add('hidden');
   _catItemPendente = null;
