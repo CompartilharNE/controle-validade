@@ -1151,7 +1151,7 @@
               <select id="soRede" onchange="renderSellOut()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select>
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-slate-600">Vendedor / Promotor</label>
+              <label class="text-xs font-medium text-slate-600">Vendedor</label>
               <select id="soVendedor" onchange="renderSellOut()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select>
             </div>
           </div>
@@ -1174,19 +1174,19 @@
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:12px">
             <thead>
-              <tr style="background:#f1f5f9">
-                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;border-bottom:0.5px solid #e2e8f0">
+              <tr style="background:#272a4a">
+                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;border-bottom:0.5px solid #3b4a6b">
                   <label style="display:flex;align-items:center;gap:5px;cursor:pointer">
-                    <input type="checkbox" id="soCheckAll" onchange="_soToggleAll(this.checked)" style="accent-color:#1e3a5f" /> Todos
+                    <input type="checkbox" id="soCheckAll" onchange="_soToggleAll(this.checked)" style="accent-color:#93c5fd" /> Todos
                   </label>
                 </th>
-                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;border-bottom:0.5px solid #e2e8f0">COD. REDE</th>
-                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">Produto</th>
-                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">Fábrica</th>
-                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">UND</th>
-                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">Qtde Total</th>
-                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">Menor Vencimento</th>
-                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">R$ Gôndola</th>
+                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;border-bottom:0.5px solid #3b4a6b">COD. REDE</th>
+                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #3b4a6b">Produto</th>
+                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #3b4a6b">Fábrica</th>
+                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #3b4a6b">UND</th>
+                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #3b4a6b">Qtde Total</th>
+                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #3b4a6b">Menor Vencimento</th>
+                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #3b4a6b">R$ Gôndola</th>
               </tr>
             </thead>
             <tbody id="soTableBody">
@@ -1201,7 +1201,7 @@
       <div style="display:flex;justify-content:flex-end">
         <button onclick="gerarExcelSellOut()"
           style="display:inline-flex;align-items:center;gap:7px;background:#1e3a5f;color:#fff;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(30,58,95,.45);letter-spacing:.3px">
-          <i class="ti ti-file-spreadsheet" style="font-size:15px" aria-hidden="true"></i> Gerar Excel SellOut
+          <i class="ti ti-file-spreadsheet" style="font-size:15px" aria-hidden="true"></i> Gerar SellOut
         </button>
       </div>
     </div>
@@ -7463,7 +7463,8 @@ async function gerarExcelSellOut() {
 
   lista.forEach((g, i) => {
     const rowNum  = 6 + i;
-    const qtdeStr = (Number.isInteger(g.qtde) ? g.qtde : parseFloat(g.qtde.toFixed(1))) + (g.und ? ' ' + g.und : '');
+    const qtdeNum = Number.isInteger(g.qtde) ? g.qtde : parseFloat(g.qtde.toFixed(1));
+    const undSuffix = g.und ? ` "${g.und}"` : '';
     const precoBR = g.preco ? parseFloat(g.preco.toFixed(2)) : '';
     const vencFmt = g.minData ? fmtData(g.minData) : '';
     const r = ws.addRow([
@@ -7473,16 +7474,20 @@ async function gerarExcelSellOut() {
       g.nome,
       '',           // CUSTO — em branco
       precoBR,      // R$ GONDOLA
-      qtdeStr,      // QTDE KG/UND
+      qtdeNum,      // QTDE KG/UND — número puro
       vencFmt,      // VENCIMENTO
       '',           // R$ AÇÃO — em branco
       '',           // R$ SELLOUT — em branco
       { formula: `G${rowNum}*J${rowNum}` }  // TOTAL
     ]);
     _estiloLinha(r, i);
+    // Coluna G: formato numérico mostrando a unidade (ex: 5 PC ou 9 KG)
+    r.getCell(7).numFmt = `#,##0.##${undSuffix}`;
+    r.getCell(7).alignment = { horizontal:'center' };
     // Estilo da célula TOTAL (azul claro)
     r.getCell(11).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFEFF6FF' } };
     r.getCell(11).font = { color:{ argb:'FF1E40AF' }, size:10 };
+    r.getCell(11).numFmt = 'R$ #,##0.00';
     // Células em branco (CUSTO, R$ AÇÃO, R$ SELLOUT) — amarelo claro
     [5,9,10].forEach(col => {
       r.getCell(col).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFEFCE8' } };
