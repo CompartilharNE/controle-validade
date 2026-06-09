@@ -1238,6 +1238,100 @@
           <i class="ti ti-file-spreadsheet" style="font-size:15px" aria-hidden="true"></i> Gerar SellOut
         </button>
       </div>
+
+      <!-- ── Acompanhamento de SellOut ── -->
+      <div id="acompSellOutCard" class="bg-white rounded-2xl shadow overflow-hidden mt-4" style="border:1px solid #e2e8f0">
+
+        <!-- Cabeçalho do painel -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e2e8f0">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:15px">📋</span>
+            <span style="font-size:14px;font-weight:600;color:#0e2841">Acompanhamento de SellOut</span>
+            <span id="acompContagem" style="background:#dbeafe;color:#1e40af;font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px">0 registros</span>
+          </div>
+        </div>
+
+        <!-- Filtro de período (sempre visível) -->
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #e2e8f0;background:#f8fafc;flex-wrap:wrap">
+          <span style="font-size:12px;font-weight:500;color:#64748b">Período:</span>
+          <input type="date" id="acompDtI" onchange="renderAcompSellOut()" style="border:1px solid #cbd5e1;border-radius:6px;padding:5px 8px;font-size:12px;background:#fff;color:#1e293b;width:130px">
+          <span style="font-size:12px;color:#94a3b8">até</span>
+          <input type="date" id="acompDtF" onchange="renderAcompSellOut()" style="border:1px solid #cbd5e1;border-radius:6px;padding:5px 8px;font-size:12px;background:#fff;color:#1e293b;width:130px">
+          <button onclick="_acompLimparDatas()" style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;padding:5px 10px;font-size:11px;color:#64748b;cursor:pointer">Limpar</button>
+        </div>
+
+        <!-- Filtros avançados (colapsável) -->
+        <div id="acompFiltroHeader" onclick="toggleAcompFiltros()" style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;cursor:pointer;border-bottom:1px solid #e2e8f0;user-select:none" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:#475569">
+            <i class="ti ti-filter" style="font-size:13px" aria-hidden="true"></i>
+            Filtros avançados
+          </div>
+          <span id="acompFiltroChevron" style="font-size:11px;color:#94a3b8;transition:transform .2s">▼</span>
+        </div>
+        <div id="acompFiltroBody" class="hidden" style="padding:14px 16px;border-bottom:1px solid #e2e8f0;background:#fafafa">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <div style="font-size:11px;font-weight:500;color:#64748b;margin-bottom:4px">Situação</div>
+              <select id="acompFSit" onchange="renderAcompSellOut()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white w-full">
+                <option value="">Todas</option>
+                <option value="pendente">Pendente</option>
+                <option value="aprovado">Aprovado</option>
+                <option value="recusado">Recusado</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:500;color:#64748b;margin-bottom:4px">Fábrica</div>
+              <select id="acompFFab" onchange="renderAcompSellOut()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white w-full">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:500;color:#64748b;margin-bottom:4px">Rede</div>
+              <select id="acompFRede" onchange="renderAcompSellOut()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white w-full">
+                <option value="">Todas</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;align-items:end">
+            <div>
+              <div style="font-size:11px;font-weight:500;color:#64748b;margin-bottom:4px">Vendedor</div>
+              <select id="acompFVend" onchange="renderAcompSellOut()" class="border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white w-full">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:500;color:#64748b;margin-bottom:4px">UFs</div>
+              <div id="acompFUFChips" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:500;color:#64748b;margin-bottom:4px">Produto</div>
+              <input type="text" id="acompFProd" oninput="renderAcompSellOut()" placeholder="Buscar produto..." style="border:1px solid #cbd5e1;border-radius:6px;padding:5px 8px;font-size:12px;width:100%;background:#fff;color:#1e293b">
+            </div>
+            <div>
+              <button onclick="_acompLimparFiltros()" style="width:100%;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;padding:6px;font-size:12px;color:#64748b;cursor:pointer">Limpar filtros</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela -->
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:#0e2841">
+                <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:left;white-space:nowrap">Data</th>
+                <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:left;white-space:nowrap">Fábrica</th>
+                <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:left;white-space:nowrap">Rede / UFs</th>
+                <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:left;white-space:nowrap">Produtos</th>
+                <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:left;white-space:nowrap">Enviada em</th>
+                <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:left;white-space:nowrap">Aprovação</th>
+                <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:center;white-space:nowrap">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="acompTbody"></tbody>
+          </table>
+          <p id="acompSemDados" class="hidden" style="text-align:center;padding:28px;color:#94a3b8;font-size:13px">Nenhuma solicitação registrada.</p>
+        </div>
+      </div>
     </div>
 
     <!-- View: Gráficos -->
@@ -2750,6 +2844,7 @@ const FS_CFG_USUARIOS    = db.collection('config').doc('usuarios');
 const FS_CFG_FABRICAS    = db.collection('config').doc('fabricas');
 const FS_CFG_CONSOLIDADO = db.collection('config').doc('consolidado');
 const FS_CFG_REDES       = db.collection('config').doc('redes');
+const FS_SELLOUT_HIST    = db.collection('sellout_historico');
 
 // ── Estado ──────────────────────────────────
 let produtos    = [];
@@ -2758,7 +2853,8 @@ let catalogo    = [];
 let usuarios    = [];
 let fabricas    = [];
 let lojas       = [];
-let redesConfig = []; // [{nome, apelidos:[]}]
+let redesConfig  = []; // [{nome, apelidos:[]}]
+let selloutHist  = []; // [{id, dataGerado, fabrica, rede, ufs, vendedor, produtos, dataEnviada, status}]
 let sessao      = JSON.parse(sessionStorage.getItem('cv_sessao') || 'null');
 let consolidado = {};
 let sortCol   = 'status';
@@ -7407,6 +7503,7 @@ function setView(v) {
       const btnXLS = document.getElementById('btnExportCSV');
       if (btnXLS) { btnXLS.style.display = 'none'; btnXLS.classList.add('hidden'); }
       renderSellOut();
+      renderAcompSellOut();
       return;
     }
     btnProd.style.background  = '#1e3a5f';     btnProd.style.color = 'white';   btnProd.style.border = 'none'; btnProd.style.borderBottom = '3px solid #0c1f35'; btnProd.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)';
@@ -7656,6 +7753,17 @@ async function gerarExcelSellOut() {
 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('SellOut');
+
+  // Configuração de página: Retrato, todas as colunas em 1 página
+  ws.pageSetup = {
+    orientation: 'portrait',
+    fitToPage: true,
+    fitToWidth: 1,
+    fitToHeight: 0,
+    paperSize: 9, // A4
+    margins: { left:0.5, right:0.5, top:0.75, bottom:0.75, header:0.3, footer:0.3 }
+  };
+
   // ── Cabeçalho padrão ──
   const logoB64SO = await getLogoBase64();
   ws.mergeCells('A1:K1');
@@ -7663,11 +7771,11 @@ async function gerarExcelSellOut() {
   soR1.value = 'Compartilhar Vendas e Promo';
   soR1.font = { bold:true, size:15, color:{ argb:'FF0E2841' } };
   soR1.alignment = { vertical:'middle' };
-  ws.getRow(1).height = 24;
+  ws.getRow(1).height = 28;
   if (logoB64SO) {
     try {
       const imgId = wb.addImage({ base64:logoB64SO, extension:'png' });
-      ws.addImage(imgId, { tl:{ col:7, row:0 }, ext:{ width:220, height:57 }, editAs:'oneCell' });
+      ws.addImage(imgId, { tl:{ col:8, row:0 }, ext:{ width:190, height:50 }, editAs:'oneCell' });
     } catch(e) {}
   }
 
@@ -7759,6 +7867,207 @@ async function gerarExcelSellOut() {
 
   const fname = 'sellout_' + (redeFiltro||'todas').replace(/\s+/g,'_').toLowerCase() + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.xlsx';
   await _downloadExcel(wb, fname);
+
+  // ── Salvar no histórico ──
+  const histRec = {
+    dataGerado:  new Date().toISOString(),
+    fabrica:     fabFiltro  || 'Todas',
+    rede:        redeFiltro || 'Todas',
+    ufs:         [...ufsFiltro].sort(),
+    vendedor:    vendFiltro || 'Todos',
+    produtos:    lista.map(g => ({ nome: g.nome, qtde: g.qtde, und: g.und || '' })),
+    dataEnviada: '',
+    status:      'pendente'
+  };
+  try {
+    const docRef = await FS_SELLOUT_HIST.add(histRec);
+    selloutHist.unshift({ id: docRef.id, ...histRec });
+    renderAcompSellOut();
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════
+// ── ACOMPANHAMENTO DE SELLOUT ─────────────────
+// ══════════════════════════════════════════════
+
+let _acompUFsFiltro = new Set();
+
+function toggleAcompFiltros() {
+  const body    = document.getElementById('acompFiltroBody');
+  const chevron = document.getElementById('acompFiltroChevron');
+  if (!body) return;
+  const aberto = !body.classList.contains('hidden');
+  body.classList.toggle('hidden', aberto);
+  if (chevron) chevron.style.transform = aberto ? '' : 'rotate(180deg)';
+}
+
+function _acompLimparDatas() {
+  const di = document.getElementById('acompDtI');
+  const df = document.getElementById('acompDtF');
+  if (di) di.value = '';
+  if (df) df.value = '';
+  renderAcompSellOut();
+}
+
+function _acompLimparFiltros() {
+  ['acompFSit','acompFFab','acompFRede','acompFVend'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const prod = document.getElementById('acompFProd'); if (prod) prod.value = '';
+  _acompUFsFiltro = new Set();
+  _acompRenderUFChips();
+  renderAcompSellOut();
+}
+
+function _acompToggleUF(uf) {
+  if (_acompUFsFiltro.has(uf)) _acompUFsFiltro.delete(uf); else _acompUFsFiltro.add(uf);
+  _acompRenderUFChips();
+  renderAcompSellOut();
+}
+
+function _acompRenderUFChips() {
+  const wrap = document.getElementById('acompFUFChips');
+  if (!wrap) return;
+  wrap.innerHTML = _ALL_UFS_SO.map(uf => {
+    const sel = _acompUFsFiltro.has(uf);
+    return `<button type="button" onclick="_acompToggleUF('${uf}')"
+      style="padding:3px 10px;font-size:11px;font-weight:600;border-radius:5px;cursor:pointer;border:none;
+             background:${sel?'#1e3a5f':'#f1f5f9'};color:${sel?'#fff':'#475569'}">${uf}</button>`;
+  }).join('');
+}
+
+function _acompPopularFiltros() {
+  const fabs  = [...new Set(selloutHist.map(r => r.fabrica).filter(f => f && f !== 'Todas'))].sort();
+  const redes = [...new Set(selloutHist.map(r => r.rede).filter(r => r && r !== 'Todas'))].sort();
+  const vends = [...new Set(selloutHist.map(r => r.vendedor).filter(v => v && v !== 'Todos'))].sort();
+  const selFab  = document.getElementById('acompFFab');
+  const selRede = document.getElementById('acompFRede');
+  const selVend = document.getElementById('acompFVend');
+  if (selFab)  { const cv=selFab.value;  selFab.innerHTML  = '<option value="">Todas</option>'  + fabs.map(f=>`<option ${f===cv?'selected':''}>${esc(f)}</option>`).join(''); }
+  if (selRede) { const cv=selRede.value; selRede.innerHTML = '<option value="">Todas</option>'  + redes.map(r=>`<option ${r===cv?'selected':''}>${esc(r)}</option>`).join(''); }
+  if (selVend) { const cv=selVend.value; selVend.innerHTML = '<option value="">Todos</option>'  + vends.map(v=>`<option ${v===cv?'selected':''}>${esc(v)}</option>`).join(''); }
+}
+
+function renderAcompSellOut() {
+  _acompPopularFiltros();
+  _acompRenderUFChips();
+
+  const tbody  = document.getElementById('acompTbody');
+  const semEl  = document.getElementById('acompSemDados');
+  const contEl = document.getElementById('acompContagem');
+  if (!tbody) return;
+
+  // Filtros
+  const dtI   = document.getElementById('acompDtI')?.value  || '';
+  const dtF   = document.getElementById('acompDtF')?.value  || '';
+  const fSit  = document.getElementById('acompFSit')?.value  || '';
+  const fFab  = document.getElementById('acompFFab')?.value  || '';
+  const fRede = document.getElementById('acompFRede')?.value || '';
+  const fVend = document.getElementById('acompFVend')?.value || '';
+  const fProd = normTxt(document.getElementById('acompFProd')?.value?.trim() || '');
+
+  const lista = selloutHist.filter(r => {
+    const d = new Date(r.dataGerado); d.setHours(0,0,0,0);
+    if (dtI) { const di = new Date(dtI); if (d < di) return false; }
+    if (dtF) { const df = new Date(dtF); df.setHours(23,59,59,999); if (d > df) return false; }
+    if (fSit  && r.status  !== fSit)  return false;
+    if (fFab  && r.fabrica !== fFab)  return false;
+    if (fRede && r.rede    !== fRede) return false;
+    if (fVend && r.vendedor!== fVend) return false;
+    if (_acompUFsFiltro.size > 0 && !r.ufs.some(u => _acompUFsFiltro.has(u))) return false;
+    if (fProd && !r.produtos.some(p => normTxt(p.nome).includes(fProd))) return false;
+    return true;
+  });
+
+  if (contEl) contEl.textContent = lista.length + (lista.length === 1 ? ' registro' : ' registros');
+
+  if (!lista.length) {
+    tbody.innerHTML = '';
+    if (semEl) semEl.classList.remove('hidden');
+    return;
+  }
+  if (semEl) semEl.classList.add('hidden');
+
+  tbody.innerHTML = lista.map((r, i) => {
+    const bgRow  = r.status === 'aprovado' ? 'background:#f0fdf4' : r.status === 'recusado' ? 'background:#fef2f2' : '';
+    const txtClr = r.status === 'aprovado' ? 'color:#14532d'      : r.status === 'recusado' ? 'color:#7f1d1d'      : '';
+    const dataBR = new Date(r.dataGerado).toLocaleDateString('pt-BR');
+    const ufsStr = r.ufs.join(', ') || '—';
+    const qtdProd= r.produtos.length;
+    const cascId = `acompCasc_${r.id}`;
+
+    let badgeHtml;
+    if (r.status === 'aprovado') {
+      badgeHtml = `<span style="display:inline-flex;align-items:center;gap:4px;background:#dcfce7;color:#15803d;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px">✅ Aprovado</span>`;
+    } else if (r.status === 'recusado') {
+      badgeHtml = `<span style="display:inline-flex;align-items:center;gap:4px;background:#fee2e2;color:#b91c1c;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px">❌ Recusado</span>`;
+    } else {
+      badgeHtml = `<div style="display:flex;align-items:center;gap:4px">
+        <button onclick="_acompSetStatus('${r.id}',${i},'aprovado')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:2px 4px;border-radius:4px" title="Aprovar">✅</button>
+        <button onclick="_acompSetStatus('${r.id}',${i},'recusado')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:2px 4px;border-radius:4px" title="Recusar">❌</button>
+      </div>`;
+    }
+
+    const prodList = r.produtos.map(p =>
+      `<div style="font-size:11px;color:#475569;padding:2px 0;display:flex;align-items:center;gap:6px">
+        <span style="width:5px;height:5px;border-radius:50%;background:#1e3a5f;flex-shrink:0;display:inline-block"></span>
+        ${esc(p.nome)} — ${p.qtde} ${esc(p.und || '')}
+      </div>`
+    ).join('');
+
+    const enviada = r.dataEnviada
+      ? `<input type="date" value="${r.dataEnviada}" onchange="_acompSetEnviada('${r.id}',${i},this.value)"
+           style="border:1px solid #cbd5e1;border-radius:4px;padding:3px 6px;font-size:11px;width:100px;background:#fff;color:#1e293b">`
+      : `<input type="date" onchange="_acompSetEnviada('${r.id}',${i},this.value)"
+           style="border:1px solid #cbd5e1;border-radius:4px;padding:3px 6px;font-size:11px;width:100px;background:#fff;color:#1e293b">`;
+
+    const tdStyle = `style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;vertical-align:middle;${bgRow};${txtClr}"`;
+
+    return `<tr id="acompRow_${r.id}">
+      <td ${tdStyle} style="white-space:nowrap;padding:7px 10px;border-bottom:0.5px solid #e2e8f0;${bgRow};${txtClr}">${dataBR}</td>
+      <td ${tdStyle}>${esc(r.fabrica)}</td>
+      <td ${tdStyle}><span style="font-weight:600">${esc(r.rede)}</span><br><span style="font-size:10px">${ufsStr}</span></td>
+      <td ${tdStyle}>
+        <button onclick="document.getElementById('${cascId}').classList.toggle('hidden')"
+          style="background:none;border:none;cursor:pointer;padding:0">
+          <span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">${qtdProd} ${qtdProd===1?'produto':'produtos'} ▾</span>
+        </button>
+        <div id="${cascId}" class="hidden" style="margin-top:6px;background:#f8fafc;border-radius:5px;padding:6px 10px">${prodList}</div>
+      </td>
+      <td ${tdStyle}>${enviada}</td>
+      <td ${tdStyle}>${badgeHtml}</td>
+      <td style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;text-align:center;${bgRow}">
+        <button onclick="_acompDeletar('${r.id}',${i})" style="background:none;border:none;cursor:pointer;font-size:15px;color:#94a3b8;padding:3px;border-radius:4px" title="Excluir" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function _acompSetStatus(id, idx, status) {
+  try {
+    await FS_SELLOUT_HIST.doc(id).update({ status });
+    const real = selloutHist.find(r => r.id === id);
+    if (real) real.status = status;
+    renderAcompSellOut();
+  } catch(e) { showToast('Erro ao salvar status.','#92400e'); }
+}
+
+async function _acompSetEnviada(id, idx, valor) {
+  try {
+    await FS_SELLOUT_HIST.doc(id).update({ dataEnviada: valor });
+    const real = selloutHist.find(r => r.id === id);
+    if (real) real.dataEnviada = valor;
+  } catch(e) { showToast('Erro ao salvar data.','#92400e'); }
+}
+
+async function _acompDeletar(id, idx) {
+  if (!confirm('Excluir este registro de SellOut?')) return;
+  try {
+    await FS_SELLOUT_HIST.doc(id).delete();
+    selloutHist = selloutHist.filter(r => r.id !== id);
+    renderAcompSellOut();
+    showToast('✅ Registro excluído.','#166534');
+  } catch(e) { showToast('Erro ao excluir.','#92400e'); }
 }
 
 function renderLojasSemLanc() {
@@ -9631,7 +9940,7 @@ async function carregarDados() {
     setTimeout(() => reject(new Error('TIMEOUT')), 12000)
   );
   try {
-    const [usSnap, fabSnap, consSnap, redesSnap, lojaSnap, catSnap, prodSnap, histSnap] = await Promise.race([
+    const [usSnap, fabSnap, consSnap, redesSnap, lojaSnap, catSnap, prodSnap, histSnap, soHistSnap] = await Promise.race([
       Promise.all([
         FS_CFG_USUARIOS.get(),
         FS_CFG_FABRICAS.get(),
@@ -9641,6 +9950,7 @@ async function carregarDados() {
         FS_CATALOGO.get(),
         FS_PRODUTOS.get(),
         FS_HISTORICO.get(),
+        FS_SELLOUT_HIST.orderBy('dataGerado','desc').get(),
       ]),
       _timeout
     ]);
@@ -9652,6 +9962,7 @@ async function carregarDados() {
     catalogo    = catSnap.docs.map(d => d.data());
     produtos    = prodSnap.docs.map(d => d.data());
     historico   = histSnap.docs.map(d => d.data());
+    selloutHist = soHistSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch(e) {
     console.error('Erro ao carregar Firebase:', e);
     const msg = e.message === 'TIMEOUT'
