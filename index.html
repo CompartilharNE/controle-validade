@@ -1967,6 +1967,20 @@
           </div>
         </div>
         <div id="ma-resumo" style="display:flex;flex-direction:column;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff"></div>
+        <!-- Pergunta: adicionar outro produto? -->
+        <div style="background:#fff;border:2px solid #e2e8f0;border-radius:12px;padding:12px 14px">
+          <div style="font-size:14px;font-weight:600;color:#334155;margin-bottom:10px;text-align:center">Deseja cadastrar outro produto nessa loja?</div>
+          <div style="display:flex;gap:8px">
+            <button type="button" id="ma-outro-sim" onclick="_maSetOutro(true)"
+              style="flex:1;border:2px solid #e2e8f0;background:#f8fafc;color:#64748b;border-radius:10px;padding:12px 8px;font-size:14px;font-weight:600;cursor:pointer">
+              ✅ Sim
+            </button>
+            <button type="button" id="ma-outro-nao" onclick="_maSetOutro(false)"
+              style="flex:1;border:2px solid #fca5a5;background:#fee2e2;color:#dc2626;border-radius:10px;padding:12px 8px;font-size:14px;font-weight:600;cursor:pointer">
+              ❌ Não
+            </button>
+          </div>
+        </div>
         <div id="ma-confirm-warn" style="display:none;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px 12px;font-size:13px;color:#854d0e"></div>
       </div>
 
@@ -4476,6 +4490,25 @@ document.getElementById('prodForm').addEventListener('submit', (e) => {
     preco:      Number(document.getElementById('f_preco').value) || 0,
     concorrencia: _concorrencia || null,
   };
+
+  // Se veio do Me Ajuda: salvar diretamente (sem popup de confirmação)
+  if (window._maSavingFromHelper) {
+    const helperInfo = window._maSavingFromHelper;
+    window._maSavingFromHelper = null;
+    const p = novoProduto;
+    produtos.push(p);
+    FS_PRODUTOS.doc(String(p.id)).set(p);
+    renderTabela();
+    const _hc = new Date().toISOString().slice(0,10);
+    if (!p.validade || p.validade >= _hc) _registrarMovimento('entrada', p.quantidade, p, 'novo');
+    limparForm();
+    if (helperInfo.addMore && helperInfo.lojaObj) {
+      window._maRestart(helperInfo.lojaObj);
+    } else {
+      showToast('✅ Produto salvo!', '#166534');
+    }
+    return;
+  }
 
   // Mostrar confirmação antes de salvar
   _pendingConfirmacao = novoProduto;
@@ -7976,6 +8009,7 @@ function salvarEdicao() {
   let _maLojaObj = null;
   let _maProdObj = null;
   let _maFabricaSel = null;
+  let _maAdicionarOutro = false;
 
   window.abrirMeAjuda = function() {
     _maStep = 1; _maLojaObj = null; _maProdObj = null;
@@ -7991,6 +8025,43 @@ function salvarEdicao() {
 
   window.fecharMeAjuda = function() {
     document.getElementById('meAjudaModal').classList.add('hidden');
+  };
+
+  window._maSetOutro = function(val) {
+    _maAdicionarOutro = val;
+    const sim = document.getElementById('ma-outro-sim');
+    const nao = document.getElementById('ma-outro-nao');
+    if (!sim || !nao) return;
+    sim.style.border = val ? '2px solid #86efac' : '2px solid #e2e8f0';
+    sim.style.background = val ? '#dcfce7' : '#f8fafc';
+    sim.style.color = val ? '#15803d' : '#64748b';
+    nao.style.border = !val ? '2px solid #fca5a5' : '2px solid #e2e8f0';
+    nao.style.background = !val ? '#fee2e2' : '#f8fafc';
+    nao.style.color = !val ? '#dc2626' : '#64748b';
+  };
+
+  // Reinicia o fluxo a partir da Etapa 1 com a loja já selecionada
+  window._maRestart = function(lojaObj) {
+    _maLojaObj = lojaObj;
+    _maProdObj = null;
+    _maFabricaSel = null;
+    _maAdicionarOutro = false;
+    // Limpar campos de produto/validade/qtde/preco
+    document.getElementById('ma-busca-prod').value = '';
+    document.getElementById('ma-validade').value = '';
+    document.getElementById('ma-qtde').value = '';
+    document.getElementById('ma-preco').value = '';
+    // Abrir modal e ir para etapa 1
+    document.getElementById('meAjudaModal').classList.remove('hidden');
+    _maIrStep(1);
+    // Mostrar loja já selecionada (chip verde)
+    document.getElementById('ma-loja-sel-nome').textContent = lojaObj.nome;
+    document.getElementById('ma-loja-sel-rede').textContent = lojaObj.rede || '';
+    document.getElementById('ma-loja-sel').style.display = 'flex';
+    document.getElementById('ma-loja-search').style.display = 'none';
+    // Resetar botões da pergunta de outro produto
+    window._maSetOutro(false);
+    showToast('✅ Produto salvo! Cadastre o próximo.', '#166534');
   };
 
   window._maVoltar = function() {
@@ -8087,21 +8158,13 @@ function salvarEdicao() {
 
   // STEP 2 — Fábrica
   window._maFiltrarFabrica = function(q) {
-    const hint = document.getElementById('ma-fab-hint');
     const list = document.getElementById('ma-lista-fab');
-    if (!q || !q.trim()) {
-      hint.style.display = 'flex';
-      list.style.display = 'none';
-      list.innerHTML = '';
-      return;
-    }
-    hint.style.display = 'none';
+    if (!q || !q.trim()) { list.innerHTML = ''; return; }
     const qn = q.toLowerCase();
     const fabricas = [...new Set(catalogo.map(p => p.fabrica||'').filter(Boolean))].sort();
     const matches = fabricas.filter(f => f.toLowerCase().includes(qn));
-    list.style.display = 'flex';
     if (!matches.length) {
-      list.innerHTML = '<p style="font-size:12px;color:#94a3b8;text-align:center;padding:8px 0">Nenhuma fábrica encontrada.</p>';
+      list.innerHTML = '<p style="font-size:13px;color:#94a3b8;text-align:center;padding:8px 0">Nenhuma fábrica encontrada.</p>';
       return;
     }
     list.innerHTML = matches.map(f =>
@@ -8280,6 +8343,9 @@ function salvarEdicao() {
     const cw = document.getElementById('ma-confirm-warn');
     if (dias < 0) { cw.style.display='block'; cw.innerHTML='<i class="ti ti-alert-triangle" style="font-size:12px" aria-hidden="true"></i> Produto vencido. Confirme somente se for necessário registrar.'; }
     else { cw.style.display='none'; }
+    // Resetar pergunta "adicionar outro?" para padrão = Não
+    _maAdicionarOutro = false;
+    window._maSetOutro(false);
     _maIrStep(4);
   }
 
@@ -8309,6 +8375,8 @@ function salvarEdicao() {
     const preco = document.getElementById('ma-preco').value;
     const fPreco = document.getElementById('f_preco');
     if (fPreco && preco) fPreco.value = preco;
+    // Sinalizar que o submit vem do Me Ajuda (bypassa popup de confirmação)
+    window._maSavingFromHelper = { lojaObj: _maLojaObj, addMore: _maAdicionarOutro };
     // Fechar modal e submeter
     fecharMeAjuda();
     // Scroll ao form e submeter
