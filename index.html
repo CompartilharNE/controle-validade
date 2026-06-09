@@ -1863,10 +1863,10 @@
           </div>
           <div id="ma-lista-fab" style="display:none;flex-direction:column;gap:4px;margin-top:4px"></div>
           <div id="ma-fab-selecionada" style="display:none;margin-top:6px">
-            <span style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;color:#1d4ed8;border:0.5px solid #bfdbfe;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500">
+            <span style="display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;color:#15803d;border:0.5px solid #bbf7d0;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500">
               <i class="ti ti-check" style="font-size:12px" aria-hidden="true"></i>
               <span id="ma-fab-chip-label"></span>
-              <button type="button" onclick="_maLimparFabrica()" style="background:none;border:none;cursor:pointer;color:#1d4ed8;padding:0;font-size:14px;line-height:1;opacity:.7" aria-label="remover fábrica">×</button>
+              <button type="button" onclick="_maLimparFabrica()" style="background:none;border:none;cursor:pointer;color:#15803d;padding:0;font-size:14px;line-height:1;opacity:.8" aria-label="remover fábrica">×</button>
             </span>
           </div>
         </div>
@@ -7990,6 +7990,20 @@ function salvarEdicao() {
     const qn = (q||'').toLowerCase();
     const hint = document.getElementById('ma-lista-lojas-hint');
     const el   = document.getElementById('ma-lista-lojas');
+    // Se tem loja selecionada, mostra só ela em verde com X
+    if (_maLojaObj) {
+      if (hint) hint.style.display = 'none';
+      const l = _maLojaObj;
+      el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border:0.5px solid #bbf7d0;border-radius:8px;background:#f0fdf4">
+        <i class="ti ti-check" style="font-size:14px;color:#15803d;flex-shrink:0" aria-hidden="true"></i>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:500;color:#15803d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.nome)}</div>
+          <div style="font-size:10px;color:#16a34a">${esc(l.rede||'—')}</div>
+        </div>
+        <button type="button" onclick="_maLimparLoja()" style="background:none;border:none;cursor:pointer;color:#15803d;font-size:16px;line-height:1;padding:0;opacity:.8;flex-shrink:0" aria-label="remover loja">×</button>
+      </div>`;
+      return;
+    }
     if (!qn) {
       if (hint) hint.style.display = 'flex';
       el.innerHTML = '';
@@ -8001,21 +8015,24 @@ function salvarEdicao() {
     if (ufSessao) lista = lista.filter(l => !l.uf || l.uf === ufSessao);
     lista = lista.filter(l => l.nome.toLowerCase().includes(qn) || (l.rede||'').toLowerCase().includes(qn));
     if (!lista.length) { el.innerHTML = '<p style="font-size:12px;color:#94a3b8;text-align:center;padding:12px 0">Nenhuma loja encontrada.</p>'; return; }
-    el.innerHTML = lista.slice(0,30).map(l => {
-      const sel = _maLojaObj && _maLojaObj.id === l.id;
-      return `<div onclick="_maSelecionarLoja(${l.id})" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border:0.5px solid ${sel?'#bfdbfe':'#e2e8f0'};border-radius:8px;background:${sel?'#eff6ff':'#fff'};cursor:pointer">
+    el.innerHTML = lista.slice(0,30).map(l =>
+      `<div onclick="_maSelecionarLoja(${l.id})" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border:0.5px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer">
         <i class="ti ti-building-store" style="font-size:16px;color:#16a34a;flex-shrink:0" aria-hidden="true"></i>
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;font-weight:500;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.nome)}</div>
-          <div style="font-size:11px;color:#64748b">${esc(l.rede||'—')} · ${esc(l.uf||'—')}</div>
+          <div style="font-size:11px;color:#64748b">${esc(l.rede||'—')}</div>
         </div>
-        ${sel ? '<i class="ti ti-check" style="font-size:14px;color:#1d4ed8;flex-shrink:0" aria-hidden="true"></i>' : ''}
-      </div>`;
-    }).join('');
+      </div>`
+    ).join('');
   }
 
   window._maSelecionarLoja = function(id) {
     _maLojaObj = lojas.find(l => l.id === id) || null;
+    _maRenderLojas(document.getElementById('ma-busca-loja').value);
+  };
+
+  window._maLimparLoja = function() {
+    _maLojaObj = null;
     _maRenderLojas(document.getElementById('ma-busca-loja').value);
   };
 
@@ -8091,6 +8108,20 @@ function salvarEdicao() {
       el.innerHTML = '';
       return;
     }
+    // Se tem produto selecionado, mostra só ele em verde com X
+    if (_maProdObj) {
+      hint.style.display = 'none';
+      const p = _maProdObj;
+      el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border:0.5px solid #bbf7d0;border-radius:8px;background:#f0fdf4">
+        <i class="ti ti-check" style="font-size:14px;color:#15803d;flex-shrink:0" aria-hidden="true"></i>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:500;color:#15803d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.nome)}</div>
+          <div style="font-size:10px;color:#16a34a">${esc(p.fabrica||'—')}${p._codRede?' · <span style="font-weight:500">Cód: '+esc(p._codRede)+'</span>':''}</div>
+        </div>
+        <button type="button" onclick="_maLimparProd()" style="background:none;border:none;cursor:pointer;color:#15803d;font-size:16px;line-height:1;padding:0;opacity:.8;flex-shrink:0" aria-label="remover produto">×</button>
+      </div>`;
+      return;
+    }
     hint.style.display = 'none';
     const rede = (_maLojaObj && _maLojaObj.rede) || '';
     const qn = q.toLowerCase();
@@ -8099,7 +8130,6 @@ function salvarEdicao() {
       return {...p, _codRede: codRede};
     });
     if (_maFabricaSel) lista = lista.filter(p => (p.fabrica||'') === _maFabricaSel);
-    // Ordenar: com código da rede primeiro
     lista.sort((a,b) => {
       if (a._codRede && !b._codRede) return -1;
       if (!a._codRede && b._codRede) return 1;
@@ -8113,17 +8143,14 @@ function salvarEdicao() {
       (p.fabrica||'').toLowerCase().includes(qn)
     );
     if (!lista.length) { el.innerHTML = '<p style="font-size:12px;color:#94a3b8;text-align:center;padding:12px 0">Nenhum produto encontrado.</p>'; return; }
-    el.innerHTML = lista.slice(0,40).map(p => {
-      const sel = _maProdObj && _maProdObj.id === p.id;
-      const temCod = !!p._codRede;
-      return `<div onclick="_maSelecionarProd(${p.id})" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border:0.5px solid ${sel?'#bfdbfe':temCod?'#e2e8f0':'#e2e8f0'};border-radius:8px;background:${sel?'#eff6ff':'#fff'};cursor:pointer">
+    el.innerHTML = lista.slice(0,40).map(p =>
+      `<div onclick="_maSelecionarProd(${p.id})" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border:0.5px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer">
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;font-weight:500;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.nome)}</div>
           <div style="font-size:10px;color:#64748b">${esc(p.fabrica||'—')}${p._codRede?' · <span style="color:#1d4ed8;font-weight:500">Cód: '+esc(p._codRede)+'</span>':' · <span style="color:#94a3b8">sem cód. de rede</span>'}</div>
         </div>
-        ${sel ? '<i class="ti ti-check" style="font-size:14px;color:#1d4ed8;flex-shrink:0" aria-hidden="true"></i>' : ''}
-      </div>`;
-    }).join('');
+      </div>`
+    ).join('');
   }
 
   window._maPreencherEAN = function(ean) {
@@ -8144,6 +8171,11 @@ function salvarEdicao() {
     if (!p) return;
     const rede = (_maLojaObj && _maLojaObj.rede) || '';
     _maProdObj = {...p, _codRede: (p.codigosRedes||{})[rede] || ''};
+    _maRenderProdutos(document.getElementById('ma-busca-prod').value);
+  };
+
+  window._maLimparProd = function() {
+    _maProdObj = null;
     _maRenderProdutos(document.getElementById('ma-busca-prod').value);
   };
 
