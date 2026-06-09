@@ -5819,7 +5819,7 @@ function renderTabela() {
     const badgeTxt=st==='expired'?'Vencido':st==='warning'?'Atenção':'OK';
     const diasTxt =d<0?`${Math.abs(d)}d atrás`:d===0?'<strong style="color:#dc2626;font-weight:900">Hoje!</strong>':`${d}d`;
     const qtdTxt  = `${p.quantidade||0}${p.und ? ' ' + p.und.charAt(0).toUpperCase() + p.und.slice(1).toLowerCase() : ''}`;
-    const acoes   = `<div style="display:inline-flex;gap:6px;align-items:center"><button onclick="abrirEditModal(${p.id})" style="background:none;border:none;padding:2px 4px;font-size:15px;cursor:pointer;opacity:0.75;line-height:1" title="Editar">✏️</button><button onclick="deletar(${p.id})" style="background:none;border:none;padding:2px 4px;font-size:16px;font-weight:700;color:#dc2626;cursor:pointer;line-height:1" title="Excluir">✕</button></div>`;
+    const acoes   = `<div style="display:inline-flex;gap:6px;align-items:center"><button onclick="abrirEditModal(${p.id})" style="background:none;border:none;padding:2px 4px;font-size:15px;cursor:pointer;opacity:0.75;line-height:1" title="Editar">✏️</button><button onclick="deletar(${p.id})" style="background:none;border:none;padding:2px 4px;font-size:15px;cursor:pointer;line-height:1;color:#94a3b8" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" title="Excluir">🗑️</button></div>`;
     const badge   = `<td><span class="${badgeCls} text-xs font-bold rounded-full px-2 py-0.5">${badgeTxt}</span></td>`;
 
     const lojaUF = p.uf ? `<strong>${esc(p.uf)}</strong> · ${esc(p.loja)}` : esc(p.loja);
@@ -8674,7 +8674,7 @@ function renderHistorico() {
       <td>${esc(m.loja)}</td>
       <td style="text-align:center">${esc(m.uf)}</td>
       <td>${esc(m.promotor)}</td>
-      <td style="text-align:center"><button onclick="excluirMovHistorico(${m.id})" title="Excluir este registro" style="background:none;border:none;cursor:pointer;color:#dc2626;padding:2px 6px;border-radius:5px;font-size:13px;transition:background .15s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'"><i class="ti ti-trash" aria-hidden="true"></i></button></td>
+      <td style="text-align:center"><button onclick="excluirMovHistorico(${m.id})" title="Excluir este registro" style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:2px 4px;border-radius:4px;font-size:15px;line-height:1;transition:color .15s" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">🗑️</button></td>
     </tr>`;
   }).join('');
 }
