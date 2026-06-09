@@ -1152,7 +1152,7 @@
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-xs font-medium text-slate-600">Vendedor</label>
-              <select id="soVendedor" onchange="renderSellOut()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select>
+              <select id="soVendedor" onchange="_soOnVendedorChange()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select>
             </div>
           </div>
           <div>
@@ -7271,15 +7271,22 @@ function _soToggleUF(uf) {
 function _soRenderUFChips() {
   const wrap = document.getElementById('soUFChips');
   if (!wrap) return;
-  const ufsUnicas = [...new Set(produtos.map(p => p.uf).filter(Boolean))].sort();
-  wrap.innerHTML = ufsUnicas.map(uf => {
+  const vendNome = document.getElementById('soVendedor')?.value || '';
+  let ufsDisp;
+  if (vendNome) {
+    const vend = usuarios.find(u => u.role === 'vendedor' && u.nome === vendNome);
+    ufsDisp = (vend?.ufs || []).slice().sort();
+  } else {
+    ufsDisp = [...new Set(produtos.map(p => p.uf).filter(Boolean))].sort();
+  }
+  wrap.innerHTML = ufsDisp.map(uf => {
     const sel = _soUFs.has(uf);
     return `<button type="button" onclick="_soToggleUF('${uf}')"
       style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;border:none;
              background:${sel?'#1e3a5f':'#f1f5f9'};color:${sel?'#fff':'#475569'};
              ${sel?'box-shadow:0 2px 6px rgba(30,58,95,.3);border-bottom:2px solid #0c1f35':''}"
       >${uf}</button>`;
-  }).join('');
+  }).join('') || '<span style="font-size:12px;color:#94a3b8">Nenhuma UF cadastrada para este vendedor</span>';
 }
 
 function _soPopularSelects() {
@@ -7289,11 +7296,27 @@ function _soPopularSelects() {
   if (!fabSel || !redeSel || !vendSel) return;
   const fabs  = [...new Set(catalogo.map(c => c.fabrica).filter(Boolean))].sort();
   const redes = [...new Set(lojas.map(l => l.rede).filter(Boolean))].sort();
-  const vends = [...new Set(produtos.map(p => p.promotor).filter(Boolean))].sort();
+  const vends = usuarios.filter(u => u.role === 'vendedor').sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR'));
   const curF = fabSel.value, curR = redeSel.value, curV = vendSel.value;
   fabSel.innerHTML  = '<option value="">Todas</option>' + fabs.map(f  => `<option ${f===curF?'selected':''}>${esc(f)}</option>`).join('');
   redeSel.innerHTML = '<option value="">Todas</option>' + redes.map(r => `<option ${r===curR?'selected':''}>${esc(r)}</option>`).join('');
-  vendSel.innerHTML = '<option value="">Todos</option>' + vends.map(v => `<option ${v===curV?'selected':''}>${esc(v)}</option>`).join('');
+  vendSel.innerHTML = '<option value="">Todos</option>' + vends.map(v => {
+    const ufsStr = (v.ufs||[]).join(', ');
+    const label  = ufsStr ? `${v.nome} (${ufsStr})` : v.nome;
+    return `<option value="${esc(v.nome)}" ${v.nome===curV?'selected':''}>${esc(label)}</option>`;
+  }).join('');
+}
+
+function _soOnVendedorChange() {
+  const vendSel = document.getElementById('soVendedor');
+  const vendNome = vendSel?.value || '';
+  if (vendNome) {
+    const vend = usuarios.find(u => u.role === 'vendedor' && u.nome === vendNome);
+    _soUFs = new Set(vend?.ufs || []);
+  } else {
+    _soUFs = new Set();
+  }
+  renderSellOut();
 }
 
 function _soToggleAll(checked) {
