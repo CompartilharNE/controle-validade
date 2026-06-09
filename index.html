@@ -7657,7 +7657,7 @@ async function gerarExcelSellOut() {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('SellOut');
   // ── Cabeçalho padrão ──
-  const logoB64SO = await _logoParaBase64();
+  const logoB64SO = await getLogoBase64();
   ws.mergeCells('A1:K1');
   const soR1 = ws.getCell('A1');
   soR1.value = 'Compartilhar Vendas e Promo';
