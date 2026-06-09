@@ -493,6 +493,16 @@
         </div>
         <p id="semLojas" class="hidden text-center text-slate-400 text-sm py-6">Nenhuma loja cadastrada.</p>
       </div>
+
+      <!-- Apelidos de Rede -->
+      <div class="bg-white rounded-2xl shadow p-4 mt-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-sm font-semibold text-slate-700">🏷️ Apelidos por Rede</span>
+          <span style="font-size:11px;color:#64748b">— promotores poderão buscar pelo apelido</span>
+        </div>
+        <div id="listaApelidos"></div>
+        <p id="semRedesApelidos" class="hidden text-center text-slate-400 text-sm py-4">Nenhuma rede cadastrada ainda.</p>
+      </div>
     </div>
 
     <!-- Tab Usuários -->
@@ -2695,6 +2705,7 @@ const FS_LOJAS           = db.collection('lojas');
 const FS_CFG_USUARIOS    = db.collection('config').doc('usuarios');
 const FS_CFG_FABRICAS    = db.collection('config').doc('fabricas');
 const FS_CFG_CONSOLIDADO = db.collection('config').doc('consolidado');
+const FS_CFG_REDES       = db.collection('config').doc('redes');
 
 // ── Estado ──────────────────────────────────
 let produtos    = [];
@@ -2703,6 +2714,7 @@ let catalogo    = [];
 let usuarios    = [];
 let fabricas    = [];
 let lojas       = [];
+let redesConfig = []; // [{nome, apelidos:[]}]
 let sessao      = JSON.parse(sessionStorage.getItem('cv_sessao') || 'null');
 let consolidado = {};
 let sortCol   = 'status';
@@ -2895,6 +2907,7 @@ function abrirAdmin() {
   renderCatalogo();
   renderFabricas();
   renderLojas();
+  renderApelidos();
   renderUsuarios();
   renderRelatorio();
   atualizarSelectFabricas();
@@ -3178,6 +3191,7 @@ function salvarLoja() {
   document.getElementById('loj_uf').value    = '';
   document.getElementById('loj_cnpj').value  = '';
   renderLojas();
+  renderApelidos();
   atualizarDatalistLojas();
   showToast('✅ Loja salva!','#166534');
 }
@@ -3241,6 +3255,72 @@ function renderLojas() {
       <button onclick="deletarLoja(${l.id})" style="background:none;border:none;font-size:16px;font-weight:700;color:#dc2626;cursor:pointer;line-height:1" title="Excluir">✕</button>
     </td>
   </tr>`).join('');
+}
+
+// ── Apelidos de Rede ─────────────────────────
+
+function renderApelidos() {
+  const cont = document.getElementById('listaApelidos');
+  const sem  = document.getElementById('semRedesApelidos');
+  if (!cont) return;
+  // Redes únicas das lojas cadastradas
+  const redesNomes = [...new Set(lojas.map(l => l.rede).filter(Boolean))].sort();
+  if (!redesNomes.length) {
+    cont.innerHTML = ''; if (sem) sem.classList.remove('hidden'); return;
+  }
+  if (sem) sem.classList.add('hidden');
+  cont.innerHTML = redesNomes.map(nome => {
+    const rc = redesConfig.find(r => normTxt(r.nome) === normTxt(nome));
+    const apelidos = (rc?.apelidos || []).join(', ');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #f1f5f9" id="apeRow_${esc(nome).replace(/\s/g,'_')}">
+      <span style="font-size:13px;font-weight:500;color:#1e293b;min-width:120px;flex-shrink:0">${esc(nome)}</span>
+      <div id="apeDisplay_${esc(nome).replace(/\s/g,'_')}" style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        ${apelidos
+          ? apelidos.split(',').map(a => `<span style="background:#dbeafe;color:#1d4ed8;border-radius:99px;padding:2px 8px;font-size:11px;font-weight:600">${esc(a.trim())}</span>`).join('')
+          : '<span style="font-size:11px;color:#94a3b8;font-style:italic">sem apelidos</span>'}
+        <button onclick="_abrirEditarApelido('${esc(nome).replace(/'/g,"\\'")}')"
+          style="background:none;border:0.5px solid #cbd5e1;border-radius:6px;padding:2px 8px;font-size:11px;color:#64748b;cursor:pointer;margin-left:4px">✏️ Editar</button>
+      </div>
+      <div id="apeEdit_${esc(nome).replace(/\s/g,'_')}" style="display:none;flex:1;display:none;align-items:center;gap:6px">
+        <input id="apeInput_${esc(nome).replace(/\s/g,'_')}" type="text" value="${esc(apelidos)}"
+          placeholder="ex: Assaí, Giga Atacado"
+          style="flex:1;font-size:12px;border:0.5px solid #cbd5e1;border-radius:6px;padding:4px 8px;outline:none" />
+        <button onclick="_salvarApelido('${esc(nome).replace(/'/g,"\\'")}')"
+          style="background:#1e3a5f;color:white;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">Salvar</button>
+        <button onclick="_cancelarApelido('${esc(nome).replace(/\s/g,'_')}')"
+          style="background:none;border:0.5px solid #cbd5e1;border-radius:6px;padding:4px 8px;font-size:11px;color:#64748b;cursor:pointer">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _abrirEditarApelido(nome) {
+  const key = nome.replace(/\s/g,'_');
+  const disp = document.getElementById('apeDisplay_'+key);
+  const edit = document.getElementById('apeEdit_'+key);
+  if (disp) disp.style.display = 'none';
+  if (edit) { edit.style.display = 'flex'; }
+}
+
+function _cancelarApelido(key) {
+  const disp = document.getElementById('apeDisplay_'+key);
+  const edit = document.getElementById('apeEdit_'+key);
+  if (disp) disp.style.display = 'flex';
+  if (edit) edit.style.display = 'none';
+}
+
+function _salvarApelido(nome) {
+  const key = nome.replace(/\s/g,'_');
+  const inp = document.getElementById('apeInput_'+key);
+  if (!inp) return;
+  const val = inp.value.trim();
+  const apelidos = val ? val.split(',').map(a => a.trim()).filter(Boolean) : [];
+  const idx = redesConfig.findIndex(r => normTxt(r.nome) === normTxt(nome));
+  if (idx >= 0) redesConfig[idx].apelidos = apelidos;
+  else redesConfig.push({ nome, apelidos });
+  FS_CFG_REDES.set({ lista: redesConfig });
+  renderApelidos();
+  showToast('✅ Apelidos salvos!','#166534');
 }
 
 function atualizarDatalistLojas() {
@@ -4416,35 +4496,64 @@ function _fmtCNPJ(d) {
   return d;
 }
 
+function _redesApelidosArr(nomeRede) {
+  const rc = redesConfig.find(r => normTxt(r.nome) === normTxt(nomeRede||''));
+  return rc?.apelidos || [];
+}
+
+function _lojaMatchTokens(l, tokens) {
+  return tokens.every(tok =>
+    normTxt(l.nome).includes(tok) ||
+    normTxt(l.rede||'').includes(tok) ||
+    normTxt(l.cnpj||'').replace(/\D/g,'').includes(tok) ||
+    _redesApelidosArr(l.rede).some(a => normTxt(a).includes(tok))
+  );
+}
+
+function _apelidoMatchToken(l, tokens) {
+  // Retorna o apelido que bateu (para mostrar badge), ou null
+  const aps = _redesApelidosArr(l.rede);
+  for (const a of aps) {
+    const na = normTxt(a);
+    if (tokens.some(tok => na.includes(tok) && !normTxt(l.nome).includes(tok) && !normTxt(l.rede||'').includes(tok)))
+      return a;
+  }
+  return null;
+}
+
 function _filtrarSugestoesLoja(texto) {
   const drop = document.getElementById('lojasSugestoes');
   if (!drop) return;
   if ((document.getElementById('f_loja').value||'').trim()) { drop.style.display='none'; return; }
   const busca = normTxt(texto.trim());
-  // Só mostra sugestões se houver texto digitado (igual ao campo Produto)
   if (!busca) { drop.style.display='none'; return; }
+  const tokens = busca.split(/\s+/).filter(Boolean);
   const ufProm = (sessao && sessao.role === 'promotor') ? (sessao.uf||'') : '';
   let lista = lojas;
   if (ufProm) lista = lista.filter(l => (l.uf||'') === ufProm);
-  if (busca) lista = lista.filter(l => normTxt(l.nome).includes(busca) || normTxt(l.rede||'').includes(busca));
+  lista = lista.filter(l => _lojaMatchTokens(l, tokens));
   lista = lista.slice(0, 8);
   if (!lista.length) {
     drop.innerHTML = '<div style="padding:8px 12px;font-size:12px;color:#94a3b8">Nenhuma loja encontrada no cadastro.</div>';
     drop.style.display = 'block'; return;
   }
-  const re = busca ? new RegExp('('+busca.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi') : null;
+  const re = tokens.length ? new RegExp('('+tokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','gi') : null;
   const hl = t => re ? esc(t).replace(re,'<mark style="background:#fef08a;border-radius:2px">$1</mark>') : esc(t);
-  drop.innerHTML = lista.map(l =>
-    `<div onmousedown="_confirmarLoja('${l.nome.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}','${(l.rede||'').replace(/'/g,"\\'")}','${esc(l.uf||'')}','${(l.cnpj||'').replace(/'/g,"\\'")}')"
+  drop.innerHTML = lista.map(l => {
+    const apBadge = _apelidoMatchToken(l, tokens);
+    return `<div onmousedown="_confirmarLoja('${l.nome.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}','${(l.rede||'').replace(/'/g,"\\'")}','${esc(l.uf||'')}','${(l.cnpj||'').replace(/'/g,"\\'")}')"
       style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:0.5px solid #f1f5f9;font-size:13px"
       onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:500;color:#1e293b;line-height:1.3">${hl(l.nome)}</div>
-        ${l.rede ? `<div style="font-size:11px;color:#94a3b8;margin-top:1px">${esc(l.rede)}</div>` : ''}
+        <div style="font-size:11px;color:#94a3b8;margin-top:1px;display:flex;align-items:center;gap:5px">
+          ${l.rede ? esc(l.rede) : ''}
+          ${apBadge ? `<span style="background:#fef9c3;color:#854d0e;border-radius:99px;padding:1px 6px;font-size:10px;font-weight:600">também: ${esc(apBadge)}</span>` : ''}
+        </div>
       </div>
       ${l.uf ? `<span style="font-size:11px;font-family:monospace;background:#E6F1FB;color:#185FA5;padding:1px 6px;border-radius:4px;flex-shrink:0;font-weight:500">${esc(l.uf)}</span>` : ''}
-    </div>`
-  ).join('');
+    </div>`;
+  }).join('');
   drop.style.display = 'block';
 }
 
@@ -9449,11 +9558,12 @@ async function carregarDados() {
     setTimeout(() => reject(new Error('TIMEOUT')), 12000)
   );
   try {
-    const [usSnap, fabSnap, consSnap, lojaSnap, catSnap, prodSnap, histSnap] = await Promise.race([
+    const [usSnap, fabSnap, consSnap, redesSnap, lojaSnap, catSnap, prodSnap, histSnap] = await Promise.race([
       Promise.all([
         FS_CFG_USUARIOS.get(),
         FS_CFG_FABRICAS.get(),
         FS_CFG_CONSOLIDADO.get(),
+        FS_CFG_REDES.get(),
         FS_LOJAS.get(),
         FS_CATALOGO.get(),
         FS_PRODUTOS.get(),
@@ -9464,6 +9574,7 @@ async function carregarDados() {
     usuarios    = usSnap.exists    ? (usSnap.data().lista   || []) : [];
     fabricas    = fabSnap.exists   ? (fabSnap.data().lista  || []) : [];
     consolidado = consSnap.exists  ? (consSnap.data().data  || {}) : {};
+    redesConfig = redesSnap.exists ? (redesSnap.data().lista || []) : [];
     lojas       = lojaSnap.docs.map(d => d.data());
     catalogo    = catSnap.docs.map(d => d.data());
     produtos    = prodSnap.docs.map(d => d.data());
