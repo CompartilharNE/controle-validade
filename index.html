@@ -721,6 +721,10 @@
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
         <i class="ti ti-clock-exclamation" style="font-size:14px" aria-hidden="true"></i> Lojas
       </button>
+      <button id="btnViewSellOut" onclick="setView('sellout')"
+        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
+        <i class="ti ti-tag-starred" style="font-size:14px" aria-hidden="true"></i> SellOut
+      </button>
       <button id="btnViewHistorico" onclick="setView('historico')"
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
         <i class="ti ti-history" style="font-size:14px" aria-hidden="true"></i> Histórico
@@ -1122,6 +1126,84 @@
         </table>
       </div>
       <div id="semLojasSemLanc" class="hidden text-center py-12 text-slate-400 text-sm">Nenhuma loja cadastrada.</div>
+    </div>
+
+    <!-- View: SellOut (Admin only) -->
+    <div id="viewSellOut" style="display:none;margin-bottom:24px">
+
+      <!-- Filtros SellOut -->
+      <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleFiltrosSellOut()">
+          <div style="display:flex;align-items:center;gap:8px">
+            <i class="ti ti-list-search" style="font-size:18px;color:#1d4ed8" aria-hidden="true"></i>
+            <h2 class="text-base font-semibold text-blue-700">Filtros — SellOut</h2>
+            <i id="soChevron" class="ti ti-chevron-down" style="font-size:15px;color:#64748b;transition:transform .2s" aria-hidden="true"></i>
+          </div>
+        </div>
+        <div id="filtrosSellOutBody" class="mt-3 pt-3" style="border-top:0.5px solid #bfdbfe">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-slate-600">Fábrica</label>
+              <select id="soFabrica" onchange="renderSellOut()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-slate-600">Rede</label>
+              <select id="soRede" onchange="renderSellOut()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-slate-600">Vendedor / Promotor</label>
+              <select id="soVendedor" onchange="renderSellOut()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-slate-600" style="display:block;margin-bottom:6px">UF — clique para selecionar (vazio = todas)</label>
+            <div id="soUFChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de produtos SellOut -->
+      <div class="bg-white rounded-2xl shadow overflow-hidden mb-4">
+        <div style="background:#1e3a5f;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <i class="ti ti-tag-starred" style="font-size:16px;color:#fff" aria-hidden="true"></i>
+            <span style="font-size:13px;font-weight:700;color:#fff">Produtos em atenção (10 a 30 dias)</span>
+          </div>
+          <span id="soContador" style="font-size:11px;color:#93c5fd">0 produtos</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:#f1f5f9">
+                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;border-bottom:0.5px solid #e2e8f0">
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer">
+                    <input type="checkbox" id="soCheckAll" onchange="_soToggleAll(this.checked)" style="accent-color:#1e3a5f" /> Todos
+                  </label>
+                </th>
+                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;border-bottom:0.5px solid #e2e8f0">COD. REDE</th>
+                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">Produto</th>
+                <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">Fábrica</th>
+                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">UND</th>
+                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">Qtde Total</th>
+                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">Menor Vencimento</th>
+                <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px;border-bottom:0.5px solid #e2e8f0">R$ Gôndola</th>
+              </tr>
+            </thead>
+            <tbody id="soTableBody">
+              <tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8;font-size:13px">Selecione os filtros acima para ver os produtos</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="soSemDados" class="hidden" style="text-align:center;padding:32px;color:#94a3b8;font-size:13px">Nenhum produto encontrado com os filtros selecionados.</div>
+      </div>
+
+      <!-- Botão Gerar Excel SellOut -->
+      <div style="display:flex;justify-content:flex-end">
+        <button onclick="gerarExcelSellOut()"
+          style="display:inline-flex;align-items:center;gap:7px;background:#1e3a5f;color:#fff;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(30,58,95,.45);letter-spacing:.3px">
+          <i class="ti ti-file-spreadsheet" style="font-size:15px" aria-hidden="true"></i> Gerar Excel SellOut
+        </button>
+      </div>
     </div>
 
     <!-- View: Gráficos -->
@@ -2786,9 +2868,11 @@ function entrarNoApp(user) {
   // Botão Gráficos visível para admin/vendedor/diretor
   const btnGraf2 = document.getElementById('btnViewGraficos');
   if (btnGraf2) btnGraf2.style.display = (user.role === 'promotor') ? 'none' : 'inline-flex';
-  // Botão Histórico visível somente para Admin
+  // Botões Histórico e SellOut visíveis somente para Admin
   const btnHist2 = document.getElementById('btnViewHistorico');
   if (btnHist2) btnHist2.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
+  const btnSO2 = document.getElementById('btnViewSellOut');
+  if (btnSO2) btnSO2.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
   // Resetar view ao entrar
   _viewAtual = 'produtos';
   setView('produtos');
@@ -6994,15 +7078,18 @@ function setView(v) {
   const lojasDiv     = document.getElementById('viewLojas');
   const graficosDiv  = document.getElementById('viewGraficos');
   const historicoDiv = document.getElementById('viewHistorico');
+  const selloutDiv   = document.getElementById('viewSellOut');
   const btnProd      = document.getElementById('btnViewProdutos');
   const btnLojas     = document.getElementById('btnViewLojas');
   const btnGraf      = document.getElementById('btnViewGraficos');
   const btnHist      = document.getElementById('btnViewHistorico');
+  const btnSO        = document.getElementById('btnViewSellOut');
   const _offStyle    = 'transparent';
   // Ocultar tudo primeiro
   if (graficosDiv)  graficosDiv.style.display  = 'none';
   if (historicoDiv) historicoDiv.style.display = 'none';
-  // Barra Excel: oculta em Gráficos/Histórico, visível em Produtos/Lojas
+  if (selloutDiv)   selloutDiv.style.display   = 'none';
+  // Barra Excel contextual: visível apenas em Produtos e Lojas
   const barExcelV = document.getElementById('barExcelContextual');
   const mostrarExcelV = (v === 'produtos' || v === 'lojas') &&
     (sessao?.role === 'admin' || sessao?.role === 'vendedor' || sessao?.role === 'diretor');
@@ -7012,6 +7099,7 @@ function setView(v) {
   if (barTotais) barTotais.style.display = v === 'produtos' ? '' : 'none';
   if (btnGraf) { btnGraf.style.background=_offStyle; btnGraf.style.color='#64748b'; btnGraf.style.border='0.5px solid #cbd5e1'; btnGraf.style.borderBottom=''; btnGraf.style.boxShadow='none'; }
   if (btnHist) { btnHist.style.background=_offStyle; btnHist.style.color='#64748b'; btnHist.style.border='0.5px solid #cbd5e1'; btnHist.style.borderBottom=''; btnHist.style.boxShadow='none'; }
+  if (btnSO)   { btnSO.style.background  =_offStyle; btnSO.style.color  ='#64748b'; btnSO.style.border  ='0.5px solid #cbd5e1'; btnSO.style.borderBottom='';   btnSO.style.boxShadow='none'; }
   // Ocultar formulário de adicionar produto quando não está na aba Produtos
   const formWrap = document.getElementById('formAdicionarWrap');
   if (formWrap) {
@@ -7130,6 +7218,20 @@ function setView(v) {
       renderHistorico();
       return;
     }
+    if (v === 'sellout') {
+      if (tabelaDiv)   tabelaDiv.style.display  = 'none';
+      if (lojasDiv)    lojasDiv.classList.add('hidden');
+      if (selloutDiv)  selloutDiv.style.display  = 'block';
+      if (cardFiltroProd) cardFiltroProd.style.display = 'none';
+      const _fdbSO = document.getElementById('filtroDataBadge'); if (_fdbSO) _fdbSO.style.display = 'none';
+      btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
+      btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none';
+      if (btnSO) { btnSO.style.background = '#1e3a5f'; btnSO.style.color = 'white'; btnSO.style.border = 'none'; btnSO.style.borderBottom = '3px solid #0c1f35'; btnSO.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)'; }
+      const btnXLS = document.getElementById('btnExportCSV');
+      if (btnXLS) { btnXLS.style.display = 'none'; btnXLS.classList.add('hidden'); }
+      renderSellOut();
+      return;
+    }
     btnProd.style.background  = '#1e3a5f';     btnProd.style.color = 'white';   btnProd.style.border = 'none'; btnProd.style.borderBottom = '3px solid #0c1f35'; btnProd.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)';
     btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none';
     // Restaurar botão Gerar Excel (pode ter sido ocultado na view Gráficos)
@@ -7143,6 +7245,268 @@ function setView(v) {
     }
     if (btnXLCtx2) btnXLCtx2.textContent = 'Produtos';
   }
+}
+
+// ══════════════════════════════════════════════
+// ── SELLOUT ───────────────────────────────────
+// ══════════════════════════════════════════════
+
+let _soUFs = new Set(); // UFs selecionadas (vazio = todas)
+
+function toggleFiltrosSellOut() {
+  const body    = document.getElementById('filtrosSellOutBody');
+  const chevron = document.getElementById('soChevron');
+  if (!body) return;
+  const aberto = body.style.display !== 'none';
+  body.style.display = aberto ? 'none' : '';
+  if (chevron) chevron.style.transform = aberto ? '' : 'rotate(180deg)';
+}
+
+function _soToggleUF(uf) {
+  if (_soUFs.has(uf)) _soUFs.delete(uf); else _soUFs.add(uf);
+  _soRenderUFChips();
+  renderSellOut();
+}
+
+function _soRenderUFChips() {
+  const wrap = document.getElementById('soUFChips');
+  if (!wrap) return;
+  const ufsUnicas = [...new Set(produtos.map(p => p.uf).filter(Boolean))].sort();
+  wrap.innerHTML = ufsUnicas.map(uf => {
+    const sel = _soUFs.has(uf);
+    return `<button type="button" onclick="_soToggleUF('${uf}')"
+      style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;border:none;
+             background:${sel?'#1e3a5f':'#f1f5f9'};color:${sel?'#fff':'#475569'};
+             ${sel?'box-shadow:0 2px 6px rgba(30,58,95,.3);border-bottom:2px solid #0c1f35':''}"
+      >${uf}</button>`;
+  }).join('');
+}
+
+function _soPopularSelects() {
+  const fabSel  = document.getElementById('soFabrica');
+  const redeSel = document.getElementById('soRede');
+  const vendSel = document.getElementById('soVendedor');
+  if (!fabSel || !redeSel || !vendSel) return;
+  const fabs  = [...new Set(catalogo.map(c => c.fabrica).filter(Boolean))].sort();
+  const redes = [...new Set(lojas.map(l => l.rede).filter(Boolean))].sort();
+  const vends = [...new Set(produtos.map(p => p.promotor).filter(Boolean))].sort();
+  const curF = fabSel.value, curR = redeSel.value, curV = vendSel.value;
+  fabSel.innerHTML  = '<option value="">Todas</option>' + fabs.map(f  => `<option ${f===curF?'selected':''}>${esc(f)}</option>`).join('');
+  redeSel.innerHTML = '<option value="">Todas</option>' + redes.map(r => `<option ${r===curR?'selected':''}>${esc(r)}</option>`).join('');
+  vendSel.innerHTML = '<option value="">Todos</option>' + vends.map(v => `<option ${v===curV?'selected':''}>${esc(v)}</option>`).join('');
+}
+
+function _soToggleAll(checked) {
+  document.querySelectorAll('#soTableBody input[type=checkbox]').forEach(cb => cb.checked = checked);
+}
+
+function renderSellOut() {
+  _soPopularSelects();
+  _soRenderUFChips();
+  const fabFiltro  = document.getElementById('soFabrica')?.value  || '';
+  const redeFiltro = document.getElementById('soRede')?.value     || '';
+  const vendFiltro = document.getElementById('soVendedor')?.value || '';
+  const ufsFiltro  = _soUFs;
+  const tbody  = document.getElementById('soTableBody');
+  const semEl  = document.getElementById('soSemDados');
+  const contEl = document.getElementById('soContador');
+  if (!tbody) return;
+
+  // Mapear lojas por nome → rede
+  const lojaRedeMap = {};
+  lojas.forEach(l => { lojaRedeMap[normTxt(l.nome)] = l.rede || ''; });
+
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  // Filtrar lançamentos: 10 a 30 dias para vencer + filtros de rede/uf/vendedor/fabrica
+  const lancFiltrados = produtos.filter(p => {
+    const dias = diasRestantes(p.validade);
+    if (dias < 10 || dias > 30) return false;
+    if (fabFiltro  && normTxt(p.fabrica || '') !== normTxt(fabFiltro))  return false;
+    if (vendFiltro && normTxt(p.promotor|| '') !== normTxt(vendFiltro)) return false;
+    if (ufsFiltro.size > 0 && !ufsFiltro.has(p.uf)) return false;
+    if (redeFiltro) {
+      const redeDoLanc = lojaRedeMap[normTxt(p.loja || '')] || '';
+      if (normTxt(redeDoLanc) !== normTxt(redeFiltro)) return false;
+    }
+    return true;
+  });
+
+  if (!lancFiltrados.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8;font-size:13px">Nenhum produto encontrado com os filtros selecionados.</td></tr>';
+    if (contEl) contEl.textContent = '0 produtos';
+    return;
+  }
+
+  // Agrupar por produto (usando nome normalizado + fábrica)
+  const grupos = {};
+  lancFiltrados.forEach(p => {
+    const key = normTxt(p.produto || '') + '|' + normTxt(p.fabrica || '');
+    if (!grupos[key]) {
+      // Buscar item no catálogo para pegar und e codigosRedes
+      const cat = catalogo.find(c => normTxt(c.nome) === normTxt(p.produto||'') && normTxt(c.fabrica||'') === normTxt(p.fabrica||''));
+      grupos[key] = {
+        nome:    p.produto || '',
+        fabrica: p.fabrica || '',
+        und:     cat?.und   || p.und || '',
+        codRede: cat ? (cat.codigosRedes?.[redeFiltro] || '') : '',
+        cat:     cat,
+        qtde:    0,
+        minData: null,
+        preco:   0,
+        lancamentos: []
+      };
+    }
+    grupos[key].qtde += Number(p.quantidade) || 0;
+    if (!grupos[key].minData || p.validade < grupos[key].minData) grupos[key].minData = p.validade;
+    if (p.preco && Number(p.preco) > grupos[key].preco) grupos[key].preco = Number(p.preco);
+    grupos[key].lancamentos.push(p);
+  });
+
+  // Filtrar grupos: manter somente produtos com código de rede (quando rede selecionada)
+  const lista = Object.values(grupos).filter(g => {
+    if (redeFiltro && !g.codRede) return false;
+    return true;
+  }).sort((a,b) => a.minData?.localeCompare(b.minData||'') || 0);
+
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8;font-size:13px">Nenhum produto com código de rede cadastrado nos filtros selecionados.</td></tr>';
+    if (contEl) contEl.textContent = '0 produtos';
+    return;
+  }
+
+  if (contEl) contEl.textContent = lista.length + ' produto' + (lista.length !== 1 ? 's' : '');
+  tbody.innerHTML = lista.map((g, i) => {
+    const dias = g.minData ? diasRestantes(g.minData) : null;
+    const corData = dias !== null && dias <= 20 ? '#d97706' : '#16a34a';
+    const qtdeStr = Number.isInteger(g.qtde) ? g.qtde : g.qtde.toFixed(1);
+    return `<tr style="${i%2===1?'background:#f8fafc':''}">
+      <td style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0">
+        <input type="checkbox" class="so-cb" data-idx="${i}" checked style="accent-color:#1e3a5f;width:14px;height:14px" />
+      </td>
+      <td style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;font-weight:700;color:#1e3a5f;white-space:nowrap">${esc(g.codRede||'—')}</td>
+      <td style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;font-size:12px">${esc(g.nome)}</td>
+      <td style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;color:#64748b;font-size:11px">${esc(g.fabrica)}</td>
+      <td style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;text-align:center">
+        <span style="background:#eff6ff;color:#1e40af;font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px">${esc(g.und||'—')}</span>
+      </td>
+      <td style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;text-align:center;font-weight:700">${qtdeStr}</td>
+      <td style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;text-align:center;font-weight:700;color:${corData}">${g.minData ? fmtData(g.minData) : '—'}</td>
+      <td style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;text-align:center">${g.preco ? 'R$ ' + g.preco.toFixed(2).replace('.',',') : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  // Sincronizar "selecionar todos"
+  const allCb = document.getElementById('soCheckAll');
+  if (allCb) allCb.checked = true;
+}
+
+async function gerarExcelSellOut() {
+  const fabFiltro  = document.getElementById('soFabrica')?.value  || '';
+  const redeFiltro = document.getElementById('soRede')?.value     || '';
+  const vendFiltro = document.getElementById('soVendedor')?.value || '';
+  const ufsFiltro  = _soUFs;
+
+  // Coletar linhas selecionadas
+  const cbs = document.querySelectorAll('#soTableBody .so-cb:checked');
+  if (!cbs.length) { showToast('Selecione ao menos um produto.','#92400e'); return; }
+
+  // Reconstruir a lista igual ao renderSellOut
+  const lojaRedeMap = {};
+  lojas.forEach(l => { lojaRedeMap[normTxt(l.nome)] = l.rede || ''; });
+
+  const lancFiltrados = produtos.filter(p => {
+    const dias = diasRestantes(p.validade);
+    if (dias < 10 || dias > 30) return false;
+    if (fabFiltro  && normTxt(p.fabrica || '') !== normTxt(fabFiltro))  return false;
+    if (vendFiltro && normTxt(p.promotor|| '') !== normTxt(vendFiltro)) return false;
+    if (ufsFiltro.size > 0 && !ufsFiltro.has(p.uf)) return false;
+    if (redeFiltro) {
+      const redeDoLanc = lojaRedeMap[normTxt(p.loja || '')] || '';
+      if (normTxt(redeDoLanc) !== normTxt(redeFiltro)) return false;
+    }
+    return true;
+  });
+
+  const grupos = {};
+  lancFiltrados.forEach(p => {
+    const key = normTxt(p.produto || '') + '|' + normTxt(p.fabrica || '');
+    if (!grupos[key]) {
+      const cat = catalogo.find(c => normTxt(c.nome) === normTxt(p.produto||'') && normTxt(c.fabrica||'') === normTxt(p.fabrica||''));
+      grupos[key] = { nome:p.produto||'', fabrica:p.fabrica||'', und:cat?.und||p.und||'', codRede:cat?(cat.codigosRedes?.[redeFiltro]||''):'', qtde:0, minData:null, preco:0 };
+    }
+    grupos[key].qtde += Number(p.quantidade)||0;
+    if (!grupos[key].minData || p.validade < grupos[key].minData) grupos[key].minData = p.validade;
+    if (p.preco && Number(p.preco) > grupos[key].preco) grupos[key].preco = Number(p.preco);
+  });
+
+  let lista = Object.values(grupos)
+    .filter(g => !redeFiltro || g.codRede)
+    .sort((a,b) => a.minData?.localeCompare(b.minData||'')||0);
+
+  // Filtrar só os selecionados (por índice)
+  const idxSel = new Set([...cbs].map(cb => Number(cb.dataset.idx)));
+  lista = lista.filter((_, i) => idxSel.has(i));
+  if (!lista.length) { showToast('Nenhum item para exportar.','#92400e'); return; }
+
+  showToast('⏳ Gerando Excel SellOut...','#1e3a8a');
+
+  const ufsStr  = ufsFiltro.size > 0 ? [...ufsFiltro].sort().join(', ') : 'Todas';
+  const cliente = redeFiltro || 'Todas as Redes';
+  const cols    = ['CLIENTE','LOJAS','COD. REDE','PRODUTO','CUSTO','R$ GONDOLA','QTDE KG/UND','VENCIMENTO','R$ AÇÃO','R$ SELLOUT','TOTAL'];
+
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('SellOut');
+  await _cabecalhoExcel(wb, ws, 'CONTROLE DE VALIDADE — SELLOUT', cols.length);
+  const hr = ws.getRow(5); hr.height = 22;
+  cols.forEach((c,i) => { const cell=hr.getCell(i+1); _estiloCabecalho(cell); cell.value=c; });
+
+  lista.forEach((g, i) => {
+    const rowNum  = 6 + i;
+    const qtdeStr = (Number.isInteger(g.qtde) ? g.qtde : parseFloat(g.qtde.toFixed(1))) + (g.und ? ' ' + g.und : '');
+    const precoBR = g.preco ? parseFloat(g.preco.toFixed(2)) : '';
+    const vencFmt = g.minData ? fmtData(g.minData) : '';
+    const r = ws.addRow([
+      cliente,
+      ufsStr,
+      g.codRede || '',
+      g.nome,
+      '',           // CUSTO — em branco
+      precoBR,      // R$ GONDOLA
+      qtdeStr,      // QTDE KG/UND
+      vencFmt,      // VENCIMENTO
+      '',           // R$ AÇÃO — em branco
+      '',           // R$ SELLOUT — em branco
+      { formula: `G${rowNum}*J${rowNum}` }  // TOTAL
+    ]);
+    _estiloLinha(r, i);
+    // Estilo da célula TOTAL (azul claro)
+    r.getCell(11).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFEFF6FF' } };
+    r.getCell(11).font = { color:{ argb:'FF1E40AF' }, size:10 };
+    // Células em branco (CUSTO, R$ AÇÃO, R$ SELLOUT) — amarelo claro
+    [5,9,10].forEach(col => {
+      r.getCell(col).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFEFCE8' } };
+    });
+    // R$ GONDOLA — formato numérico
+    if (precoBR) r.getCell(6).numFmt = 'R$ #,##0.00';
+    r.height = 16;
+  });
+
+  // Larguras das colunas
+  [18, 16, 14, 44, 12, 14, 14, 14, 12, 14, 14].forEach((w,i) => { ws.getColumn(i+1).width = w; });
+
+  // Linha de totais
+  const lastDataRow = 5 + lista.length;
+  const totRow = ws.addRow(['','','','TOTAL','','','','','','',{ formula:`SUM(K6:K${lastDataRow})` }]);
+  totRow.eachCell(c => { c.font = { bold:true }; c.border = { top:{style:'thin',color:{argb:'FF1E3A8A'}} }; });
+  totRow.getCell(4).font = { bold:true, color:{ argb:'FF1E3A8A' } };
+  totRow.getCell(11).numFmt = 'R$ #,##0.00';
+  totRow.getCell(11).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFEFF6FF' } };
+  totRow.getCell(11).font = { bold:true, color:{ argb:'FF1E40AF' } };
+  totRow.height = 18;
+
+  const fname = 'sellout_' + (redeFiltro||'todas').replace(/\s+/g,'_').toLowerCase() + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.xlsx';
+  await _downloadExcel(wb, fname);
 }
 
 function renderLojasSemLanc() {
