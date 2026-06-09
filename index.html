@@ -7711,13 +7711,13 @@ async function gerarExcelSellOut() {
       ufsStr,
       g.codRede || '',
       g.nome,
-      '',           // CUSTO — em branco
-      precoBR,      // R$ GONDOLA
+      null,         // CUSTO — célula vazia (não texto)
+      precoBR || null,  // R$ GONDOLA
       qtdeNum,      // QTDE KG/UND — número puro
       vencFmt,      // VENCIMENTO
-      '',           // R$ AÇÃO — em branco
-      '',           // R$ SELLOUT — em branco
-      { formula: `G${rowNum}*J${rowNum}` }  // TOTAL
+      null,         // R$ AÇÃO — célula vazia
+      null,         // R$ SELLOUT — célula vazia
+      { formula: `IF(J${rowNum}="","",G${rowNum}*J${rowNum})` }  // TOTAL (branco se R$ SELLOUT vazio)
     ]);
     // Borda preta em todas as células
     r.eachCell({ includeEmpty:true }, c => { c.border = allBorders; });
@@ -7743,7 +7743,7 @@ async function gerarExcelSellOut() {
 
   // Linha de totais
   const lastDataRow = 6 + lista.length;
-  const totRow = ws.addRow(['','','','','','','','','','TOTAL',{ formula:`SUM(K7:K${lastDataRow})` }]);
+  const totRow = ws.addRow([null,null,null,null,null,null,null,null,null,'TOTAL',{ formula:`SUMPRODUCT((K7:K${lastDataRow})*1)` }]);
   totRow.eachCell({ includeEmpty:true }, c => { c.border = allBorders; c.font = { bold:true }; });
   totRow.getCell(10).font = { bold:true, color:{ argb:'FF1E3A8A' } };
   totRow.getCell(10).alignment = { horizontal:'right' };
