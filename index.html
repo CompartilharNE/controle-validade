@@ -282,6 +282,7 @@
     <div class="flex gap-2 mb-4 flex-wrap">
       <button id="tabCatalogBtn"  class="tab-btn active"   onclick="mostrarTabAdmin('catalogo')">📦 Produtos</button>
       <button id="tabFabricasBtn" class="tab-btn inactive" onclick="mostrarTabAdmin('fabricas')">🏭 Fábricas</button>
+      <button id="tabRedesBtn"    class="tab-btn inactive" onclick="mostrarTabAdmin('redes')">🔗 Redes</button>
       <button id="tabLojasBtn"   class="tab-btn inactive" onclick="mostrarTabAdmin('lojas')">🏪 Loja</button>
       <button id="tabUsuariosBtn" class="tab-btn inactive" onclick="mostrarTabAdmin('usuarios')">👥 Usuários</button>
     </div>
@@ -446,6 +447,39 @@
       </div>
     </div>
 
+    <!-- Tab Redes -->
+    <div id="tabRedes" class="hidden">
+      <div class="bg-white rounded-2xl shadow p-4 mb-4">
+        <h3 class="text-sm font-semibold text-blue-700 mb-3">➕ Nova Rede</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-slate-600">Nome da rede *</label>
+            <input id="rd_nome" type="text" placeholder="Ex: Carrefour"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-slate-600">Apelidos <span class="font-normal text-slate-400">(separados por vírgula)</span></label>
+            <input id="rd_apelidos" type="text" placeholder="Ex: Hiper, Bairro"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <button onclick="salvarRede()" class="mt-3 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded-lg px-5 py-2 transition">Salvar Rede</button>
+      </div>
+      <div class="bg-white rounded-2xl shadow p-4">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm font-semibold text-slate-700">Redes cadastradas</span>
+          <span id="cntRedes" class="bg-blue-100 text-blue-800 text-xs font-semibold rounded-full px-3 py-1">0</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table>
+            <thead><tr><th>#</th><th>Rede</th><th>Apelidos</th><th>Lojas</th><th>Ação</th></tr></thead>
+            <tbody id="corpoRedes"></tbody>
+          </table>
+        </div>
+        <p id="semRedes" class="hidden text-center text-slate-400 text-sm py-6">Nenhuma rede cadastrada.</p>
+      </div>
+    </div>
+
     <!-- Tab Lojas -->
     <div id="tabLojas" class="hidden">
       <div class="bg-white rounded-2xl shadow p-4 mb-4">
@@ -492,16 +526,6 @@
           </table>
         </div>
         <p id="semLojas" class="hidden text-center text-slate-400 text-sm py-6">Nenhuma loja cadastrada.</p>
-      </div>
-
-      <!-- Apelidos de Rede -->
-      <div class="bg-white rounded-2xl shadow p-4 mt-4">
-        <div class="flex items-center gap-2 mb-3">
-          <span class="text-sm font-semibold text-slate-700">🏷️ Apelidos por Rede</span>
-          <span style="font-size:11px;color:#64748b">— promotores poderão buscar pelo apelido</span>
-        </div>
-        <div id="listaApelidos"></div>
-        <p id="semRedesApelidos" class="hidden text-center text-slate-400 text-sm py-4">Nenhuma rede cadastrada ainda.</p>
       </div>
     </div>
 
@@ -2484,6 +2508,26 @@
   </div>
 </div>
 
+<!-- Modal Editar Rede -->
+<div id="editRedeModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+    <h3 class="text-base font-semibold text-slate-800 mb-4">✏️ Editar Rede</h3>
+    <input type="hidden" id="erIdx" />
+    <div class="mb-3">
+      <label class="block text-xs font-semibold text-slate-500 mb-1">Nome da rede</label>
+      <input id="erNome" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+    </div>
+    <div class="mb-4">
+      <label class="block text-xs font-semibold text-slate-500 mb-1">Apelidos <span class="font-normal">(separados por vírgula)</span></label>
+      <input id="erApelidos" type="text" placeholder="Ex: Assaí, Giga Atacado" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+    </div>
+    <div class="flex gap-2 justify-end">
+      <button onclick="document.getElementById('editRedeModal').classList.add('hidden')" class="text-sm text-slate-500 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50">Cancelar</button>
+      <button onclick="salvarEditarRede()" class="bg-blue-700 text-white text-sm font-semibold rounded-lg px-5 py-2 hover:bg-blue-800 transition">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Editar Loja -->
 <div id="editLojaModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
@@ -2906,8 +2950,8 @@ function abrirAdmin() {
   mostrarTabAdmin('catalogo');
   renderCatalogo();
   renderFabricas();
+  renderRedes();
   renderLojas();
-  renderApelidos();
   renderUsuarios();
   renderRelatorio();
   atualizarSelectFabricas();
@@ -3032,11 +3076,13 @@ function toggleSenha(inputId, btn) {
 function mostrarTabAdmin(tab) {
   document.getElementById('tabCatalogo').classList.toggle('hidden', tab!=='catalogo');
   document.getElementById('tabFabricas').classList.toggle('hidden', tab!=='fabricas');
+  document.getElementById('tabRedes').classList.toggle('hidden', tab!=='redes');
   document.getElementById('tabLojas').classList.toggle('hidden', tab!=='lojas');
   document.getElementById('tabUsuarios').classList.toggle('hidden', tab!=='usuarios');
   document.getElementById('tabRelatorio').classList.toggle('hidden', tab!=='relatorio');
   document.getElementById('tabCatalogBtn').className  = 'tab-btn '+(tab==='catalogo'?'active':'inactive');
   document.getElementById('tabFabricasBtn').className = 'tab-btn '+(tab==='fabricas'?'active':'inactive');
+  document.getElementById('tabRedesBtn').className    = 'tab-btn '+(tab==='redes'?'active':'inactive');
   document.getElementById('tabLojasBtn').className    = 'tab-btn '+(tab==='lojas'?'active':'inactive');
   document.getElementById('tabUsuariosBtn').className = 'tab-btn '+(tab==='usuarios'?'active':'inactive');
   const btnRel = document.getElementById('tabRelatorioBtn');
@@ -3191,7 +3237,6 @@ function salvarLoja() {
   document.getElementById('loj_uf').value    = '';
   document.getElementById('loj_cnpj').value  = '';
   renderLojas();
-  renderApelidos();
   atualizarDatalistLojas();
   showToast('✅ Loja salva!','#166534');
 }
@@ -3257,70 +3302,93 @@ function renderLojas() {
   </tr>`).join('');
 }
 
-// ── Apelidos de Rede ─────────────────────────
+// ── Admin: Redes ──────────────────────────────
 
-function renderApelidos() {
-  const cont = document.getElementById('listaApelidos');
-  const sem  = document.getElementById('semRedesApelidos');
-  if (!cont) return;
-  // Redes únicas das lojas cadastradas
-  const redesNomes = [...new Set(lojas.map(l => l.rede).filter(Boolean))].sort();
-  if (!redesNomes.length) {
-    cont.innerHTML = ''; if (sem) sem.classList.remove('hidden'); return;
+function _redesPrecadastrar() {
+  // Pré-cadastra Atacadão e Sendas se ainda não existirem
+  let changed = false;
+  ['Atacadão', 'Sendas'].forEach(nome => {
+    if (!redesConfig.find(r => normTxt(r.nome) === normTxt(nome))) {
+      redesConfig.push({ nome, apelidos: [] });
+      changed = true;
+    }
+  });
+  if (changed) FS_CFG_REDES.set({ lista: redesConfig });
+}
+
+function renderRedes() {
+  _redesPrecadastrar();
+  const tbody = document.getElementById('corpoRedes');
+  const sem   = document.getElementById('semRedes');
+  const cnt   = document.getElementById('cntRedes');
+  if (!tbody) return;
+  if (cnt) cnt.textContent = redesConfig.length;
+  if (!redesConfig.length) {
+    tbody.innerHTML = '';
+    if (sem) sem.classList.remove('hidden');
+    return;
   }
   if (sem) sem.classList.add('hidden');
-  cont.innerHTML = redesNomes.map(nome => {
-    const rc = redesConfig.find(r => normTxt(r.nome) === normTxt(nome));
-    const apelidos = (rc?.apelidos || []).join(', ');
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #f1f5f9" id="apeRow_${esc(nome).replace(/\s/g,'_')}">
-      <span style="font-size:13px;font-weight:500;color:#1e293b;min-width:120px;flex-shrink:0">${esc(nome)}</span>
-      <div id="apeDisplay_${esc(nome).replace(/\s/g,'_')}" style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        ${apelidos
-          ? apelidos.split(',').map(a => `<span style="background:#dbeafe;color:#1d4ed8;border-radius:99px;padding:2px 8px;font-size:11px;font-weight:600">${esc(a.trim())}</span>`).join('')
-          : '<span style="font-size:11px;color:#94a3b8;font-style:italic">sem apelidos</span>'}
-        <button onclick="_abrirEditarApelido('${esc(nome).replace(/'/g,"\\'")}')"
-          style="background:none;border:0.5px solid #cbd5e1;border-radius:6px;padding:2px 8px;font-size:11px;color:#64748b;cursor:pointer;margin-left:4px">✏️ Editar</button>
-      </div>
-      <div id="apeEdit_${esc(nome).replace(/\s/g,'_')}" style="display:none;flex:1;display:none;align-items:center;gap:6px">
-        <input id="apeInput_${esc(nome).replace(/\s/g,'_')}" type="text" value="${esc(apelidos)}"
-          placeholder="ex: Assaí, Giga Atacado"
-          style="flex:1;font-size:12px;border:0.5px solid #cbd5e1;border-radius:6px;padding:4px 8px;outline:none" />
-        <button onclick="_salvarApelido('${esc(nome).replace(/'/g,"\\'")}')"
-          style="background:#1e3a5f;color:white;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">Salvar</button>
-        <button onclick="_cancelarApelido('${esc(nome).replace(/\s/g,'_')}')"
-          style="background:none;border:0.5px solid #cbd5e1;border-radius:6px;padding:4px 8px;font-size:11px;color:#64748b;cursor:pointer">✕</button>
-      </div>
-    </div>`;
+  tbody.innerHTML = redesConfig.map((r, i) => {
+    const qtdLojas = lojas.filter(l => normTxt(l.rede||'') === normTxt(r.nome)).length;
+    const badges = (r.apelidos||[]).map(a =>
+      `<span style="background:#dbeafe;color:#1d4ed8;border-radius:99px;padding:2px 8px;font-size:11px;font-weight:600;margin-right:3px">${esc(a)}</span>`
+    ).join('') || '<span style="font-size:11px;color:#94a3b8;font-style:italic">—</span>';
+    return `<tr>
+      <td class="text-xs text-slate-400">${i+1}</td>
+      <td class="font-medium">${esc(r.nome)}</td>
+      <td style="max-width:260px">${badges}</td>
+      <td class="text-xs text-slate-500">${qtdLojas}</td>
+      <td style="white-space:nowrap">
+        <button onclick="abrirEditarRede(${i})" style="background:none;border:none;font-size:15px;color:#1d4ed8;cursor:pointer;line-height:1;margin-right:4px" title="Editar">✏️</button>
+        <button onclick="deletarRede(${i})" style="background:none;border:none;font-size:16px;font-weight:700;color:#dc2626;cursor:pointer;line-height:1" title="Excluir">✕</button>
+      </td>
+    </tr>`;
   }).join('');
 }
 
-function _abrirEditarApelido(nome) {
-  const key = nome.replace(/\s/g,'_');
-  const disp = document.getElementById('apeDisplay_'+key);
-  const edit = document.getElementById('apeEdit_'+key);
-  if (disp) disp.style.display = 'none';
-  if (edit) { edit.style.display = 'flex'; }
-}
-
-function _cancelarApelido(key) {
-  const disp = document.getElementById('apeDisplay_'+key);
-  const edit = document.getElementById('apeEdit_'+key);
-  if (disp) disp.style.display = 'flex';
-  if (edit) edit.style.display = 'none';
-}
-
-function _salvarApelido(nome) {
-  const key = nome.replace(/\s/g,'_');
-  const inp = document.getElementById('apeInput_'+key);
-  if (!inp) return;
-  const val = inp.value.trim();
-  const apelidos = val ? val.split(',').map(a => a.trim()).filter(Boolean) : [];
-  const idx = redesConfig.findIndex(r => normTxt(r.nome) === normTxt(nome));
-  if (idx >= 0) redesConfig[idx].apelidos = apelidos;
-  else redesConfig.push({ nome, apelidos });
+function salvarRede() {
+  const nome = document.getElementById('rd_nome').value.trim();
+  if (!nome) { showToast('⚠️ Informe o nome da rede.','#92400e'); return; }
+  if (redesConfig.find(r => normTxt(r.nome) === normTxt(nome))) { showToast('⚠️ Rede já cadastrada.','#92400e'); return; }
+  const apelidos = (document.getElementById('rd_apelidos').value.trim())
+    .split(',').map(a => a.trim()).filter(Boolean);
+  redesConfig.push({ nome, apelidos });
   FS_CFG_REDES.set({ lista: redesConfig });
-  renderApelidos();
-  showToast('✅ Apelidos salvos!','#166534');
+  document.getElementById('rd_nome').value = '';
+  document.getElementById('rd_apelidos').value = '';
+  renderRedes();
+  showToast('✅ Rede salva!','#166534');
+}
+
+function deletarRede(idx) {
+  if (!confirm(`Excluir a rede "${redesConfig[idx]?.nome}"?`)) return;
+  redesConfig.splice(idx, 1);
+  FS_CFG_REDES.set({ lista: redesConfig });
+  renderRedes();
+  showToast('✅ Rede excluída.','#166534');
+}
+
+function abrirEditarRede(idx) {
+  const r = redesConfig[idx];
+  if (!r) return;
+  document.getElementById('erNome').value     = r.nome;
+  document.getElementById('erApelidos').value = (r.apelidos||[]).join(', ');
+  document.getElementById('erIdx').value      = idx;
+  document.getElementById('editRedeModal').classList.remove('hidden');
+}
+
+function salvarEditarRede() {
+  const idx  = Number(document.getElementById('erIdx').value);
+  const nome = document.getElementById('erNome').value.trim();
+  if (!nome) { showToast('⚠️ Informe o nome.','#92400e'); return; }
+  const apelidos = (document.getElementById('erApelidos').value.trim())
+    .split(',').map(a => a.trim()).filter(Boolean);
+  redesConfig[idx] = { ...redesConfig[idx], nome, apelidos };
+  FS_CFG_REDES.set({ lista: redesConfig });
+  document.getElementById('editRedeModal').classList.add('hidden');
+  renderRedes();
+  showToast('✅ Rede atualizada!','#166534');
 }
 
 function atualizarDatalistLojas() {
