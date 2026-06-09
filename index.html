@@ -7345,8 +7345,7 @@ function renderSellOut() {
   const lancFiltrados = produtos.filter(p => {
     const dias = diasRestantes(p.validade);
     if (dias < 10 || dias > 30) return false;
-    if (fabFiltro  && normTxt(p.fabrica || '') !== normTxt(fabFiltro))  return false;
-    if (vendFiltro && normTxt(p.promotor|| '') !== normTxt(vendFiltro)) return false;
+    if (fabFiltro && normTxt(p.fabrica || '') !== normTxt(fabFiltro)) return false;
     if (ufsFiltro.size > 0 && !ufsFiltro.has(p.uf)) return false;
     if (redeFiltro) {
       const redeDoLanc = lojaRedeMap[normTxt(p.loja || '')] || '';
@@ -7441,8 +7440,7 @@ async function gerarExcelSellOut() {
   const lancFiltrados = produtos.filter(p => {
     const dias = diasRestantes(p.validade);
     if (dias < 10 || dias > 30) return false;
-    if (fabFiltro  && normTxt(p.fabrica || '') !== normTxt(fabFiltro))  return false;
-    if (vendFiltro && normTxt(p.promotor|| '') !== normTxt(vendFiltro)) return false;
+    if (fabFiltro && normTxt(p.fabrica || '') !== normTxt(fabFiltro)) return false;
     if (ufsFiltro.size > 0 && !ufsFiltro.has(p.uf)) return false;
     if (redeFiltro) {
       const redeDoLanc = lojaRedeMap[normTxt(p.loja || '')] || '';
