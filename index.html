@@ -7478,12 +7478,53 @@ async function gerarExcelSellOut() {
 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('SellOut');
-  await _cabecalhoExcel(wb, ws, 'CONTROLE DE VALIDADE — SELLOUT', cols.length);
-  const hr = ws.getRow(5); hr.height = 22;
-  cols.forEach((c,i) => { const cell=hr.getCell(i+1); _estiloCabecalho(cell); cell.value=c; });
+  // ── Cabeçalho padrão ──
+  const logoB64SO = await _logoParaBase64();
+  ws.mergeCells('A1:K1');
+  const soR1 = ws.getCell('A1');
+  soR1.value = 'Compartilhar Vendas e Promo';
+  soR1.font = { bold:true, size:15, color:{ argb:'FF0E2841' } };
+  soR1.alignment = { vertical:'middle' };
+  ws.getRow(1).height = 24;
+  if (logoB64SO) {
+    try {
+      const imgId = wb.addImage({ base64:logoB64SO, extension:'png' });
+      ws.addImage(imgId, { tl:{ col:7, row:0 }, ext:{ width:220, height:57 }, editAs:'oneCell' });
+    } catch(e) {}
+  }
+
+  ws.mergeCells('A2:K2');
+  const soR2 = ws.getCell('A2');
+  soR2.value = 'SOLICITAÇÃO DE SELLOUT';
+  soR2.font = { size:11, color:{ argb:'FF1B6B7A' } };
+  soR2.alignment = { vertical:'middle' };
+  ws.getRow(2).height = 18;
+
+  ws.mergeCells('A3:K3');
+  const soR3 = ws.getCell('A3');
+  soR3.value = 'Exportado em: ' + new Date().toLocaleDateString('pt-BR');
+  soR3.font = { size:10, color:{ argb:'FF64748B' } };
+  soR3.alignment = { vertical:'middle' };
+  ws.getRow(3).height = 16;
+
+  ws.getRow(4).height = 6;
+  ws.getRow(5).height = 6;
+
+  const blkBorder = { style:'thin', color:{ argb:'FF000000' } };
+  const allBorders = { top:blkBorder, left:blkBorder, bottom:blkBorder, right:blkBorder };
+
+  const hr = ws.getRow(6); hr.height = 22;
+  cols.forEach((c,i) => {
+    const cell = hr.getCell(i+1);
+    cell.value = c;
+    cell.font = { bold:true, color:{ argb:'FFFFFFFF' }, size:11 };
+    cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF0E2841' } };
+    cell.alignment = { horizontal:'center', vertical:'middle' };
+    cell.border = allBorders;
+  });
 
   lista.forEach((g, i) => {
-    const rowNum  = 6 + i;
+    const rowNum  = 7 + i;
     const qtdeNum = Number.isInteger(g.qtde) ? g.qtde : parseFloat(g.qtde.toFixed(1));
     const undSuffix = g.und ? ` "${g.und}"` : '';
     const precoBR = g.preco ? parseFloat(g.preco.toFixed(2)) : '';
@@ -7501,7 +7542,9 @@ async function gerarExcelSellOut() {
       '',           // R$ SELLOUT — em branco
       { formula: `G${rowNum}*J${rowNum}` }  // TOTAL
     ]);
-    _estiloLinha(r, i);
+    // Borda preta em todas as células
+    r.eachCell({ includeEmpty:true }, c => { c.border = allBorders; });
+    if (i % 2 === 1) r.eachCell({ includeEmpty:true }, c => { c.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF8FAFC' } }; });
     // Coluna G: formato numérico mostrando a unidade (ex: 5 PC ou 9 KG)
     r.getCell(7).numFmt = `#,##0.##${undSuffix}`;
     r.getCell(7).alignment = { horizontal:'center' };
@@ -7522,10 +7565,11 @@ async function gerarExcelSellOut() {
   [18, 16, 14, 44, 12, 14, 14, 14, 12, 14, 14].forEach((w,i) => { ws.getColumn(i+1).width = w; });
 
   // Linha de totais
-  const lastDataRow = 5 + lista.length;
-  const totRow = ws.addRow(['','','','TOTAL','','','','','','',{ formula:`SUM(K6:K${lastDataRow})` }]);
-  totRow.eachCell(c => { c.font = { bold:true }; c.border = { top:{style:'thin',color:{argb:'FF1E3A8A'}} }; });
-  totRow.getCell(4).font = { bold:true, color:{ argb:'FF1E3A8A' } };
+  const lastDataRow = 6 + lista.length;
+  const totRow = ws.addRow(['','','','','','','','','','TOTAL',{ formula:`SUM(K7:K${lastDataRow})` }]);
+  totRow.eachCell({ includeEmpty:true }, c => { c.border = allBorders; c.font = { bold:true }; });
+  totRow.getCell(10).font = { bold:true, color:{ argb:'FF1E3A8A' } };
+  totRow.getCell(10).alignment = { horizontal:'right' };
   totRow.getCell(11).numFmt = 'R$ #,##0.00';
   totRow.getCell(11).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFEFF6FF' } };
   totRow.getCell(11).font = { bold:true, color:{ argb:'FF1E40AF' } };
