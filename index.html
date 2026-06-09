@@ -1880,13 +1880,28 @@
         <div style="border-top:1.5px solid #e2e8f0;padding-top:14px">
           <div style="font-size:15px;font-weight:500;color:#272a4a;margin-bottom:8px">Produto</div>
           <!-- Selecionado (aparece acima, esconde busca) -->
-          <div id="ma-prod-sel" style="display:none;align-items:center;gap:12px;padding:12px 14px;border:2px solid #bbf7d0;border-radius:10px;background:#f0fdf4;margin-bottom:8px">
+          <div id="ma-prod-sel" style="display:none;align-items:center;gap:12px;padding:12px 14px;border:2px solid #bbf7d0;border-radius:10px;background:#f0fdf4;margin-bottom:10px">
             <i class="ti ti-check" style="font-size:20px;color:#15803d;flex-shrink:0" aria-hidden="true"></i>
             <div style="flex:1;min-width:0">
               <div id="ma-prod-sel-nome" style="font-size:14px;font-weight:500;color:#15803d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
               <div id="ma-prod-sel-sub" style="font-size:12px;color:#16a34a;margin-top:2px"></div>
             </div>
             <button type="button" onclick="_maLimparProd()" style="background:none;border:none;cursor:pointer;color:#15803d;font-size:22px;line-height:1;padding:0;opacity:.8;flex-shrink:0" aria-label="remover produto">×</button>
+          </div>
+          <!-- Foto + confirmação -->
+          <div id="ma-prod-confirm" style="display:none;margin-bottom:10px">
+            <div id="ma-prod-foto-wrap" style="border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:10px;text-align:center;background:#f8fafc">
+              <img id="ma-prod-foto-img" src="" alt="" style="max-width:100%;max-height:180px;object-fit:contain;display:none"/>
+              <div id="ma-prod-foto-placeholder" style="padding:24px 0;display:flex;flex-direction:column;align-items:center;gap:6px">
+                <i class="ti ti-photo" style="font-size:36px;color:#cbd5e1" aria-hidden="true"></i>
+                <span style="font-size:12px;color:#94a3b8">Sem foto cadastrada</span>
+              </div>
+            </div>
+            <div style="font-size:13px;font-weight:500;color:#272a4a;margin-bottom:8px">Este é o produto correto?</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <button type="button" onclick="_maProdConfirmar(true)" style="padding:11px;border-radius:8px;border:2px solid #bbf7d0;background:#f0fdf4;color:#15803d;font-size:15px;font-weight:500;cursor:pointer">Sim</button>
+              <button type="button" onclick="_maProdConfirmar(false)" style="padding:11px;border-radius:8px;border:2px solid #fecaca;background:#fff1f0;color:#d82621;font-size:15px;font-weight:500;cursor:pointer">Não</button>
+            </div>
           </div>
           <!-- Busca (some ao selecionar) -->
           <div id="ma-prod-search">
@@ -3745,7 +3760,7 @@ function preencherEANAdmin(codigo) {
   showToast('📷 EAN inserido!','#1e3a5f');
 }
 function renderCatalogo() {
-  const busca=(document.getElementById('buscaCatalogo')?.value||'').toLowerCase();
+  const busca=normTxt(document.getElementById('buscaCatalogo')?.value||'');
   const fabSel=(document.getElementById('filtroCatalogoFabrica')?.value||'');
   // Popular select de fábricas
   const selF = document.getElementById('filtroCatalogoFabrica');
@@ -3756,13 +3771,13 @@ function renderCatalogo() {
   }
   const lista=catalogo.filter(p=>{
     if (fabSel && (p.fabrica||'') !== fabSel) return false;
-    return !busca||p.ean.includes(busca)||p.nome.toLowerCase().includes(busca)||(p.fabrica||'').toLowerCase().includes(busca)||(p.codigo||'').toLowerCase().includes(busca);
+    return !busca||normTxt(p.ean).includes(busca)||normTxt(p.nome).includes(busca)||normTxt(p.fabrica||'').includes(busca)||normTxt(p.codigo||'').includes(busca);
   }).sort((a,b)=>{
-    const fa=(a.fabrica||'').toLowerCase(), fb=(b.fabrica||'').toLowerCase();
+    const fa=normTxt(a.fabrica||''), fb=normTxt(b.fabrica||'');
     if (fa!==fb) return fa<fb?-1:1;
-    const ca=(a.codigo||'').toLowerCase(), cb=(b.codigo||'').toLowerCase();
+    const ca=normTxt(a.codigo||''), cb=normTxt(b.codigo||'');
     if (ca!==cb) return ca<cb?-1:1;
-    return (a.nome||'').toLowerCase()<(b.nome||'').toLowerCase()?-1:1;
+    return normTxt(a.nome||'')<normTxt(b.nome||'')?-1:1;
   });
   const tbody=document.getElementById('corpoCatalogo');
   const semEl=document.getElementById('semCatalogo');
@@ -3920,7 +3935,7 @@ function _filtrarSugestoesProduto(texto) {
   if (!drop) return;
   if ((document.getElementById('f_produto').value||'').trim()) { drop.style.display='none'; return; }
   const fabrica = (document.getElementById('f_fabrica')?.value || '').trim();
-  const busca   = texto.toLowerCase();
+  const busca   = normTxt(texto);
   if (!busca) { drop.style.display = 'none'; return; }
 
   // Filtro por rede da loja selecionada
@@ -3938,8 +3953,8 @@ function _filtrarSugestoesProduto(texto) {
   }
   if (fabrica) lista = lista.filter(p => (p.fabrica || '') === fabrica);
   if (busca) lista = lista.filter(p =>
-    p.nome.toLowerCase().includes(busca) ||
-    (p.codigo || '').toLowerCase().includes(busca) ||
+    normTxt(p.nome).includes(busca) ||
+    normTxt(p.codigo || '').includes(busca) ||
     (p.ean    || '').includes(busca)
   );
   lista = lista.slice(0, 8);
@@ -4090,8 +4105,8 @@ function _onDigitarPromotor(input) {
 function _filtrarSugestoesPromotor(texto) {
   const drop = document.getElementById('promotorSugestoes');
   if (!drop) return;
-  const busca = texto.toLowerCase();
-  const lista = usuarios.filter(u => u.role === 'promotor' && u.nome.toLowerCase().includes(busca)).slice(0, 8);
+  const busca = normTxt(texto);
+  const lista = usuarios.filter(u => u.role === 'promotor' && normTxt(u.nome).includes(busca)).slice(0, 8);
   if (!lista.length) { drop.style.display = 'none'; return; }
   const re = new RegExp('('+busca.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
   const hl = t => esc(t).replace(re,'<mark style="background:#fef08a;border-radius:2px">$1</mark>');
@@ -4215,13 +4230,13 @@ function _filtrarSugestoesLoja(texto) {
   const drop = document.getElementById('lojasSugestoes');
   if (!drop) return;
   if ((document.getElementById('f_loja').value||'').trim()) { drop.style.display='none'; return; }
-  const busca = texto.trim().toLowerCase();
+  const busca = normTxt(texto.trim());
   // Só mostra sugestões se houver texto digitado (igual ao campo Produto)
   if (!busca) { drop.style.display='none'; return; }
   const ufProm = (sessao && sessao.role === 'promotor') ? (sessao.uf||'') : '';
   let lista = lojas;
   if (ufProm) lista = lista.filter(l => (l.uf||'') === ufProm);
-  if (busca) lista = lista.filter(l => l.nome.toLowerCase().includes(busca) || (l.rede||'').toLowerCase().includes(busca));
+  if (busca) lista = lista.filter(l => normTxt(l.nome).includes(busca) || normTxt(l.rede||'').includes(busca));
   lista = lista.slice(0, 8);
   if (!lista.length) {
     drop.innerHTML = '<div style="padding:8px 12px;font-size:12px;color:#94a3b8">Nenhuma loja encontrada no cadastro.</div>';
@@ -8025,11 +8040,12 @@ function salvarEdicao() {
   let _maStep = 1;
   let _maLojaObj = null;
   let _maProdObj = null;
+  let _maProdConfirmado = false;
   let _maFabricaSel = null;
   let _maAdicionarOutro = false;
 
   window.abrirMeAjuda = function() {
-    _maStep = 1; _maLojaObj = null; _maProdObj = null;
+    _maStep = 1; _maLojaObj = null; _maProdObj = null; _maProdConfirmado = false;
     document.getElementById('ma-busca-loja').value = '';
     document.getElementById('ma-busca-prod').value = '';
     document.getElementById('ma-validade').value = '';
@@ -8061,6 +8077,7 @@ function salvarEdicao() {
   window._maRestart = function(lojaObj) {
     _maLojaObj = lojaObj;
     _maProdObj = null;
+    _maProdConfirmado = false;
     _maFabricaSel = null;
     _maAdicionarOutro = false;
     // Limpar campos de produto/validade/qtde/preco
@@ -8115,13 +8132,13 @@ function salvarEdicao() {
   window._maFiltrarLojas = function(q) { _maRenderLojas(q); };
 
   function _maRenderLojas(q) {
-    const qn = (q||'').toLowerCase();
+    const qn = normTxt(q||'');
     const el  = document.getElementById('ma-lista-lojas');
     if (!qn) { el.innerHTML = ''; return; }
     const ufSessao = (sessao && sessao.uf) ? sessao.uf : '';
     let lista = lojas;
     if (ufSessao) lista = lista.filter(l => !l.uf || l.uf === ufSessao);
-    lista = lista.filter(l => l.nome.toLowerCase().includes(qn) || (l.rede||'').toLowerCase().includes(qn));
+    lista = lista.filter(l => normTxt(l.nome).includes(qn) || normTxt(l.rede||'').includes(qn));
     if (!lista.length) { el.innerHTML = '<p style="font-size:13px;color:#94a3b8;text-align:center;padding:12px 0">Nenhuma loja encontrada.</p>'; return; }
     el.innerHTML = lista.slice(0,30).map(l =>
       `<div onclick="_maSelecionarLoja(${l.id})" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer">
@@ -8156,6 +8173,7 @@ function salvarEdicao() {
   function _maProxStep2() {
     if (!_maLojaObj) { showToast('⚠️ Selecione uma loja.','#92400e'); return; }
     _maProdObj = null;
+    _maProdConfirmado = false;
     _maFabricaSel = null;
     const rede = _maLojaObj.rede || '';
     document.getElementById('ma-loja-tag').innerHTML =
@@ -8170,6 +8188,9 @@ function salvarEdicao() {
     document.getElementById('ma-prod-search').style.display = 'block';
     document.getElementById('ma-busca-prod').value = '';
     document.getElementById('ma-lista-prods').innerHTML = '';
+    document.getElementById('ma-prod-confirm').style.display = 'none';
+    document.getElementById('ma-btn-prox').disabled = false;
+    document.getElementById('ma-btn-prox').style.opacity = '1';
     _maIrStep(2);
   }
 
@@ -8177,9 +8198,9 @@ function salvarEdicao() {
   window._maFiltrarFabrica = function(q) {
     const list = document.getElementById('ma-lista-fab');
     if (!q || !q.trim()) { list.innerHTML = ''; return; }
-    const qn = q.toLowerCase();
+    const qn = normTxt(q);
     const fabricas = [...new Set(catalogo.map(p => p.fabrica||'').filter(Boolean))].sort();
-    const matches = fabricas.filter(f => f.toLowerCase().includes(qn));
+    const matches = fabricas.filter(f => normTxt(f).includes(qn));
     if (!matches.length) {
       list.innerHTML = '<p style="font-size:13px;color:#94a3b8;text-align:center;padding:8px 0">Nenhuma fábrica encontrada.</p>';
       return;
@@ -8225,7 +8246,7 @@ function salvarEdicao() {
     if (!q || !q.trim()) { el.innerHTML = ''; return; }
     if (_maProdObj) return;
     const rede = (_maLojaObj && _maLojaObj.rede) || '';
-    const qn = q.toLowerCase();
+    const qn = normTxt(q);
     let lista = catalogo.map(p => {
       const codRede = _maGetCodRede(p, rede);
       return {...p, _codRede: codRede};
@@ -8234,11 +8255,11 @@ function salvarEdicao() {
     // Se a loja tem rede, mostrar só produtos com código cadastrado nessa rede
     if (rede) lista = lista.filter(p => p._codRede);
     lista = lista.filter(p =>
-      p.nome.toLowerCase().includes(qn) ||
-      (p._codRede||'').toLowerCase().includes(qn) ||
+      normTxt(p.nome).includes(qn) ||
+      normTxt(p._codRede||'').includes(qn) ||
       (p.ean||'').includes(qn) ||
-      (p.codigo||'').toLowerCase().includes(qn) ||
-      (p.fabrica||'').toLowerCase().includes(qn)
+      normTxt(p.codigo||'').includes(qn) ||
+      normTxt(p.fabrica||'').includes(qn)
     );
     if (!lista.length) {
       el.innerHTML = `<p style="font-size:12px;color:#94a3b8;text-align:center;padding:12px 0">${rede ? 'Nenhum produto com código para a rede '+esc(rede)+'.' : 'Nenhum produto encontrado.'}</p>`;
@@ -8272,23 +8293,56 @@ function salvarEdicao() {
     if (!p) return;
     const rede = (_maLojaObj && _maLojaObj.rede) || '';
     _maProdObj = {...p, _codRede: _maGetCodRede(p, rede)};
-    // Mostra card verde acima, esconde busca
+    _maProdConfirmado = false;
+    // Card verde: nome + fábrica (sem código)
     document.getElementById('ma-prod-sel-nome').textContent = _maProdObj.nome;
-    document.getElementById('ma-prod-sel-sub').textContent  = (_maProdObj.fabrica||'') + (_maProdObj._codRede ? ' · Cód: ' + _maProdObj._codRede : '');
+    document.getElementById('ma-prod-sel-sub').textContent  = _maProdObj.fabrica || '';
     document.getElementById('ma-prod-sel').style.display    = 'flex';
     document.getElementById('ma-prod-search').style.display = 'none';
+    // Foto
+    const img = document.getElementById('ma-prod-foto-img');
+    const ph  = document.getElementById('ma-prod-foto-placeholder');
+    if (_maProdObj.foto) {
+      img.src = _maProdObj.foto;
+      img.style.display = 'block';
+      ph.style.display  = 'none';
+    } else {
+      img.src = '';
+      img.style.display = 'none';
+      ph.style.display  = 'flex';
+    }
+    // Mostra confirmação, desabilita Próximo até confirmar
+    document.getElementById('ma-prod-confirm').style.display = 'block';
+    document.getElementById('ma-btn-prox').disabled = true;
+    document.getElementById('ma-btn-prox').style.opacity = '.4';
+  };
+
+  window._maProdConfirmar = function(sim) {
+    if (sim) {
+      _maProdConfirmado = true;
+      document.getElementById('ma-prod-confirm').style.display = 'none';
+      document.getElementById('ma-btn-prox').disabled = false;
+      document.getElementById('ma-btn-prox').style.opacity = '1';
+    } else {
+      _maLimparProd();
+    }
   };
 
   window._maLimparProd = function() {
     _maProdObj = null;
+    _maProdConfirmado = false;
     document.getElementById('ma-prod-sel').style.display    = 'none';
     document.getElementById('ma-prod-search').style.display = 'block';
     document.getElementById('ma-busca-prod').value = '';
     document.getElementById('ma-lista-prods').innerHTML = '';
+    document.getElementById('ma-prod-confirm').style.display = 'none';
+    document.getElementById('ma-btn-prox').disabled = false;
+    document.getElementById('ma-btn-prox').style.opacity = '1';
   };
 
   function _maProxStep3() {
     if (!_maProdObj) { showToast('⚠️ Selecione um produto.','#92400e'); return; }
+    if (!_maProdConfirmado) { showToast('⚠️ Confirme o produto antes de continuar.','#92400e'); return; }
     document.getElementById('ma-prod-tag').textContent = _maProdObj.nome + ' · ' + (_maProdObj.fabrica||'');
     document.getElementById('ma-und-label').textContent = _maProdObj.und || '';
     const caixaEl = document.getElementById('ma-caixa-info');
