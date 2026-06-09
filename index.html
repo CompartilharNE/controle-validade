@@ -7700,56 +7700,60 @@ async function gerarExcelSellOut() {
     cell.border = allBorders;
   });
 
+  const accFmt = '_-"R$"\\ * #,##0.00_-;\\-"R$"\\ * #,##0.00_-;_-"R$"\\ * "-"??_-;_-@_-';
+
   lista.forEach((g, i) => {
-    const rowNum  = 7 + i;
-    const qtdeNum = Number.isInteger(g.qtde) ? g.qtde : parseFloat(g.qtde.toFixed(1));
+    const rowNum   = 7 + i;
+    const qtdeNum  = Number.isInteger(g.qtde) ? g.qtde : parseFloat(g.qtde.toFixed(1));
     const undSuffix = g.und ? ` "${g.und}"` : '';
-    const precoBR = g.preco ? parseFloat(g.preco.toFixed(2)) : '';
-    const vencFmt = g.minData ? fmtData(g.minData) : '';
+    const precoBR  = g.preco ? parseFloat(g.preco.toFixed(2)) : null;
+    const vencFmt  = g.minData ? fmtData(g.minData) : '';
     const r = ws.addRow([
       cliente,
       ufsStr,
       g.codRede || '',
       g.nome,
-      null,         // CUSTO — célula vazia (não texto)
-      precoBR || null,  // R$ GONDOLA
-      qtdeNum,      // QTDE KG/UND — número puro
-      vencFmt,      // VENCIMENTO
-      null,         // R$ AÇÃO — célula vazia
-      null,         // R$ SELLOUT — célula vazia
-      { formula: `IF(J${rowNum}="","",G${rowNum}*J${rowNum})` }  // TOTAL (branco se R$ SELLOUT vazio)
+      null,      // CUSTO
+      precoBR,   // R$ GONDOLA
+      qtdeNum,   // QTDE
+      vencFmt,   // VENCIMENTO
+      null,      // R$ AÇÃO
+      null,      // R$ SELLOUT
+      { formula: `IF(J${rowNum}="","",G${rowNum}*J${rowNum})` }
     ]);
-    // Borda preta em todas as células
-    r.eachCell({ includeEmpty:true }, c => { c.border = allBorders; });
+    // Fundo alternado
     if (i % 2 === 1) r.eachCell({ includeEmpty:true }, c => { c.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF8FAFC' } }; });
-    // Coluna G: formato numérico mostrando a unidade (ex: 5 PC ou 9 KG)
-    r.getCell(7).numFmt = `#,##0.##${undSuffix}`;
-    r.getCell(7).alignment = { horizontal:'center' };
-    // Estilo da célula TOTAL (azul claro)
+    // Células preenchíveis — fundo amarelo
+    [5,9,10].forEach(col => { r.getCell(col).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFEFCE8' } }; });
+    // TOTAL — fundo azul claro
     r.getCell(11).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFEFF6FF' } };
     r.getCell(11).font = { color:{ argb:'FF1E40AF' }, size:10 };
-    r.getCell(11).numFmt = 'R$ #,##0.00';
-    // Células em branco (CUSTO, R$ AÇÃO, R$ SELLOUT) — amarelo claro
-    [5,9,10].forEach(col => {
-      r.getCell(col).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFEFCE8' } };
-    });
-    // R$ GONDOLA — formato numérico
-    if (precoBR) r.getCell(6).numFmt = 'R$ #,##0.00';
+    // Formatos — E, F, I, J contabilidade; G com unidade
+    r.getCell(5).numFmt  = accFmt;
+    r.getCell(6).numFmt  = accFmt;
+    r.getCell(7).numFmt  = `#,##0.##${undSuffix}`;
+    r.getCell(7).alignment = { horizontal:'center' };
+    r.getCell(9).numFmt  = accFmt;
+    r.getCell(10).numFmt = accFmt;
+    r.getCell(11).numFmt = accFmt;
+    // Bordas pretas em todas as células — definidas por último
+    for (let ci = 1; ci <= 11; ci++) r.getCell(ci).border = allBorders;
     r.height = 16;
   });
 
   // Larguras das colunas
   [18, 16, 14, 44, 12, 14, 14, 14, 12, 14, 14].forEach((w,i) => { ws.getColumn(i+1).width = w; });
 
-  // Linha de totais
+  // Linha de totais — borda SOMENTE em J (col 10) e K (col 11)
   const lastDataRow = 6 + lista.length;
   const totRow = ws.addRow([null,null,null,null,null,null,null,null,null,'TOTAL',{ formula:`SUMPRODUCT((K7:K${lastDataRow})*1)` }]);
-  totRow.eachCell({ includeEmpty:true }, c => { c.border = allBorders; c.font = { bold:true }; });
-  totRow.getCell(10).font = { bold:true, color:{ argb:'FF1E3A8A' } };
+  totRow.getCell(10).font      = { bold:true, color:{ argb:'FF1E3A8A' } };
   totRow.getCell(10).alignment = { horizontal:'right' };
-  totRow.getCell(11).numFmt = 'R$ #,##0.00';
-  totRow.getCell(11).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFEFF6FF' } };
-  totRow.getCell(11).font = { bold:true, color:{ argb:'FF1E40AF' } };
+  totRow.getCell(10).border    = allBorders;
+  totRow.getCell(11).numFmt    = accFmt;
+  totRow.getCell(11).fill      = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFEFF6FF' } };
+  totRow.getCell(11).font      = { bold:true, color:{ argb:'FF1E40AF' } };
+  totRow.getCell(11).border    = allBorders;
   totRow.height = 18;
 
   const fname = 'sellout_' + (redeFiltro||'todas').replace(/\s+/g,'_').toLowerCase() + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.xlsx';
