@@ -207,8 +207,7 @@
       </svg>
     </div>
     <div id="loginFabLogos" style="display:none;margin-bottom:10px">
-      <div id="loginFabRow1" style="display:flex;justify-content:center;gap:8px;margin-bottom:8px"></div>
-      <div id="loginFabRow2" style="display:flex;justify-content:center;gap:8px"></div>
+      <div id="loginFabGrid" style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px"></div>
     </div>
     <h2 class="text-center text-lg font-bold text-slate-700 mb-1">Controle de Validade</h2>
     <p class="text-center text-xs text-slate-400 mb-6">Faça login para continuar</p>
@@ -2882,21 +2881,13 @@ const FS_SELLOUT_HIST    = db.collection('sellout_historico');
     const comLogo = lista.filter(f => f.logo && f.logo.length > 10).slice(0, 6);
     if (!comLogo.length) return;
     const logoBox = f =>
-      `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:2px;box-sizing:border-box" title="${(f.nome||'').replace(/"/g,'&quot;')}">
+      `<div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:2px;box-sizing:border-box" title="${(f.nome||'').replace(/"/g,'&quot;')}">
         <img src="${f.logo}" alt="${(f.nome||'').replace(/"/g,'&quot;')}" style="width:100%;height:100%;object-fit:contain;display:block" loading="lazy"/>
       </div>`;
-    const row1 = document.getElementById('loginFabRow1');
-    const row2 = document.getElementById('loginFabRow2');
+    const grid = document.getElementById('loginFabGrid');
     const wrap = document.getElementById('loginFabLogos');
-    if (!row1 || !row2 || !wrap) return;
-    row1.innerHTML = comLogo.slice(0, 4).map(logoBox).join('');
-    const resto = comLogo.slice(4, 6);
-    if (resto.length) {
-      row2.innerHTML = resto.map(logoBox).join('');
-      row2.style.display = 'flex';
-    } else {
-      row2.style.display = 'none';
-    }
+    if (!grid || !wrap) return;
+    grid.innerHTML = comLogo.map(logoBox).join('');
     wrap.style.display = 'block';
   }).catch(() => {});
 })();
