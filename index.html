@@ -3860,12 +3860,11 @@ async function processarImportLojas(input) {
       const cnpj = (row.getCell(5).value||'').toString().trim();
       const loc  = (row.getCell(6).value||'').toString().trim();
       if (!rede || !nome) return;
-      const exist = lojas.find(l => l.nome.toLowerCase()===nome.toLowerCase() && l.uf===uf);
+      const exist = cnpj ? lojas.find(l => l.cnpj === cnpj) : lojas.find(l => l.nome.toLowerCase()===nome.toLowerCase() && l.uf===uf);
       if (exist) {
-        if (loc && !exist.localizacao) {
-          exist.localizacao = loc;
-          FS_LOJAS.doc(String(exist.id)).update({ localizacao: loc });
-        }
+        const upd = { rede, nome, uf, cnpj, localizacao: loc || exist.localizacao || '' };
+        Object.assign(exist, upd);
+        FS_LOJAS.doc(String(exist.id)).update(upd);
         dupl++; return;
       }
       const _lj = { id:Date.now()+novos, rede, nome, uf, cnpj, localizacao: loc };
