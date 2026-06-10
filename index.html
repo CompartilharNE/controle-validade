@@ -2056,7 +2056,7 @@
     </div>
 
     <!-- Barra de progresso -->
-    <div style="flex-shrink:0;display:flex;gap:4px;padding:10px 18px;background:#1e3a5f;border-bottom:none">
+    <div id="ma-prog-bar" style="flex-shrink:0;display:flex;gap:4px;padding:10px 18px;background:#1e3a5f;border-bottom:none">
       <div id="ma-p1" style="flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.3);transition:background .3s"></div>
       <div id="ma-p2" style="flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.3);transition:background .3s"></div>
       <div id="ma-p3" style="flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.3);transition:background .3s"></div>
@@ -2065,6 +2065,60 @@
 
     <!-- Corpo com scroll -->
     <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#94a3b8 #e2e8f0;background:#f8fafc">
+
+      <!-- STEP 0: Escolha -->
+      <div id="ma-step0" style="display:none;padding:20px 18px;display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:15px;font-weight:600;color:#272a4a;text-align:center;margin-bottom:4px">O que você quer fazer?</div>
+        <button type="button" onclick="_maEscolherOpcao('adicionar')"
+          style="display:flex;align-items:center;gap:14px;padding:16px 18px;border:2px solid #bfdbfe;border-radius:14px;background:#eff6ff;cursor:pointer;text-align:left;width:100%;transition:background .15s"
+          onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+          <div style="width:44px;height:44px;border-radius:12px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-circle-plus" style="font-size:22px;color:#fff" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:#1e40af">Adicionar um Produto</div>
+            <div style="font-size:12px;color:#3b82f6;margin-top:2px">Passo a passo guiado</div>
+          </div>
+          <i class="ti ti-chevron-right" style="font-size:16px;color:#93c5fd;margin-left:auto" aria-hidden="true"></i>
+        </button>
+        <button type="button" onclick="_maEscolherOpcao('consultar')"
+          style="display:flex;align-items:center;gap:14px;padding:16px 18px;border:2px solid #a7f3d0;border-radius:14px;background:#d1fae5;cursor:pointer;text-align:left;width:100%;transition:background .15s"
+          onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#d1fae5'">
+          <div style="width:44px;height:44px;border-radius:12px;background:#059669;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-list-check" style="font-size:22px;color:#fff" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:#065f46">O que eu já lancei?</div>
+            <div style="font-size:12px;color:#059669;margin-top:2px">Ver meus produtos cadastrados</div>
+          </div>
+          <i class="ti ti-chevron-right" style="font-size:16px;color:#6ee7b7;margin-left:auto" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- STEP Q1: Consulta — Filtros -->
+      <div id="ma-stepQ1" style="display:none;padding:16px 18px;display:flex;flex-direction:column;gap:14px">
+        <!-- Loja -->
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#272a4a;margin-bottom:8px">Loja</div>
+          <select id="maQ-loja" style="width:100%;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:14px;box-sizing:border-box;background:#fff;color:#1e293b">
+            <option value="">Selecione a loja...</option>
+          </select>
+        </div>
+        <!-- Fábrica (opcional) -->
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#272a4a;margin-bottom:8px">Fábrica <span style="font-size:12px;font-weight:400;color:#94a3b8">(opcional)</span></div>
+          <select id="maQ-fabrica" style="width:100%;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:14px;box-sizing:border-box;background:#fff;color:#1e293b">
+            <option value="">Todas as fábricas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- STEP Q2: Consulta — Resultados -->
+      <div id="ma-stepQ2" style="display:none;padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+        <div id="maQ-chip" style="display:flex;align-items:center;gap:8px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:500;color:#15803d"></div>
+        <div style="font-size:12px;color:#94a3b8;text-align:center">Toque no produto para ver os lotes</div>
+        <div id="maQ-lista" style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#94a3b8 #e2e8f0"></div>
+      </div>
 
       <!-- STEP 1: Loja -->
       <div id="ma-step1" style="display:none;padding:16px 18px;display:flex;flex-direction:column;gap:14px">
@@ -9197,15 +9251,41 @@ function salvarEdicao() {
   let _maAdicionarOutro = false;
 
   window.abrirMeAjuda = function() {
-    _maStep = 1; _maLojaObj = null; _maProdObj = null; _maProdConfirmado = false;
+    _maStep = 0; _maLojaObj = null; _maProdObj = null; _maProdConfirmado = false;
     document.getElementById('ma-busca-loja').value = '';
     document.getElementById('ma-busca-prod').value = '';
     document.getElementById('ma-validade').value = '';
     document.getElementById('ma-qtde').value = '';
     document.getElementById('ma-preco').value = '';
-    _maIrStep(1);
-    _maRenderLojas('');
+    _maIrStep0();
     document.getElementById('meAjudaModal').classList.remove('hidden');
+  };
+
+  function _maIrStep0() {
+    _maStep = 0;
+    ['ma-step0','ma-step1','ma-step2','ma-step3','ma-step4','ma-stepQ1','ma-stepQ2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    document.getElementById('ma-step0').style.display = 'block';
+    // Ocultar barra de progresso
+    const progBar = document.getElementById('ma-prog-bar');
+    if (progBar) progBar.style.display = 'none';
+    // Rodapé: só Cancelar
+    document.getElementById('ma-btn-voltar').textContent = 'Cancelar';
+    document.getElementById('ma-btn-prox').style.display = 'none';
+    document.getElementById('ma-titulo').textContent = 'Me Ajuda';
+    document.getElementById('ma-sub').textContent = 'Escolha uma opção';
+  }
+
+  window._maEscolherOpcao = function(opcao) {
+    if (opcao === 'adicionar') {
+      document.getElementById('ma-btn-prox').style.display = '';
+      _maRenderLojas('');
+      _maIrStep(1);
+    } else {
+      _maAbrirConsulta();
+    }
   };
 
   window.fecharMeAjuda = function() {
@@ -9247,11 +9327,15 @@ function salvarEdicao() {
   };
 
   window._maVoltar = function() {
+    if (_maStep === 0) { fecharMeAjuda(); return; }
+    if (_maStep === 'Q1') { _maIrStep0(); return; }
+    if (_maStep === 'Q2') { _maAbrirConsulta(); return; }
     if (_maStep > 1) _maIrStep(_maStep - 1);
-    else fecharMeAjuda();
+    else _maIrStep0();
   };
 
   window._maProximo = function() {
+    if (_maStep === 'Q1') { _maPesquisarLancamentos(); return; }
     if (_maStep === 1) _maProxStep2();
     else if (_maStep === 2) _maProxStep3();
     else if (_maStep === 3) _maProxStep4();
@@ -9260,6 +9344,14 @@ function salvarEdicao() {
 
   function _maIrStep(n) {
     _maStep = n;
+    // Garantir que screens de consulta e step0 estejam ocultos
+    ['ma-step0','ma-stepQ1','ma-stepQ2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    // Mostrar barra de progresso
+    const progBar = document.getElementById('ma-prog-bar');
+    if (progBar) progBar.style.display = 'flex';
     [1,2,3,4].forEach(i => {
       document.getElementById('ma-step'+i).style.display = (i===n) ? 'block' : 'none';
       const p = document.getElementById('ma-p'+i);
@@ -9271,9 +9363,10 @@ function salvarEdicao() {
     document.getElementById('ma-sub').textContent    = subs[n];
     const btnProx = document.getElementById('ma-btn-prox');
     const btnVolt = document.getElementById('ma-btn-voltar');
+    btnProx.style.display = '';
     btnProx.textContent = n === 4 ? 'Confirmar lançamento' : 'Próximo →';
     btnProx.style.background = n === 4 ? '#15803d' : '#1e3a5f';
-    btnVolt.textContent = n === 1 ? 'Cancelar' : 'Voltar';
+    btnVolt.textContent = n === 1 ? 'Voltar' : 'Voltar';
   }
 
   // STEP 1 — Lojas
@@ -9635,6 +9728,255 @@ function salvarEdicao() {
     window._maSetOutro(false);
     _maIrStep(4);
   }
+
+  // ── CONSULTA: "O que eu já lancei?" ────────────────────────────────
+
+  function _maAbrirConsulta() {
+    _maStep = 'Q1';
+    ['ma-step0','ma-step1','ma-step2','ma-step3','ma-step4','ma-stepQ2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    document.getElementById('ma-stepQ1').style.display = 'block';
+    // Ocultar barra de progresso
+    const progBar = document.getElementById('ma-prog-bar');
+    if (progBar) progBar.style.display = 'none';
+    // Cabeçalho
+    document.getElementById('ma-titulo').textContent = 'O que eu já lancei?';
+    document.getElementById('ma-sub').textContent = 'Pesquisar produtos';
+    // Rodapé
+    document.getElementById('ma-btn-prox').style.display = '';
+    document.getElementById('ma-btn-prox').textContent = 'Pesquisar';
+    document.getElementById('ma-btn-prox').style.background = '#059669';
+    document.getElementById('ma-btn-prox').disabled = false;
+    document.getElementById('ma-btn-prox').style.opacity = '1';
+    document.getElementById('ma-btn-voltar').textContent = 'Voltar';
+    // Popular dropdown de lojas (somente onde sessao.nome tem produtos)
+    const selLoja = document.getElementById('maQ-loja');
+    const selFab  = document.getElementById('maQ-fabrica');
+    const promotorAtual = sessao ? sessao.nome : '';
+    const hoje = new Date().toISOString().slice(0,10);
+    // Lojas com ao menos 1 produto não-vencido do promotor atual
+    const lojasComProd = [...new Set(
+      produtos
+        .filter(p => p.promotor === promotorAtual && p.validade && p.validade >= hoje)
+        .map(p => p.loja)
+    )].sort((a,b) => a.localeCompare(b, 'pt-BR'));
+    selLoja.innerHTML = '<option value="">Selecione a loja...</option>' +
+      lojasComProd.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    // Popular fábricas
+    const fabricas = [...new Set(
+      produtos
+        .filter(p => p.promotor === promotorAtual && p.validade && p.validade >= hoje && p.fabrica)
+        .map(p => p.fabrica)
+    )].sort((a,b) => a.localeCompare(b, 'pt-BR'));
+    selFab.innerHTML = '<option value="">Todas as fábricas</option>' +
+      fabricas.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
+  }
+
+  function _maPesquisarLancamentos() {
+    const lojaFiltro = document.getElementById('maQ-loja').value;
+    const fabFiltro  = document.getElementById('maQ-fabrica').value;
+    if (!lojaFiltro) { showToast('Selecione uma loja para pesquisar.', '#92400e'); return; }
+    const promotorAtual = sessao ? sessao.nome : '';
+    const hoje = new Date().toISOString().slice(0,10);
+    let lista = produtos.filter(p =>
+      p.promotor === promotorAtual &&
+      p.loja === lojaFiltro &&
+      p.validade && p.validade >= hoje
+    );
+    if (fabFiltro) lista = lista.filter(p => p.fabrica === fabFiltro);
+    // Mudar tela
+    _maStep = 'Q2';
+    ['ma-stepQ1'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+    document.getElementById('ma-stepQ2').style.display = 'block';
+    document.getElementById('ma-titulo').textContent = 'O que eu já lancei?';
+    document.getElementById('ma-sub').textContent = 'Resultados';
+    document.getElementById('ma-btn-prox').style.display = 'none';
+    document.getElementById('ma-btn-voltar').textContent = 'Voltar';
+    // Chip resumo
+    const lojaObj = lojas.find(l => l.nome === lojaFiltro);
+    const chipEl = document.getElementById('maQ-chip');
+    chipEl.innerHTML = `<i class="ti ti-building-store" style="font-size:15px;flex-shrink:0" aria-hidden="true"></i>` +
+      `<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(lojaFiltro)}${lojaObj&&lojaObj.rede?' — '+esc(lojaObj.rede):''}</span>` +
+      `<span style="font-size:12px;background:#dcfce7;color:#166534;border-radius:99px;padding:2px 8px;flex-shrink:0">${lista.length} item${lista.length!==1?'s':''}</span>`;
+    if (!lista.length) {
+      document.getElementById('maQ-lista').innerHTML =
+        `<div style="text-align:center;padding:28px 0;color:#94a3b8;font-size:14px"><i class="ti ti-package-off" style="font-size:32px;display:block;margin-bottom:8px" aria-hidden="true"></i>Nenhum produto encontrado</div>`;
+      return;
+    }
+    // Agrupar por produto (nome), ordenar A-Z, dentro de cada produto ordenar validade asc
+    const grupos = {};
+    lista.forEach(p => {
+      const key = (fabFiltro ? '' : (p.fabrica||'Sem fábrica') + '|||') + p.produto;
+      if (!grupos[key]) grupos[key] = { fab: p.fabrica||'', nome: p.produto, itens: [] };
+      grupos[key].itens.push(p);
+    });
+    Object.values(grupos).forEach(g => g.itens.sort((a,b) => a.validade < b.validade ? -1 : 1));
+    // Ordenar grupos: por fábrica asc, depois por nome asc
+    const gruposArr = Object.values(grupos).sort((a,b) => {
+      const fc = (a.fab||'').localeCompare(b.fab||'', 'pt-BR');
+      if (fc !== 0) return fc;
+      return a.nome.localeCompare(b.nome, 'pt-BR');
+    });
+    // Renderizar
+    let html = '';
+    let lastFab = '__NONE__';
+    const vinte = new Date(); vinte.setDate(vinte.getDate() + 20);
+    const vinteStr = vinte.toISOString().slice(0,10);
+    gruposArr.forEach(g => {
+      if (!fabFiltro && g.fab !== lastFab) {
+        lastFab = g.fab;
+        html += `<div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;padding:4px 2px 2px">${esc(g.fab||'Sem fábrica')}</div>`;
+      }
+      const key = encodeURIComponent(g.fab + '|||' + g.nome);
+      const total = g.itens.reduce((s,p) => s + (Number(p.quantidade)||0), 0);
+      const und = g.itens[0]?.und || '';
+      html += `<div style="border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff">
+        <div id="maQhdr_${key}" onclick="_maToggleProdAcord('${key}')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none"
+          onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:500;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.nome)}</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px">${g.itens.length} lote${g.itens.length!==1?'s':''} · ${total} ${esc(und)}</div>
+          </div>
+          <i id="maQchev_${key}" class="ti ti-chevron-down" style="font-size:16px;color:#94a3b8;transition:transform .2s;flex-shrink:0" aria-hidden="true"></i>
+        </div>
+        <div id="maQbody_${key}" style="display:none;border-top:1.5px solid #f1f5f9;padding:8px 14px;display:flex;flex-direction:column;gap:0">`;
+      g.itens.forEach(p => {
+        const partes = p.validade.split('-');
+        const valFmt = partes.length===3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : p.validade;
+        const isAtencao = p.validade <= vinteStr;
+        const badgeBg   = isAtencao ? '#fef9c3' : '#f0fdf4';
+        const badgeBrd  = isAtencao ? '#fde047' : '#bbf7d0';
+        const badgeTxt  = isAtencao ? '#854d0e' : '#15803d';
+        const badge     = isAtencao ? 'Atenção' : 'OK';
+        html += `<div id="maQrow_${p.id}" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9;min-height:42px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;color:#1e293b">${esc(valFmt)}</div>
+            <span style="font-size:11px;font-weight:500;background:${badgeBg};color:${badgeTxt};border:1px solid ${badgeBrd};border-radius:99px;padding:1px 7px">${badge}</span>
+          </div>
+          <div id="maQqtde_${p.id}" style="display:flex;align-items:center;gap:6px">
+            <span id="maQqspan_${p.id}" style="font-size:14px;font-weight:600;color:#1e293b">${Number(p.quantidade)||0}</span>
+            <span style="font-size:12px;color:#64748b">${esc(und)}</span>
+            <button type="button" onclick="_maEditarQtde(${p.id})" title="Editar quantidade"
+              style="background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center"
+              onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#94a3b8'">
+              <i class="ti ti-pencil" style="font-size:15px" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>`;
+      });
+      html += `</div></div>`;
+    });
+    document.getElementById('maQ-lista').innerHTML = html;
+    // Iniciar todos os bodies ocultos (corrigir inline display:flex definido no HTML)
+    gruposArr.forEach(g => {
+      const key = encodeURIComponent(g.fab + '|||' + g.nome);
+      const body = document.getElementById('maQbody_' + key);
+      if (body) body.style.display = 'none';
+    });
+  }
+
+  window._maToggleProdAcord = function(key) {
+    const body = document.getElementById('maQbody_' + key);
+    const chev = document.getElementById('maQchev_' + key);
+    if (!body) return;
+    const open = body.style.display !== 'none';
+    // Fechar todos
+    document.querySelectorAll('[id^="maQbody_"]').forEach(el => { el.style.display = 'none'; });
+    document.querySelectorAll('[id^="maQchev_"]').forEach(el => { el.style.transform = ''; });
+    // Se estava fechado, abrir este
+    if (!open) {
+      body.style.display = 'flex';
+      body.style.flexDirection = 'column';
+      if (chev) chev.style.transform = 'rotate(180deg)';
+    }
+  };
+
+  window._maEditarQtde = function(prodId) {
+    // Cancelar qualquer edição aberta
+    document.querySelectorAll('[id^="maQqtde_"]').forEach(el => {
+      const pid = el.id.replace('maQqtde_', '');
+      const span = document.getElementById('maQqspan_' + pid);
+      if (span && el.querySelector('input')) {
+        el.innerHTML = `<span id="maQqspan_${pid}" style="font-size:14px;font-weight:600;color:#1e293b">${span.dataset.val||el.dataset.orig||''}</span>` +
+          `<span style="font-size:12px;color:#64748b">${el.dataset.und||''}</span>` +
+          `<button type="button" onclick="_maEditarQtde(${pid})" title="Editar quantidade" style="background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#94a3b8'"><i class="ti ti-pencil" style="font-size:15px" aria-hidden="true"></i></button>`;
+      }
+    });
+    const prod = produtos.find(p => p.id === prodId);
+    if (!prod) return;
+    const qtdeEl = document.getElementById('maQqtde_' + prodId);
+    if (!qtdeEl) return;
+    const und = prod.und || '';
+    const qtdeAtual = Number(prod.quantidade) || 0;
+    qtdeEl.dataset.und = und;
+    qtdeEl.dataset.orig = qtdeAtual;
+    qtdeEl.innerHTML =
+      `<input id="maQinput_${prodId}" type="number" min="0" step="0.01" value="${qtdeAtual}"
+        style="width:64px;border:2px solid #3b82f6;border-radius:8px;padding:5px 8px;font-size:14px;font-weight:600;text-align:center;background:#fff;box-sizing:border-box"
+        onkeydown="if(event.key==='Enter')_maSalvarQtde(${prodId});if(event.key==='Escape')_maCancelarEditar(${prodId})"
+        onclick="event.stopPropagation()"/>` +
+      `<span style="font-size:12px;color:#64748b">${esc(und)}</span>` +
+      `<button type="button" onclick="_maSalvarQtde(${prodId})" title="Confirmar" style="background:#dcfce7;border:1.5px solid #86efac;border-radius:7px;cursor:pointer;padding:4px 6px;display:flex;align-items:center;color:#15803d" onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
+        <i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>
+      </button>`;
+    // Focar input e selecionar
+    const inp = document.getElementById('maQinput_' + prodId);
+    if (inp) { inp.focus(); inp.select(); }
+    // Fechar ao clicar fora
+    setTimeout(() => {
+      function _clickFora(e) {
+        const inp2 = document.getElementById('maQinput_' + prodId);
+        if (!inp2) { document.removeEventListener('click', _clickFora); return; }
+        if (!inp2.closest('[id^="maQqtde_"]').contains(e.target)) {
+          _maCancelarEditar(prodId);
+          document.removeEventListener('click', _clickFora);
+        }
+      }
+      document.addEventListener('click', _clickFora);
+    }, 100);
+  };
+
+  window._maCancelarEditar = function(prodId) {
+    const prod = produtos.find(p => p.id === prodId);
+    if (!prod) return;
+    const qtdeEl = document.getElementById('maQqtde_' + prodId);
+    if (!qtdeEl) return;
+    const und = prod.und || '';
+    const qtdeAtual = Number(prod.quantidade) || 0;
+    qtdeEl.innerHTML =
+      `<span id="maQqspan_${prodId}" style="font-size:14px;font-weight:600;color:#1e293b">${qtdeAtual}</span>` +
+      `<span style="font-size:12px;color:#64748b">${esc(und)}</span>` +
+      `<button type="button" onclick="_maEditarQtde(${prodId})" title="Editar quantidade" style="background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#94a3b8'"><i class="ti ti-pencil" style="font-size:15px" aria-hidden="true"></i></button>`;
+  };
+
+  window._maSalvarQtde = function(prodId) {
+    const inp = document.getElementById('maQinput_' + prodId);
+    if (!inp) return;
+    const novaQtde = parseFloat(inp.value);
+    if (isNaN(novaQtde) || novaQtde < 0) { showToast('Quantidade inválida.', '#92400e'); return; }
+    const idx = produtos.findIndex(p => p.id === prodId);
+    if (idx < 0) return;
+    const antiga = Number(produtos[idx].quantidade) || 0;
+    const diff = novaQtde - antiga;
+    produtos[idx].quantidade = novaQtde;
+    FS_PRODUTOS.doc(String(prodId)).update({ quantidade: novaQtde });
+    if (diff !== 0) _registrarMovimento(diff > 0 ? 'entrada' : 'saida', Math.abs(diff), produtos[idx], 'alteracao');
+    renderTabela();
+    // Atualizar visual
+    const qtdeEl = document.getElementById('maQqtde_' + prodId);
+    const und = produtos[idx].und || '';
+    if (qtdeEl) {
+      qtdeEl.innerHTML =
+        `<span id="maQqspan_${prodId}" style="font-size:14px;font-weight:600;color:#1e293b">${novaQtde}</span>` +
+        `<span style="font-size:12px;color:#64748b">${esc(und)}</span>` +
+        `<button type="button" onclick="_maEditarQtde(${prodId})" title="Editar quantidade" style="background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#94a3b8'"><i class="ti ti-pencil" style="font-size:15px" aria-hidden="true"></i></button>`;
+    }
+    showToast('✅ Quantidade atualizada!', '#166534');
+  };
+
+  // ── Fim Consulta ────────────────────────────────────────────────────
 
   // STEP 4 — Confirmar e preencher formulário
   window._maConfirmar = function() {
