@@ -2935,7 +2935,7 @@ const FS_SELLOUT_HIST    = db.collection('sellout_historico');
     const comLogo = lista.filter(f => f.logo && f.logo.length > 10).slice(0, 6);
     if (!comLogo.length) return;
     const logoBox = f =>
-      `<div style="height:44px;padding:0 10px;background:rgba(255,255,255,0.93);border-radius:22px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box" title="${(f.nome||'').replace(/"/g,'&quot;')}">
+      `<div style="height:44px;padding:0 10px;background:#ffffff;border-radius:22px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box" title="${(f.nome||'').replace(/"/g,'&quot;')}">
         <img src="${f.logo}" alt="${(f.nome||'').replace(/"/g,'&quot;')}" style="max-width:72px;max-height:32px;width:auto;height:auto;object-fit:contain;display:block" loading="lazy"/>
       </div>`;
     const grid = document.getElementById('loginFabGrid');
