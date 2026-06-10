@@ -826,7 +826,8 @@
 
         <div class="flex flex-col gap-1 col-span-2" id="f_loja_wrap">
           <label class="text-sm font-semibold" style="color:#272a4a">Loja *</label>
-          <div id="f_loja_input_wrap" style="position:relative">
+          <div style="display:flex;gap:6px;align-items:flex-start">
+          <div id="f_loja_input_wrap" style="position:relative;flex:1">
             <i id="f_loja_icon" class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:#94a3b8;pointer-events:none;" aria-hidden="true"></i>
             <input id="f_loja_busca" type="text" placeholder="Nome da loja ou CNPJ..."
               oninput="_onDigitarLoja(this)"
@@ -840,6 +841,12 @@
               <i id="micIconLoja" class="ti ti-microphone" style="font-size:15px;color:#94a3b8;position:relative;z-index:1;transition:color .15s" aria-hidden="true"></i>
             </button>
             <div id="lojasSugestoes" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:0.5px solid #cbd5e1;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.10);z-index:200;max-height:224px;overflow-y:auto"></div>
+          </div>
+          <button type="button" id="gpsBtnLoja" onclick="_usarGPSLoja()" title="Encontrar as 4 lojas mais próximas" aria-label="Localizar lojas próximas via GPS"
+            style="width:36px;height:36px;flex-shrink:0;background:none;border:1px solid #cbd5e1;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s"
+            onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">
+            <i class="ti ti-map-pin" style="font-size:17px;color:#3b82f6" aria-hidden="true"></i>
+          </button>
           </div>
           <p id="f_loja_cnpj_erro" style="display:none;font-size:11px;color:#dc2626;margin-top:3px">
             <i class="ti ti-alert-circle" style="font-size:12px" aria-hidden="true"></i> CNPJ não encontrado no cadastro.
@@ -2071,8 +2078,15 @@
           </div>
           <!-- Busca (some ao selecionar) -->
           <div id="ma-loja-search">
-            <input id="ma-busca-loja" type="text" placeholder="Digite o nome da loja..." oninput="_maFiltrarLojas(this.value)"
-              style="width:100%;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:15px;box-sizing:border-box;background:#fff;margin-bottom:8px"/>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+              <input id="ma-busca-loja" type="text" placeholder="Digite o nome da loja..." oninput="_maFiltrarLojas(this.value)"
+                style="flex:1;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:15px;box-sizing:border-box;background:#fff"/>
+              <button type="button" id="maGpsBtn" onclick="_maUsarGPS()" title="Encontrar as 4 lojas mais próximas" aria-label="Localizar lojas próximas via GPS"
+                style="width:48px;height:48px;flex-shrink:0;background:none;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s"
+                onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">
+                <i class="ti ti-map-pin" style="font-size:22px;color:#3b82f6" aria-hidden="true"></i>
+              </button>
+            </div>
             <div id="ma-lista-lojas" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
         </div>
@@ -4785,6 +4799,60 @@ function _limparLojaForm() {
 function _fecharSugestoesLoja() {
   const drop = document.getElementById('lojasSugestoes');
   if (drop) drop.style.display = 'none';
+}
+
+function _haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function _usarGPSLoja() {
+  if (!navigator.geolocation) { showToast('GPS não disponível neste dispositivo.','#92400e'); return; }
+  const btn = document.getElementById('gpsBtnLoja');
+  if (btn) { btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2" style="font-size:17px;color:#3b82f6;animation:fbSpin .8s linear infinite" aria-hidden="true"></i>'; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      if (btn) { btn.disabled=false; btn.innerHTML='<i class="ti ti-map-pin" style="font-size:17px;color:#3b82f6" aria-hidden="true"></i>'; }
+      const { latitude: lat, longitude: lng } = pos.coords;
+      const ufProm = (sessao && sessao.role==='promotor') ? (sessao.uf||'') : '';
+      let lista = lojas.filter(l => l.localizacao && l.localizacao.includes(','));
+      if (ufProm) lista = lista.filter(l => !l.uf || l.uf===ufProm);
+      lista = lista.map(l => {
+        const parts = l.localizacao.split(',');
+        const la = parseFloat(parts[0]), lo = parseFloat(parts[1]);
+        return isNaN(la)||isNaN(lo) ? null : { ...l, _dist: _haversineKm(lat, lng, la, lo) };
+      }).filter(Boolean).sort((a,b) => a._dist-b._dist).slice(0,4);
+      if (!lista.length) { showToast('Nenhuma loja com coordenadas cadastradas.','#92400e'); return; }
+      const drop = document.getElementById('lojasSugestoes');
+      drop.innerHTML =
+        `<div style="padding:5px 10px 3px;font-size:11px;color:#1d4ed8;background:#eff6ff;border-bottom:0.5px solid #bfdbfe;display:flex;align-items:center;gap:5px">
+          <i class="ti ti-map-pin" style="font-size:12px" aria-hidden="true"></i> 4 lojas mais próximas
+        </div>` +
+        lista.map(l => {
+          const km = l._dist < 1 ? Math.round(l._dist*1000)+' m' : l._dist.toFixed(1)+' km';
+          const n = l.nome.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+          const r = (l.rede||'').replace(/'/g,"\\'");
+          return `<div onmousedown="_confirmarLoja('${n}','${r}','${esc(l.uf||'')}','${(l.cnpj||'').replace(/'/g,"\\'")}')"
+            style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:0.5px solid #f1f5f9;font-size:13px"
+            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.nome)}</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:1px">${esc(l.rede||'')}</div>
+            </div>
+            <span style="font-size:12px;font-weight:600;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:99px;flex-shrink:0">${km}</span>
+          </div>`;
+        }).join('');
+      drop.style.display = 'block';
+    },
+    () => {
+      if (btn) { btn.disabled=false; btn.innerHTML='<i class="ti ti-map-pin" style="font-size:17px;color:#94a3b8" aria-hidden="true"></i>'; }
+      showToast('Não foi possível obter localização. Verifique as permissões do navegador.','#92400e');
+    },
+    { timeout: 10000, maximumAge: 60000 }
+  );
 }
 
 function mostrarConfirmacaoProduto(cat) {
@@ -9193,6 +9261,54 @@ function salvarEdicao() {
 
   // STEP 1 — Lojas
   window._maFiltrarLojas = function(q) { _maRenderLojas(q); };
+
+  window._maUsarGPS = function() {
+    if (!navigator.geolocation) { showToast('GPS não disponível neste dispositivo.','#92400e'); return; }
+    const btn = document.getElementById('maGpsBtn');
+    if (btn) { btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2" style="font-size:22px;color:#3b82f6;animation:fbSpin .8s linear infinite" aria-hidden="true"></i>'; }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        if (btn) { btn.disabled=false; btn.innerHTML='<i class="ti ti-map-pin" style="font-size:22px;color:#3b82f6" aria-hidden="true"></i>'; }
+        const { latitude: lat, longitude: lng } = pos.coords;
+        const ufSessao = (sessao && sessao.uf) ? sessao.uf : '';
+        let lista = lojas.filter(l => l.localizacao && l.localizacao.includes(','));
+        if (ufSessao) lista = lista.filter(l => !l.uf || l.uf===ufSessao);
+        lista = lista.map(l => {
+          const parts = l.localizacao.split(',');
+          const la = parseFloat(parts[0]), lo = parseFloat(parts[1]);
+          return isNaN(la)||isNaN(lo) ? null : { ...l, _dist: _haversineKm(lat, lng, la, lo) };
+        }).filter(Boolean).sort((a,b) => a._dist-b._dist).slice(0,4);
+        const el = document.getElementById('ma-lista-lojas');
+        if (!lista.length) {
+          el.innerHTML = '<p style="font-size:13px;color:#94a3b8;text-align:center;padding:12px 0">Nenhuma loja com coordenadas encontrada.</p>';
+          return;
+        }
+        document.getElementById('ma-busca-loja').value = '';
+        el.innerHTML =
+          `<div style="padding:5px 10px 4px;font-size:11px;color:#1d4ed8;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px 8px 0 0;display:flex;align-items:center;gap:5px;margin-bottom:-1px">
+            <i class="ti ti-map-pin" style="font-size:12px" aria-hidden="true"></i> 4 lojas mais próximas
+          </div>` +
+          lista.map(l => {
+            const km = l._dist < 1 ? Math.round(l._dist*1000)+' m' : l._dist.toFixed(1)+' km';
+            return `<div onclick="_maSelecionarLoja(${l.id})"
+              style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid #e2e8f0;border-top:none;background:#fff;cursor:pointer;last-child:border-radius:0 0 10px 10px"
+              onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+              <i class="ti ti-building-store" style="font-size:20px;color:#16a34a;flex-shrink:0" aria-hidden="true"></i>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:500;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.nome)}</div>
+                <div style="font-size:12px;color:#64748b;margin-top:2px">${esc(l.rede||'—')}</div>
+              </div>
+              <span style="font-size:12px;font-weight:600;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:99px;flex-shrink:0">${km}</span>
+            </div>`;
+          }).join('');
+      },
+      () => {
+        if (btn) { btn.disabled=false; btn.innerHTML='<i class="ti ti-map-pin" style="font-size:22px;color:#94a3b8" aria-hidden="true"></i>'; }
+        showToast('Não foi possível obter localização. Verifique as permissões do navegador.','#92400e');
+      },
+      { timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   function _maRenderLojas(q) {
     const qn = normTxt(q||'');
