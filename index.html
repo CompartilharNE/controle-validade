@@ -1907,7 +1907,7 @@
 </div>
 
 <!-- Modal Produto Duplicado -->
-<div id="modalDuplicado" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+<div id="modalDuplicado" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4" style="z-index:9999">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
     <div class="bg-blue-800 px-5 py-4 flex items-center gap-3">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -2855,7 +2855,7 @@
 </div>
 
 <!-- Modal Produto de Outro Promotor -->
-<div id="modalOutroPromotor" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+<div id="modalOutroPromotor" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4" style="z-index:9999">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
     <div class="px-5 py-4 flex items-center gap-3" style="background:#b45309;">
       <i class="ti ti-users" style="font-size:20px;color:#fff" aria-hidden="true"></i>
@@ -5122,7 +5122,8 @@ document.getElementById('prodForm').addEventListener('submit', (e) => {
       p.validade === isoDate
     );
     if (duplic) {
-      abrirEditModal(duplic.id, true);
+      window._maSavingFromHelper = null;
+      abrirModalDuplicado(duplic);
       return;
     }
 
@@ -5135,6 +5136,7 @@ document.getElementById('prodForm').addEventListener('submit', (e) => {
       p.validade === isoDate
     );
     if (duplicOutro) {
+      window._maSavingFromHelper = null;
       abrirModalOutroPromotor(duplicOutro);
       return;
     }
