@@ -9237,16 +9237,12 @@ function salvarEdicao() {
     document.getElementById('ma-validade').value = '';
     document.getElementById('ma-qtde').value = '';
     document.getElementById('ma-preco').value = '';
-    // Abrir modal e ir para etapa 1
+    // Abrir modal e ir direto para etapa 2 (loja já mantida)
     document.getElementById('meAjudaModal').classList.remove('hidden');
-    _maIrStep(1);
-    // Mostrar loja já selecionada (chip verde)
-    document.getElementById('ma-loja-sel-nome').textContent = lojaObj.nome;
-    document.getElementById('ma-loja-sel-rede').textContent = lojaObj.rede || '';
-    document.getElementById('ma-loja-sel').style.display = 'flex';
-    document.getElementById('ma-loja-search').style.display = 'none';
     // Resetar botões da pergunta de outro produto
     window._maSetOutro(false);
+    // Ir para etapa 2 pulando etapa 1
+    _maProxStep2();
     showToast('✅ Produto salvo! Cadastre o próximo.', '#166534');
   };
 
