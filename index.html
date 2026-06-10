@@ -508,6 +508,12 @@
             <input id="loj_cnpj" type="text" placeholder="00.000.000/0000-00" maxlength="18"
               class="border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="mascaraCNPJ(this)" />
           </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-slate-600">📍 Localização</label>
+            <input id="loj_loc" type="text" placeholder="-8.092537, -34.916938"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+            <span class="text-xs text-slate-400">Latitude, Longitude</span>
+          </div>
         </div>
         <button onclick="salvarLoja()" class="mt-3 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded-lg px-5 py-2 transition">Salvar Loja</button>
       </div>
@@ -521,7 +527,7 @@
         </div>
         <div class="overflow-x-auto">
           <table>
-            <thead><tr><th>#</th><th>Rede</th><th>Nome da Loja</th><th>UF</th><th>CNPJ</th><th>Ação</th></tr></thead>
+            <thead><tr><th>#</th><th>Rede</th><th>Nome da Loja</th><th>UF</th><th>CNPJ</th><th>Localização</th><th>Ação</th></tr></thead>
             <tbody id="corpoLojas"></tbody>
           </table>
         </div>
@@ -2649,6 +2655,11 @@
         <input id="el_cnpj" type="text" placeholder="00.000.000/0000-00" maxlength="18" oninput="mascaraCNPJ(this)" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" />
       </div>
     </div>
+    <div class="mb-3">
+      <label class="block text-xs font-semibold text-slate-500 mb-1">📍 Localização</label>
+      <input id="el_loc" type="text" placeholder="-8.092537, -34.916938" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" />
+      <span class="text-xs text-slate-400">Latitude, Longitude</span>
+    </div>
     <div class="flex gap-2 justify-end mt-4">
       <button onclick="document.getElementById('editLojaModal').classList.add('hidden')" class="px-4 py-2 text-sm rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50">Cancelar</button>
       <button onclick="salvarEditarLoja()" class="px-4 py-2 text-sm rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold">Salvar</button>
@@ -3321,17 +3332,19 @@ function salvarLoja() {
   const nome = document.getElementById('loj_nome').value.trim();
   const uf   = document.getElementById('loj_uf').value;
   const cnpj = document.getElementById('loj_cnpj').value.trim();
+  const loc  = document.getElementById('loj_loc').value.trim();
   if (!rede || !nome) { showToast('⚠️ Preencha Rede e Nome da Loja.','#92400e'); return; }
   if (lojas.find(l => l.nome.toLowerCase() === nome.toLowerCase() && l.uf === uf)) {
     showToast('⚠️ Loja já cadastrada para este estado.','#92400e'); return;
   }
-  const _novaLoja = { id: Date.now(), rede, nome, uf, cnpj };
+  const _novaLoja = { id: Date.now(), rede, nome, uf, cnpj, localizacao: loc };
   lojas.push(_novaLoja);
   FS_LOJAS.doc(String(_novaLoja.id)).set(_novaLoja);
   document.getElementById('loj_rede').value  = '';
   document.getElementById('loj_nome').value  = '';
   document.getElementById('loj_uf').value    = '';
   document.getElementById('loj_cnpj').value  = '';
+  document.getElementById('loj_loc').value   = '';
   renderLojas();
   atualizarDatalistLojas();
   showToast('✅ Loja salva!','#166534');
@@ -3353,6 +3366,7 @@ function abrirEditarLoja(id) {
   document.getElementById('el_nome').value = l.nome || '';
   document.getElementById('el_uf').value   = l.uf   || '';
   document.getElementById('el_cnpj').value = l.cnpj || '';
+  document.getElementById('el_loc').value  = l.localizacao || '';
   document.getElementById('editLojaModal').classList.remove('hidden');
 }
 
@@ -3362,10 +3376,11 @@ function salvarEditarLoja() {
   const nome = document.getElementById('el_nome').value.trim();
   const uf   = document.getElementById('el_uf').value;
   const cnpj = document.getElementById('el_cnpj').value.trim();
+  const loc  = document.getElementById('el_loc').value.trim();
   if (!rede || !nome) { showToast('⚠️ Preencha Rede e Nome.','#b45309'); return; }
   const idx = lojas.findIndex(x => x.id === id);
   if (idx === -1) return;
-  lojas[idx] = { ...lojas[idx], rede, nome, uf, cnpj };
+  lojas[idx] = { ...lojas[idx], rede, nome, uf, cnpj, localizacao: loc };
   FS_LOJAS.doc(String(id)).set(lojas[idx]);
   document.getElementById('editLojaModal').classList.add('hidden');
   renderLojas();
@@ -3391,6 +3406,7 @@ function renderLojas() {
     <td>${esc(l.nome)}</td>
     <td class="text-xs text-slate-500">${esc(l.uf||'—')}</td>
     <td class="text-xs text-slate-500">${esc(l.cnpj||'—')}</td>
+    <td class="text-xs" style="white-space:nowrap">${l.localizacao ? `<span style="color:#16a34a">📍 ${esc(l.localizacao)}</span>` : `<span style="color:#94a3b8">—</span>`}</td>
     <td style="white-space:nowrap">
       <button onclick="abrirEditarLoja(${l.id})" style="background:none;border:none;font-size:15px;color:#1d4ed8;cursor:pointer;line-height:1;margin-right:4px" title="Editar">✏️</button>
       <button onclick="deletarLoja(${l.id})" style="background:none;border:none;font-size:16px;font-weight:700;color:#dc2626;cursor:pointer;line-height:1" title="Excluir">✕</button>
@@ -3667,12 +3683,12 @@ async function exportarLojas() {
   showToast('⏳ Gerando Excel...','#1e3a8a');
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('Lojas');
-  const cols = ['#','Rede','Nome da Loja','UF','CNPJ'];
+  const cols = ['#','Rede','Nome da Loja','UF','CNPJ','Localização'];
   await _cabecalhoExcel(wb, ws, 'CONTROLE DE VALIDADE — CADASTRO DE LOJAS', cols.length);
   const hr = ws.getRow(5); hr.height = 18;
   cols.forEach((c,i) => { const cell=hr.getCell(i+1); _estiloCabecalho(cell); cell.value=c; });
-  lojas.forEach((l,i) => { const r=ws.addRow([i+1,l.rede||'',l.nome||'',l.uf||'',l.cnpj||'']); _estiloLinha(r,i); });
-  [6,22,35,8,35].forEach((w,i) => { ws.getColumn(i+1).width = w; });
+  lojas.forEach((l,i) => { const r=ws.addRow([i+1,l.rede||'',l.nome||'',l.uf||'',l.cnpj||'',l.localizacao||'']); _estiloLinha(r,i); });
+  [6,22,35,8,35,30].forEach((w,i) => { ws.getColumn(i+1).width = w; });
   await _downloadExcel(wb,'cadastro_lojas.xlsx');
 }
 
@@ -3842,9 +3858,17 @@ async function processarImportLojas(input) {
       const nome = (row.getCell(3).value||'').toString().trim();
       const uf   = (row.getCell(4).value||'').toString().trim();
       const cnpj = (row.getCell(5).value||'').toString().trim();
+      const loc  = (row.getCell(6).value||'').toString().trim();
       if (!rede || !nome) return;
-      if (lojas.find(l => l.nome.toLowerCase()===nome.toLowerCase() && l.uf===uf)) { dupl++; return; }
-      const _lj = { id:Date.now()+novos, rede, nome, uf, cnpj };
+      const exist = lojas.find(l => l.nome.toLowerCase()===nome.toLowerCase() && l.uf===uf);
+      if (exist) {
+        if (loc && !exist.localizacao) {
+          exist.localizacao = loc;
+          FS_LOJAS.doc(String(exist.id)).update({ localizacao: loc });
+        }
+        dupl++; return;
+      }
+      const _lj = { id:Date.now()+novos, rede, nome, uf, cnpj, localizacao: loc };
       lojas.push(_lj); FS_LOJAS.doc(String(_lj.id)).set(_lj); novos++;
     });
     renderLojas(); atualizarDatalistLojas();
