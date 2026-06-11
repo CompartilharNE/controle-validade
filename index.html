@@ -235,20 +235,22 @@
 
     /* ── Login desktop: dois painéis ── */
     @media (min-width: 768px) {
-      #loginScreen { background: #0e2841 !important; padding: 0 !important; align-items: stretch !important; }
+      #loginScreen { background: #27272a !important; padding: 0 !important; align-items: stretch !important; }
       #loginCard { display: flex !important; flex-direction: row !important; max-width: 100% !important; width: 100% !important; min-height: 100vh; padding: 0 !important; }
-      #loginLogosCard { width: 42% !important; flex-shrink: 0 !important; background: #0e2841 !important; border-radius: 0 !important; padding: 48px 40px !important; margin: 0 !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; gap: 20px !important; }
-      #loginLogosCard #loginLogoWrap { background: #ffffff !important; border-radius: 14px !important; padding: 14px 20px !important; margin-bottom: 0 !important; }
-      #loginLogosCard #loginLogoWrap svg { height: 80px !important; }
-      #loginLogosCard #loginFabGrid { gap: 8px !important; }
-      #loginLogosCard #loginFabGrid > div { background: rgba(255,255,255,0.15) !important; border-radius: 10px !important; height: 48px !important; }
-      #loginFormPanel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 48px 56px; background: #ffffff; overflow-y: auto; }
+      #loginLogosCard { width: 42% !important; flex-shrink: 0 !important; background: #27272a !important; border-radius: 0 !important; padding: 48px 44px !important; margin: 0 !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; gap: 28px !important; }
+      #loginLogosCard #loginLogoWrap { background: transparent !important; border-radius: 0 !important; padding: 0 !important; margin-bottom: 0 !important; }
+      #loginLogosCard #loginLogoWrap svg { height: 120px !important; filter: brightness(0) invert(1); }
+      #loginLogosCard #loginFabGrid { gap: 12px !important; }
+      #loginLogosCard #loginFabGrid > div { background: transparent !important; border-radius: 0 !important; height: 68px !important; border: none !important; }
+      #loginLogosCard #loginFabGrid img { max-height: 56px !important; max-width: 110px !important; }
+      #loginFormPanel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 48px 60px; background: #ffffff; overflow-y: auto; }
       #loginFormPanel h2 { text-align: left !important; font-size: 1.4rem !important; }
       #loginFormPanel > p { text-align: left !important; margin-bottom: 20px !important; }
+      #installBtnWrap { display: none !important; }
     }
     @media (min-width: 768px) {
       body.dark #loginLogosCard { background: #27272a !important; }
-      body.dark #loginFormPanel { background: #27272a !important; }
+      body.dark #loginFormPanel { background: #3f3f46 !important; }
     }
   </style>
 </head>
