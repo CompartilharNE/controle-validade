@@ -1636,17 +1636,17 @@
           </div>
         </div>
         <div style="display:flex;gap:8px">
-          <div style="background:#eff6ff;border-radius:10px;padding:10px;text-align:center;flex:1">
-            <div style="font-size:11px;color:#1d4ed8;margin-bottom:4px">Nosso Preço</div>
+          <div style="background:#eff6ff;border-radius:10px;padding:10px 8px;text-align:center;flex:1">
+            <div style="font-size:12px;font-weight:500;color:#1d4ed8;margin-bottom:4px">Nosso Preço</div>
             <div id="concMNosso" style="font-size:18px;font-weight:500;color:#185FA5">—</div>
           </div>
-          <div style="background:#fff7ed;border-radius:10px;padding:10px;text-align:center;flex:1">
-            <div style="font-size:11px;color:#9a3412;margin-bottom:4px">Concorrência</div>
+          <div style="background:#fff7ed;border-radius:10px;padding:10px 8px;text-align:center;flex:1">
+            <div style="font-size:12px;font-weight:500;color:#9a3412;margin-bottom:4px">Concorrência</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:nowrap">
               <div id="concMConc" style="font-size:18px;font-weight:500;color:#EA580C">—</div>
               <span id="concMDiff" style="display:none;font-size:11px;font-weight:500;border-radius:4px;padding:2px 5px"></span>
             </div>
-            <div style="font-size:9px;color:#94a3b8;margin-top:3px">Média de Preços</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:4px">Média de Preços</div>
           </div>
         </div>
         <div id="concMProd" style="display:none"></div>
@@ -7557,18 +7557,18 @@ function renderConcChart() {
       const pct = Math.round((l.valor / maxVal) * 100);
       const vlr = 'R$ ' + l.valor.toFixed(2).replace('.', ',');
       return `<div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:11px;color:var(--color-text-secondary);min-width:120px;text-align:right;flex-shrink:0">${esc(l.nome)}</span>
-        <div style="flex:1;background:var(--color-background-secondary);border-radius:4px;height:22px;overflow:hidden">
+        <span style="font-size:13px;color:var(--color-text-secondary);min-width:120px;text-align:right;flex-shrink:0">${esc(l.nome)}</span>
+        <div style="flex:1;background:var(--color-background-secondary);border-radius:4px;height:26px;overflow:hidden">
           <div style="width:${pct}%;height:100%;background:${l.cor};border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;min-width:70px">
-            <span style="font-size:11px;font-weight:500;color:${l.txt};white-space:nowrap">${vlr}</span>
+            <span style="font-size:13px;font-weight:500;color:${l.txt};white-space:nowrap">${vlr}</span>
           </div>
         </div>
       </div>`;
     }).join('');
 
     return `<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px 16px;margin-bottom:10px">
-      <p style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin:0 0 12px 0">${esc(produto)}</p>
-      <div style="display:flex;flex-direction:column;gap:8px">${barras}</div>
+      <p style="font-size:15px;font-weight:500;color:var(--color-text-primary);margin:0 0 12px 0">${esc(produto)}</p>
+      <div style="display:flex;flex-direction:column;gap:10px">${barras}</div>
     </div>`;
   }).join('');
 }
