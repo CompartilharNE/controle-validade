@@ -169,11 +169,18 @@
     body.dark .bg-amber-500     { background: #b45309 !important; }
     /* Dropdowns customizados */
     body.dark #produtoSugestoes,
-    body.dark #lojasSugestoes   { background: #1e293b !important; border-color: #334155 !important; }
+    body.dark #lojasSugestoes,
+    body.dark #fabricaSugestoes,
+    body.dark #promotorSugestoes { background: #1e293b !important; border-color: #334155 !important;
+      --drop-border:#334155; --drop-hover:#334155; --drop-ean-bg:#0f172a; --drop-ean-txt:#94a3b8; }
     body.dark #produtoSugestoes div,
-    body.dark #lojasSugestoes div { border-color: #334155 !important; color: #e2e8f0 !important; }
+    body.dark #lojasSugestoes div,
+    body.dark #fabricaSugestoes div,
+    body.dark #promotorSugestoes div { border-color: #334155 !important; color: #e2e8f0 !important; }
     body.dark #produtoSugestoes div:hover,
-    body.dark #lojasSugestoes div:hover { background: #334155 !important; }
+    body.dark #lojasSugestoes div:hover,
+    body.dark #fabricaSugestoes div:hover,
+    body.dark #promotorSugestoes div:hover { background: #334155 !important; }
     /* Loja — card de confirmação dark */
     body.dark #f_loja_card { border-color: #15803d !important; background: #042714 !important; }
     body.dark #f_loja_card_nome { color: #86efac !important; }
@@ -207,7 +214,7 @@
       </svg>
     </div>
     <div id="loginFabLogos" style="display:none;margin-bottom:10px">
-      <div id="loginFabGrid" style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px"></div>
+      <div id="loginFabGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"></div>
     </div>
     <h2 class="text-center text-lg font-bold text-slate-700 mb-1">Controle de Validade</h2>
     <p class="text-center text-xs text-slate-400 mb-6">Faça login para continuar</p>
@@ -949,7 +956,7 @@
         <div class="flex flex-col gap-1 col-span-2">
           <label class="text-sm font-semibold" style="color:#272a4a">Validade *</label>
           <input id="f_validade" type="text" placeholder="DD/MM/AAAA"
-            maxlength="10" inputmode="numeric" oninput="mascaraData(this);_validarDataForm()"
+            maxlength="10" inputmode="numeric" oninput="mascaraData(this);_validarDataForm();_verificarOutroPromotorAntecipado()"
             class="border border-slate-300 rounded-lg px-3 py-2 text-sm" required />
           <div id="f_val_warn" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:8px 10px;font-size:12px;color:#991b1b;margin-top:2px"></div>
           <div id="f_val_warn_y" style="display:none;background:#fef9c3;border:1px solid #fde047;border-radius:6px;padding:8px 10px;font-size:12px;color:#854d0e;margin-top:2px"></div>
@@ -2935,8 +2942,8 @@ const FS_SELLOUT_HIST    = db.collection('sellout_historico');
     const comLogo = lista.filter(f => f.logo && f.logo.length > 10).slice(0, 6);
     if (!comLogo.length) return;
     const logoBox = f =>
-      `<div style="height:44px;padding:0 10px;background:#ffffff;border-radius:22px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box" title="${(f.nome||'').replace(/"/g,'&quot;')}">
-        <img src="${f.logo}" alt="${(f.nome||'').replace(/"/g,'&quot;')}" style="max-width:72px;max-height:32px;width:auto;height:auto;object-fit:contain;display:block" loading="lazy"/>
+      `<div style="height:44px;padding:0 8px;background:#ffffff;border-radius:12px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%" title="${(f.nome||'').replace(/"/g,'&quot;')}">
+        <img src="${f.logo}" alt="${(f.nome||'').replace(/"/g,'&quot;')}" style="max-width:64px;max-height:30px;width:auto;height:auto;object-fit:contain;display:block" loading="lazy"/>
       </div>`;
     const grid = document.getElementById('loginFabGrid');
     const wrap = document.getElementById('loginFabLogos');
@@ -4417,11 +4424,11 @@ function _filtrarSugestoesProduto(texto) {
 
   drop.innerHTML = lista.map(p =>
     `<div onmousedown="_confirmarProdutoSelecionado('${p.nome.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')"
-      style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-bottom:0.5px solid #f1f5f9;font-size:13px"
-      onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-      <span style="flex:1;color:#1e293b;font-weight:500;line-height:1.3">${hl(p.nome)}</span>
-      ${p.ean ? `<span style="font-size:10px;font-family:monospace;background:#f1f5f9;color:#64748b;padding:1px 5px;border-radius:4px;white-space:nowrap">${esc(p.ean)}</span>` : ''}
-      ${!fabrica && p.fabrica ? `<span style="font-size:11px;color:#94a3b8;white-space:nowrap">${esc(p.fabrica)}</span>` : ''}
+      style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-bottom:0.5px solid var(--drop-border,#f1f5f9);font-size:13px"
+      onmouseover="this.style.background='var(--drop-hover,#f8fafc)'" onmouseout="this.style.background=''">
+      <span style="flex:1;color:inherit;font-weight:500;line-height:1.3">${hl(p.nome)}</span>
+      ${p.ean ? `<span style="font-size:10px;font-family:monospace;background:var(--drop-ean-bg,#f1f5f9);color:var(--drop-ean-txt,#64748b);padding:1px 5px;border-radius:4px;white-space:nowrap">${esc(p.ean)}</span>` : ''}
+      ${!fabrica && p.fabrica ? `<span style="font-size:11px;color:inherit;opacity:0.55;white-space:nowrap">${esc(p.fabrica)}</span>` : ''}
     </div>`
   ).join('');
   drop.style.display = 'block';
@@ -4469,6 +4476,37 @@ function _confirmarProdutoForm(nome, ean, codigo, und) {
     }
   }
   _travarFabrica();
+  _verificarOutroPromotorAntecipado();
+}
+
+// Verifica antecipadamente duplicatas (própria e de outro promotor) ao preencher loja+produto+validade
+function _verificarOutroPromotorAntecipado() {
+  if (!sessao || sessao.role !== 'promotor') return;
+  const loja    = (document.getElementById('f_loja')?.value    || '').trim();
+  const produto = (document.getElementById('f_produto')?.value || '').trim();
+  const dataStr = (document.getElementById('f_validade')?.value || '').trim();
+  if (!loja || !produto || dataStr.length < 10) return;
+  const isoDate = dataParaISO(dataStr);
+  if (!isoDate) return;
+  const fabrica = (document.getElementById('f_fabrica')?.value || '').trim();
+  // Checar duplicata própria primeiro
+  const duplic = produtos.find(p =>
+    p.promotor === sessao.nome &&
+    normTxt(p.fabrica)  === normTxt(fabrica) &&
+    normTxt(p.produto)  === normTxt(produto) &&
+    normTxt(p.loja)     === normTxt(loja) &&
+    p.validade === isoDate
+  );
+  if (duplic) { abrirModalDuplicado(duplic); return; }
+  // Checar duplicata de outro promotor
+  const duplicOutro = produtos.find(p =>
+    normTxt(p.promotor) !== normTxt(sessao.nome) &&
+    normTxt(p.fabrica)  === normTxt(fabrica) &&
+    normTxt(p.produto)  === normTxt(produto) &&
+    normTxt(p.loja)     === normTxt(loja) &&
+    p.validade === isoDate
+  );
+  if (duplicOutro) abrirModalOutroPromotor(duplicOutro);
 }
 
 function _filtrarSugestoesFabrica(q) {
@@ -4480,8 +4518,8 @@ function _filtrarSugestoesFabrica(q) {
   if (!lista.length) { drop.style.display = 'none'; return; }
   drop.innerHTML = lista.map(f =>
     `<div onmousedown="_selecionarFabrica('${f.nome.replace(/'/g,"\\'")}');event.preventDefault()"
-      style="padding:10px 14px;font-size:14px;color:#1e293b;cursor:pointer;border-bottom:0.5px solid #f1f5f9"
-      onmouseenter="this.style.background='#eff6ff'" onmouseleave="this.style.background=''">${esc(f.nome)}</div>`
+      style="padding:10px 14px;font-size:14px;color:inherit;cursor:pointer;border-bottom:0.5px solid var(--drop-border,#f1f5f9)"
+      onmouseenter="this.style.background='var(--drop-hover,#eff6ff)'" onmouseleave="this.style.background=''">${esc(f.nome)}</div>`
   ).join('');
   drop.style.display = 'block';
 }
@@ -4658,9 +4696,9 @@ function _filtrarSugestoesPromotor(texto) {
   const hl = t => esc(t).replace(re,'<mark style="background:#fef08a;border-radius:2px">$1</mark>');
   drop.innerHTML = lista.map(u => `
     <div onmousedown="_confirmarPromotor('${u.nome.replace(/'/g,"\\'")}','${u.uf||''}')"
-      style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;cursor:pointer;border-bottom:0.5px solid #f1f5f9;font-size:13px"
-      onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-      <span>${hl(u.nome)}</span>
+      style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;cursor:pointer;border-bottom:0.5px solid var(--drop-border,#f1f5f9);font-size:13px"
+      onmouseover="this.style.background='var(--drop-hover,#f8fafc)'" onmouseout="this.style.background=''">
+      <span style="color:inherit">${hl(u.nome)}</span>
       ${u.uf?`<span style="background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px">${u.uf}</span>`:''}
     </div>`).join('');
   drop.style.display = 'block';
@@ -4818,10 +4856,10 @@ function _filtrarSugestoesLoja(texto) {
   drop.innerHTML = lista.map(l => {
     const apBadge = _apelidoMatchToken(l, tokens);
     return `<div onmousedown="_confirmarLoja('${l.nome.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}','${(l.rede||'').replace(/'/g,"\\'")}','${esc(l.uf||'')}','${(l.cnpj||'').replace(/'/g,"\\'")}')"
-      style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:0.5px solid #f1f5f9;font-size:13px"
-      onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+      style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:0.5px solid var(--drop-border,#f1f5f9);font-size:13px"
+      onmouseover="this.style.background='var(--drop-hover,#f8fafc)'" onmouseout="this.style.background=''">
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:500;color:#1e293b;line-height:1.3">${hl(l.nome)}</div>
+        <div style="font-size:13px;font-weight:500;color:inherit;line-height:1.3">${hl(l.nome)}</div>
         <div style="font-size:11px;color:#94a3b8;margin-top:1px;display:flex;align-items:center;gap:5px">
           ${l.rede ? esc(l.rede) : ''}
           ${apBadge ? `<span style="background:#fef9c3;color:#854d0e;border-radius:99px;padding:1px 6px;font-size:10px;font-weight:600">também: ${esc(apBadge)}</span>` : ''}
@@ -4854,6 +4892,7 @@ function _confirmarLoja(nome, rede, uf, cnpj) {
       aviso.style.display = 'none';
     }
   }
+  _verificarOutroPromotorAntecipado();
 }
 
 function _limparLojaForm() {
@@ -5726,9 +5765,10 @@ function fecharModalDuplicado() {
 }
 
 function irParaCadastroDuplicado() {
+  const id = _duplicadoId;
   fecharModalDuplicado();
-  if (_duplicadoId !== null) {
-    abrirEditModal(_duplicadoId);
+  if (id !== null) {
+    abrirEditModal(id, true);
   }
 }
 
@@ -9703,6 +9743,36 @@ function salvarEdicao() {
     const dt = _maParseData(v);
     if (!dt) { showToast('⚠️ Data inválida. Use DD/MM/AAAA.','#92400e'); return; }
     if (!q || Number(q) <= 0) { showToast('⚠️ Informe a quantidade.','#92400e'); return; }
+    // Verificar antecipadamente duplicata própria e de outro promotor
+    if (sessao && sessao.role === 'promotor' && _maLojaObj && _maProdObj) {
+      const isoDate = dataParaISO(v);
+      if (isoDate) {
+        const duplic = produtos.find(p =>
+          p.promotor === sessao.nome &&
+          normTxt(p.fabrica)  === normTxt(_maProdObj.fabrica || '') &&
+          normTxt(p.produto)  === normTxt(_maProdObj.nome || '') &&
+          normTxt(p.loja)     === normTxt(_maLojaObj.nome  || '') &&
+          p.validade === isoDate
+        );
+        if (duplic) {
+          window._maSavingFromHelper = null;
+          abrirModalDuplicado(duplic);
+          return;
+        }
+        const duplicOutro = produtos.find(p =>
+          normTxt(p.promotor) !== normTxt(sessao.nome) &&
+          normTxt(p.fabrica)  === normTxt(_maProdObj.fabrica || '') &&
+          normTxt(p.produto)  === normTxt(_maProdObj.nome || '') &&
+          normTxt(p.loja)     === normTxt(_maLojaObj.nome  || '') &&
+          p.validade === isoDate
+        );
+        if (duplicOutro) {
+          window._maSavingFromHelper = null;
+          abrirModalOutroPromotor(duplicOutro);
+          return;
+        }
+      }
+    }
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const dias = Math.round((dt - hoje) / 86400000);
     const cor  = dias < 0 ? '#dc2626' : dias <= 20 ? '#b45309' : '#15803d';
