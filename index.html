@@ -232,6 +232,24 @@
     #loginFabGrid > div { height: 38px !important; background: transparent !important; border: none !important; }
     @media (min-width: 380px) { #loginFabGrid > div { height: 44px !important; } }
     #loginLogoWrap { padding: 0 !important; margin-bottom: 10px !important; }
+
+    /* ── Login desktop: dois painéis ── */
+    @media (min-width: 768px) {
+      #loginScreen { background: #0e2841 !important; padding: 0 !important; align-items: stretch !important; }
+      #loginCard { display: flex !important; flex-direction: row !important; max-width: 100% !important; width: 100% !important; min-height: 100vh; padding: 0 !important; }
+      #loginLogosCard { width: 42% !important; flex-shrink: 0 !important; background: #0e2841 !important; border-radius: 0 !important; padding: 48px 40px !important; margin: 0 !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; gap: 20px !important; }
+      #loginLogosCard #loginLogoWrap { background: #ffffff !important; border-radius: 14px !important; padding: 14px 20px !important; margin-bottom: 0 !important; }
+      #loginLogosCard #loginLogoWrap svg { height: 80px !important; }
+      #loginLogosCard #loginFabGrid { gap: 8px !important; }
+      #loginLogosCard #loginFabGrid > div { background: rgba(255,255,255,0.15) !important; border-radius: 10px !important; height: 48px !important; }
+      #loginFormPanel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 48px 56px; background: #ffffff; overflow-y: auto; }
+      #loginFormPanel h2 { text-align: left !important; font-size: 1.4rem !important; }
+      #loginFormPanel > p { text-align: left !important; margin-bottom: 20px !important; }
+    }
+    @media (min-width: 768px) {
+      body.dark #loginLogosCard { background: #27272a !important; }
+      body.dark #loginFormPanel { background: #27272a !important; }
+    }
   </style>
 </head>
 <body class="min-h-screen">
@@ -256,6 +274,7 @@
       <div id="loginFabGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"></div>
     </div>
     </div>
+    <div id="loginFormPanel">
     <h2 class="text-center text-lg font-bold text-slate-700 mb-1">Controle de Validade</h2>
     <p class="text-center text-xs text-slate-400 mb-6">Faça login para continuar</p>
     <div id="loginErro" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600 text-center"></div>
@@ -300,6 +319,7 @@
         Adicionar à tela inicial
       </button>
       <p class="text-xs text-slate-400 text-center">Use como um app, sem abrir o navegador</p>
+    </div>
     </div>
   </div>
 </div>
