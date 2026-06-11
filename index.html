@@ -115,11 +115,15 @@
 
     /* ── DARK MODE — Tema Marinha ── */
     body.dark { background: #0f172a; color: #e2e8f0; }
-    /* Login */
-    body.dark #loginScreen { background: #0f172a !important; }
-    body.dark #loginScreen .bg-white { background: #1e293b !important; }
-    body.dark #loginLogoWrap { background: #f8fafc !important; }
-    body.dark #appLogoWrap   { background: #f8fafc !important; }
+    /* Login — Tema Grafite */
+    body.dark #loginScreen { background: #18181b !important; }
+    body.dark #loginScreen .bg-white { background: #27272a !important; border-color: #3f3f46 !important; }
+    body.dark #loginLogosCard { background: #ffffff; border-radius: 14px; padding: 12px 10px 10px; margin-bottom: 4px; }
+    body.dark #loginLogoWrap { background: transparent !important; padding: 0 !important; margin-bottom: 10px !important; }
+    body.dark #loginFabGrid > div { background: transparent !important; border: 0.5px solid #d4d4d8 !important; border-radius: 8px !important; }
+    body.dark #loginScreen .bg-blue-600 { background: #6366f1 !important; }
+    body.dark #loginScreen .hover\:bg-blue-700:hover { background: #4f46e5 !important; }
+    body.dark #appLogoWrap { background: #f8fafc !important; }
     body.dark #mainApp       { background: #0f172a !important; }
     /* Superfícies */
     body.dark .bg-white { background: #1e293b !important; }
@@ -205,6 +209,7 @@
 ════════════════════════════════════════════ -->
 <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4 bg-slate-100">
   <div class="bg-white rounded-2xl shadow-lg w-full max-w-sm p-8">
+    <div id="loginLogosCard">
     <div id="loginLogoWrap" class="flex justify-center mb-6" style="border-radius:10px;padding:10px 18px;">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 500" height="72" style="width:auto;max-width:100%">
         <rect width="1920" height="500" fill="none"/>
@@ -215,6 +220,7 @@
     </div>
     <div id="loginFabLogos" style="display:none;margin-bottom:10px">
       <div id="loginFabGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"></div>
+    </div>
     </div>
     <h2 class="text-center text-lg font-bold text-slate-700 mb-1">Controle de Validade</h2>
     <p class="text-center text-xs text-slate-400 mb-6">Faça login para continuar</p>
