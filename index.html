@@ -2063,21 +2063,21 @@
       <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 1</label>
         <input id="conc1_nome" type="text" placeholder="Escrever" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
       <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Preço R$</label>
-        <input id="conc1_preco" type="number" placeholder="Escrever" min="0" step="0.01" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
+        <input id="conc1_preco" type="text" inputmode="numeric" placeholder="0,00" maxlength="12" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="_mascaraPreco(this); atualizarBtnConcorrencia()" /></div>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:12px">
       <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 2</label>
         <input id="conc2_nome" type="text" placeholder="Escrever" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
       <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Preço R$</label>
-        <input id="conc2_preco" type="number" placeholder="Escrever" min="0" step="0.01" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
+        <input id="conc2_preco" type="text" inputmode="numeric" placeholder="0,00" maxlength="12" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="_mascaraPreco(this); atualizarBtnConcorrencia()" /></div>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:20px">
       <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 3</label>
         <input id="conc3_nome" type="text" placeholder="Escrever" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
       <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Preço R$</label>
-        <input id="conc3_preco" type="number" placeholder="Escrever" min="0" step="0.01" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
+        <input id="conc3_preco" type="text" inputmode="numeric" placeholder="0,00" maxlength="12" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="_mascaraPreco(this); atualizarBtnConcorrencia()" /></div>
     </div>
 
     <div class="flex gap-2">
@@ -5113,10 +5113,12 @@ function _mascaraPreco(input) {
   const centavos = num % 100;
   input.value = reais.toLocaleString('pt-BR') + ',' + String(centavos).padStart(2,'0');
 }
-// Converte valor formatado "1.290,50" ou "12,90" para número JS
+// Converte preço para número JS — aceita formato BR ("12,90", "1.290,50") e legado EN ("12.9")
 function _parsePrecoBR(val) {
   if (!val) return 0;
-  return parseFloat(val.replace(/\./g,'').replace(',','.')) || 0;
+  const s = String(val);
+  if (s.includes(',')) return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0;
+  return parseFloat(s) || 0;
 }
 
 // ── Utils de data ────────────────────────────
@@ -5479,7 +5481,7 @@ function _atualizarBtnEditConcorrencia() {
       resumo.innerHTML = ['c1','c2','c3']
         .filter(k => _concorrenciaEdit[k]?.nome)
         .map(k => {
-          const preco = _concorrenciaEdit[k].preco ? ` · <strong>R$ ${Number(_concorrenciaEdit[k].preco).toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong>` : '';
+          const preco = _concorrenciaEdit[k].preco ? ` · <strong>R$ ${_parsePrecoBR(_concorrenciaEdit[k].preco).toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong>` : '';
           return `<div>${esc(_concorrenciaEdit[k].nome)}${preco}</div>`;
         }).join('');
     } else {
@@ -6299,11 +6301,11 @@ function _construirSheetXLSX(wb, lista, nomeAba, logoBase64) {
       {v:p.preco||0, nf:'"R$" #,##0.00',         al:rAlign},        // J PREÇO
       {v:p.promotor,                              al:{}},            // K PROMOTOR
       {v:(p.concorrencia?.c1?.nome)||'',          al:{}},            // L CONCORRENTE 1
-      {v:p.concorrencia?.c1?.preco ? Number(p.concorrencia.c1.preco) : '', nf:p.concorrencia?.c1?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // M PREÇO CONC. 1
+      {v:p.concorrencia?.c1?.preco ? _parsePrecoBR(p.concorrencia.c1.preco) : '', nf:p.concorrencia?.c1?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // M PREÇO CONC. 1
       {v:(p.concorrencia?.c2?.nome)||'',          al:{}},            // N CONCORRENTE 2
-      {v:p.concorrencia?.c2?.preco ? Number(p.concorrencia.c2.preco) : '', nf:p.concorrencia?.c2?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // O PREÇO CONC. 2
+      {v:p.concorrencia?.c2?.preco ? _parsePrecoBR(p.concorrencia.c2.preco) : '', nf:p.concorrencia?.c2?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // O PREÇO CONC. 2
       {v:(p.concorrencia?.c3?.nome)||'',          al:{}},            // P CONCORRENTE 3
-      {v:p.concorrencia?.c3?.preco ? Number(p.concorrencia.c3.preco) : '', nf:p.concorrencia?.c3?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // Q PREÇO CONC. 3
+      {v:p.concorrencia?.c3?.preco ? _parsePrecoBR(p.concorrencia.c3.preco) : '', nf:p.concorrencia?.c3?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // Q PREÇO CONC. 3
     ];
 
     vals.forEach((item, i) => {
@@ -7504,9 +7506,9 @@ function renderConcChart() {
     const e = mapa.get(key);
     if (p.preco) e.nosso.push(Number(p.preco));
     const c = p.concorrencia;
-    if (c?.c1?.preco) { e.c1.precos.push(Number(c.c1.preco)); if (!e.c1.nome && c.c1.nome) e.c1.nome = c.c1.nome; }
-    if (c?.c2?.preco) { e.c2.precos.push(Number(c.c2.preco)); if (!e.c2.nome && c.c2.nome) e.c2.nome = c.c2.nome; }
-    if (c?.c3?.preco) { e.c3.precos.push(Number(c.c3.preco)); if (!e.c3.nome && c.c3.nome) e.c3.nome = c.c3.nome; }
+    if (c?.c1?.preco) { e.c1.precos.push(_parsePrecoBR(c.c1.preco)); if (!e.c1.nome && c.c1.nome) e.c1.nome = c.c1.nome; }
+    if (c?.c2?.preco) { e.c2.precos.push(_parsePrecoBR(c.c2.preco)); if (!e.c2.nome && c.c2.nome) e.c2.nome = c.c2.nome; }
+    if (c?.c3?.preco) { e.c3.precos.push(_parsePrecoBR(c.c3.preco)); if (!e.c3.nome && c.c3.nome) e.c3.nome = c.c3.nome; }
   });
 
   const avg = arr => arr.length ? arr.reduce((s,v)=>s+v,0)/arr.length : null;
