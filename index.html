@@ -199,6 +199,23 @@
     body.dark #btnMeAjuda { background: #3f3f46 !important; color: #e4e4e7 !important; border-bottom-color: #18181b !important; box-shadow: 0 4px 12px rgba(0,0,0,.5) !important; }
     body.dark #btnConcorrencia { background: #3f3f46 !important; color: #e4e4e7 !important; border-bottom-color: #18181b !important; box-shadow: 0 4px 12px rgba(0,0,0,.5) !important; }
 
+    /* ── Logo responsiva (app principal) ── */
+    #appLogoWrap svg { height: 40px !important; width: auto !important; }
+    @media (min-width: 360px) { #appLogoWrap svg { height: 50px !important; } }
+    @media (min-width: 480px) { #appLogoWrap svg { height: 70px !important; } }
+
+    /* ── Formulário compacto em telas pequenas ── */
+    @media (max-width: 479px) {
+      #prodForm input, #prodForm select { font-size: 13px !important; padding-top: 6px !important; padding-bottom: 6px !important; }
+      #prodForm { gap: 8px !important; }
+    }
+
+    /* ── Abas de navegação: scroll horizontal ── */
+    #viewToggleBar { overflow-x: auto; flex-wrap: nowrap !important; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+    #viewToggleBar button { flex-shrink: 0; }
+    #adminTabs { overflow-x: auto; flex-wrap: nowrap !important; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+    #adminTabs button { flex-shrink: 0; }
+
     /* ── Login responsivo ── */
     #loginScreen { overflow-y: auto; align-items: flex-start; }
     @media (min-height: 680px) { #loginScreen { align-items: center; } }
@@ -311,7 +328,7 @@
       </div>
     </div>
 
-    <div class="flex gap-2 mb-4 flex-wrap">
+    <div id="adminTabs" class="flex gap-2 mb-4 flex-wrap">
       <button id="tabCatalogBtn"  class="tab-btn active"   onclick="mostrarTabAdmin('catalogo')">📦 Produtos</button>
       <button id="tabFabricasBtn" class="tab-btn inactive" onclick="mostrarTabAdmin('fabricas')">🏭 Fábricas</button>
       <button id="tabRedesBtn"    class="tab-btn inactive" onclick="mostrarTabAdmin('redes')">🔗 Redes</button>
