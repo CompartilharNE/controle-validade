@@ -1627,26 +1627,26 @@
       </div>
 
       <!-- Cabeçalho Concorrência -->
-      <div id="concChartHeader" style="display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div id="concChartHeader" style="display:none;flex-direction:column;gap:10px;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="width:8px;height:40px;background:#0e2841;border-radius:3px;flex-shrink:0"></div>
-          <div>
+          <div style="min-width:0">
             <div id="concFiltroLabel" style="font-size:11px;color:#64748b">Todos os filtros</div>
-            <div id="concFiltroValor" style="font-size:17px;font-weight:500;color:#1e293b">Todos os produtos</div>
+            <div id="concFiltroValor" style="font-size:17px;font-weight:500;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Todos os produtos</div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;max-width:280px">
-          <div style="background:#eff6ff;border:2px solid transparent;border-radius:10px;padding:10px;text-align:center">
-            <div style="font-size:11px;color:#1d4ed8">Nosso Preço</div>
+        <div style="display:flex;gap:8px">
+          <div style="background:#eff6ff;border-radius:10px;padding:10px;text-align:center;flex:1">
+            <div style="font-size:11px;color:#1d4ed8;margin-bottom:4px">Nosso Preço</div>
             <div id="concMNosso" style="font-size:18px;font-weight:500;color:#185FA5">—</div>
           </div>
-          <div style="background:#fff7ed;border:2px solid transparent;border-radius:10px;padding:10px;text-align:center">
-            <div style="font-size:11px;color:#9a3412">Concorrência</div>
-            <div style="display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap">
+          <div style="background:#fff7ed;border-radius:10px;padding:10px;text-align:center;flex:1">
+            <div style="font-size:11px;color:#9a3412;margin-bottom:4px">Concorrência</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:nowrap">
               <div id="concMConc" style="font-size:18px;font-weight:500;color:#EA580C">—</div>
-              <span id="concMDiff" style="display:none;font-size:10px;font-weight:500;border-radius:4px;padding:2px 5px"></span>
+              <span id="concMDiff" style="display:none;font-size:11px;font-weight:500;border-radius:4px;padding:2px 5px"></span>
             </div>
-            <div style="font-size:9px;color:#94a3b8;margin-top:2px">média de preços</div>
+            <div style="font-size:9px;color:#94a3b8;margin-top:3px">Média de Preços</div>
           </div>
         </div>
         <div id="concMProd" style="display:none"></div>
