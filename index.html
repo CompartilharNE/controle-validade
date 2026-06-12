@@ -886,6 +886,10 @@
         style="background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 8px rgba(30,58,95,.35)">
         <i class="ti ti-layout-list" style="font-size:14px" aria-hidden="true"></i> Produtos
       </button>
+      <button id="btnViewRanking" onclick="setView('ranking')"
+        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
+        <i class="ti ti-trophy" style="font-size:14px" aria-hidden="true"></i> Ranking
+      </button>
       <button id="btnViewLojas" onclick="setView('lojas')"
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
         <i class="ti ti-clock-exclamation" style="font-size:14px" aria-hidden="true"></i> Lojas
@@ -1818,6 +1822,106 @@
       <span class="text-xs text-slate-400 ml-auto">Dados salvos localmente no navegador · v2.1</span>
     </div>
   </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     Aba: Ranking de Promotores
+     ════════════════════════════════════════ -->
+<div id="viewRanking" style="display:none;margin-bottom:24px">
+
+  <!-- ── Cabeçalho ── -->
+  <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+    <div style="display:flex;align-items:center;gap:10px">
+      <i class="ti ti-trophy" style="font-size:22px;color:#1e3a5f" aria-hidden="true"></i>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#1e293b" id="rankTitulo">🏆 Ranking de Promotores</div>
+        <div style="font-size:12px;color:#64748b" id="rankSubtitulo">Mês atual</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:6px" id="rankFiltroRegiao"></div>
+    </div>
+  </div>
+
+  <!-- ── KPIs (admin/diretor) ── -->
+  <div id="rankKpis" style="display:none;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
+    <div class="bg-white rounded-xl shadow p-3" style="text-align:center">
+      <div id="kpiMedia" style="font-size:22px;font-weight:800;color:#1d4ed8">—</div>
+      <div style="font-size:10px;color:#64748b">Média geral</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-3" style="text-align:center">
+      <div id="kpiTotal" style="font-size:22px;font-weight:800;color:#1d4ed8">—</div>
+      <div style="font-size:10px;color:#64748b">Promotores</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-3" style="text-align:center">
+      <div id="kpiLojas" style="font-size:22px;font-weight:800;color:#166534">—</div>
+      <div style="font-size:10px;color:#64748b">Lojas cobertas</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-3" style="text-align:center">
+      <div id="kpiAlerta" style="font-size:22px;font-weight:800;color:#991b1b">—</div>
+      <div style="font-size:10px;color:#64748b">Nota C ⚠️</div>
+    </div>
+  </div>
+
+  <!-- ── Meu score (promotor) ── -->
+  <div id="rankMeuScore" style="display:none;border-radius:14px;padding:16px;margin-bottom:12px;color:#fff;background:linear-gradient(135deg,#1e3a5f,#2563eb)">
+    <div style="display:flex;gap:14px;align-items:center">
+      <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+        <div id="rankMeuPts" style="font-size:28px;font-weight:800;line-height:1">—</div>
+        <div style="font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:.05em">score</div>
+      </div>
+      <div style="flex:1">
+        <div id="rankMeuNome" style="font-size:15px;font-weight:700;margin-bottom:2px"></div>
+        <div id="rankMeuPos" style="font-size:12px;opacity:.8;margin-bottom:8px"></div>
+        <span id="rankMeuNota" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:8px;padding:2px 12px;font-size:13px;font-weight:700"></span>
+      </div>
+    </div>
+    <!-- barras de métricas -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+      <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:8px 10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:10px;opacity:.8">✅ Produtos em Dia</span>
+          <span id="rankMetPD" style="font-size:11px;font-weight:700">—</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,.2);border-radius:3px"><div id="rankBarPD" style="height:5px;background:#4ade80;border-radius:3px;width:0%;transition:width .6s"></div></div>
+      </div>
+      <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:8px 10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:10px;opacity:.8">📍 Cobertura Lojas</span>
+          <span id="rankMetCob" style="font-size:11px;font-weight:700">—</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,.2);border-radius:3px"><div id="rankBarCob" style="height:5px;background:#60a5fa;border-radius:3px;width:0%;transition:width .6s"></div></div>
+      </div>
+      <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:8px 10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:10px;opacity:.8">📋 Completude</span>
+          <span id="rankMetComp" style="font-size:11px;font-weight:700">—</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,.2);border-radius:3px"><div id="rankBarComp" style="height:5px;background:#a78bfa;border-radius:3px;width:0%;transition:width .6s"></div></div>
+      </div>
+      <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:8px 10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:10px;opacity:.8">⚡ Regularidade</span>
+          <span id="rankMetReg" style="font-size:11px;font-weight:700">—</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,.2);border-radius:3px"><div id="rankBarReg" style="height:5px;background:#fbbf24;border-radius:3px;width:0%;transition:width .6s"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Lista de ranking ── -->
+  <div class="bg-white rounded-2xl shadow overflow-hidden" style="margin-bottom:12px">
+    <div style="background:#1e3a5f;padding:10px 14px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8)" id="rankListaLabel">Ranking</span>
+      <span style="font-size:10px;font-weight:700;background:rgba(255,255,255,.15);color:#93c5fd;padding:2px 8px;border-radius:10px;margin-left:auto" id="rankListaCount"></span>
+    </div>
+    <div id="rankListaBody" style="min-height:80px"></div>
+  </div>
+
+  <!-- ── Badges (somente promotor) ── -->
+  <div id="rankBadgesWrap" style="display:none">
+    <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Suas conquistas</div>
+    <div id="rankBadgesRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+  </div>
+
 </div>
 
 <!-- Modal Calculadora -->
@@ -3321,12 +3425,21 @@ function entrarNoApp(user) {
   const barExcel = document.getElementById('barExcelContextual');
   const mostrarExcel = user.role === 'admin' || user.role === 'vendedor' || user.role === 'diretor';
   if (barExcel) barExcel.classList.toggle('hidden', !mostrarExcel);
-  // Mostrar barra de alternância de view para admin/vendedor/diretor
+  // Mostrar barra de alternância de view para todos os perfis
   const toggleBar = document.getElementById('viewToggleBar');
-  if (toggleBar) toggleBar.classList.toggle('hidden', user.role === 'promotor');
+  if (toggleBar) toggleBar.classList.remove('hidden');
+  // Botão Produtos: visível para todos
+  const btnProd3 = document.getElementById('btnViewProdutos');
+  if (btnProd3) btnProd3.style.display = 'inline-flex';
+  // Botão Ranking: visível para todos os perfis
+  const btnRank2 = document.getElementById('btnViewRanking');
+  if (btnRank2) btnRank2.style.display = 'inline-flex';
   // Botão Gráficos visível para admin/vendedor/diretor
   const btnGraf2 = document.getElementById('btnViewGraficos');
   if (btnGraf2) btnGraf2.style.display = (user.role === 'promotor') ? 'none' : 'inline-flex';
+  // Botão Lojas visível para admin/vendedor/diretor
+  const btnLojas3 = document.getElementById('btnViewLojas');
+  if (btnLojas3) btnLojas3.style.display = (user.role === 'promotor') ? 'none' : 'inline-flex';
   // Botões Histórico e SellOut visíveis somente para Admin
   const btnHist2 = document.getElementById('btnViewHistorico');
   if (btnHist2) btnHist2.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
@@ -7765,16 +7878,19 @@ function setView(v) {
   const graficosDiv  = document.getElementById('viewGraficos');
   const historicoDiv = document.getElementById('viewHistorico');
   const selloutDiv   = document.getElementById('viewSellOut');
+  const rankingDiv   = document.getElementById('viewRanking');
   const btnProd      = document.getElementById('btnViewProdutos');
   const btnLojas     = document.getElementById('btnViewLojas');
   const btnGraf      = document.getElementById('btnViewGraficos');
   const btnHist      = document.getElementById('btnViewHistorico');
   const btnSO        = document.getElementById('btnViewSellOut');
+  const btnRank      = document.getElementById('btnViewRanking');
   const _offStyle    = 'transparent';
   // Ocultar tudo primeiro
   if (graficosDiv)  graficosDiv.style.display  = 'none';
   if (historicoDiv) historicoDiv.style.display = 'none';
   if (selloutDiv)   selloutDiv.style.display   = 'none';
+  if (rankingDiv)   rankingDiv.style.display   = 'none';
   // Barra Excel contextual: visível apenas em Produtos e Lojas
   const barExcelV = document.getElementById('barExcelContextual');
   const mostrarExcelV = (v === 'produtos' || v === 'lojas') &&
@@ -7786,6 +7902,7 @@ function setView(v) {
   if (btnGraf) { btnGraf.style.background=_offStyle; btnGraf.style.color='#64748b'; btnGraf.style.border='0.5px solid #cbd5e1'; btnGraf.style.borderBottom=''; btnGraf.style.boxShadow='none'; }
   if (btnHist) { btnHist.style.background=_offStyle; btnHist.style.color='#64748b'; btnHist.style.border='0.5px solid #cbd5e1'; btnHist.style.borderBottom=''; btnHist.style.boxShadow='none'; }
   if (btnSO)   { btnSO.style.background  =_offStyle; btnSO.style.color  ='#64748b'; btnSO.style.border  ='0.5px solid #cbd5e1'; btnSO.style.borderBottom='';   btnSO.style.boxShadow='none'; }
+  if (btnRank) { btnRank.style.background=_offStyle; btnRank.style.color='#64748b'; btnRank.style.border='0.5px solid #cbd5e1'; btnRank.style.borderBottom=''; btnRank.style.boxShadow='none'; }
   // Ocultar formulário de adicionar produto quando não está na aba Produtos
   const formWrap = document.getElementById('formAdicionarWrap');
   if (formWrap) {
@@ -7911,12 +8028,26 @@ function setView(v) {
       if (cardFiltroProd) cardFiltroProd.style.display = 'none';
       const _fdbSO = document.getElementById('filtroDataBadge'); if (_fdbSO) _fdbSO.style.display = 'none';
       btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
-      btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none';
+      if (btnLojas) { btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none'; }
       if (btnSO) { btnSO.style.background = '#1e3a5f'; btnSO.style.color = 'white'; btnSO.style.border = 'none'; btnSO.style.borderBottom = '3px solid #0c1f35'; btnSO.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)'; }
       const btnXLS = document.getElementById('btnExportCSV');
       if (btnXLS) { btnXLS.style.display = 'none'; btnXLS.classList.add('hidden'); }
       renderSellOut();
       renderAcompSellOut();
+      return;
+    }
+    if (v === 'ranking') {
+      if (tabelaDiv)    tabelaDiv.style.display  = 'none';
+      if (lojasDiv)     lojasDiv.classList.add('hidden');
+      if (rankingDiv)   rankingDiv.style.display  = 'block';
+      if (cardFiltroProd) cardFiltroProd.style.display = 'none';
+      const _fdbR = document.getElementById('filtroDataBadge'); if (_fdbR) _fdbR.style.display = 'none';
+      btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
+      if (btnLojas) { btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none'; }
+      if (btnRank) { btnRank.style.background = '#1e3a5f'; btnRank.style.color = 'white'; btnRank.style.border = 'none'; btnRank.style.borderBottom = '3px solid #0c1f35'; btnRank.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)'; }
+      const btnXLR = document.getElementById('btnExportCSV');
+      if (btnXLR) { btnXLR.style.display = 'none'; btnXLR.classList.add('hidden'); }
+      loadRanking();
       return;
     }
     btnProd.style.background  = '#1e3a5f';     btnProd.style.color = 'white';   btnProd.style.border = 'none'; btnProd.style.borderBottom = '3px solid #0c1f35'; btnProd.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)';
@@ -7932,6 +8063,224 @@ function setView(v) {
     }
     if (btnXLCtx2) btnXLCtx2.textContent = 'Produtos';
   }
+}
+
+// ══════════════════════════════════════════════
+// ── RANKING DE PROMOTORES ─────────────────────
+// ══════════════════════════════════════════════
+
+function _calcScorePromotor(nomeProm) {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const prods = produtos.filter(p => normTxt(p.promotor) === normTxt(nomeProm));
+  if (!prods.length) return { score: 0, pd: 0, cob: 0, comp: 0, reg: 0, lojas: 0 };
+
+  // Métricas
+  // 1. Produtos em Dia (40%) — % sem vencido
+  const total = prods.length;
+  const emDia = prods.filter(p => {
+    if (!p.validade) return false;
+    const d = new Date(p.validade + 'T00:00:00');
+    return d >= hoje;
+  }).length;
+  const pd = total > 0 ? Math.round(emDia / total * 100) : 0;
+
+  // 2. Cobertura de Lojas (30%) — lojas únicas lançadas vs total lojas da UF do promotor
+  const lojasPromotor = [...new Set(prods.map(p => normTxt(p.loja)).filter(Boolean))];
+  const ufProm = prods[0]?.uf || '';
+  const totalLojasUF = lojas.filter(l => (l.uf || '') === ufProm).length || lojasPromotor.length || 1;
+  const cob = Math.min(100, Math.round(lojasPromotor.length / totalLojasUF * 100));
+
+  // 3. Completude (20%) — % com preço e concorrência preenchidos
+  const comDados = prods.filter(p => p.preco && p.concorrente).length;
+  const comp = total > 0 ? Math.round(comDados / total * 100) : 0;
+
+  // 4. Regularidade (10%) — % semanas dos últimos 30 dias com lançamento
+  const semanasAtivas = new Set();
+  const ha30 = new Date(); ha30.setDate(ha30.getDate() - 30);
+  prods.forEach(p => {
+    if (!p.dataLanc && !p.id) return;
+    // Usa o campo dataLanc se existir, senão estima pela validade
+    const ref = p.dataLanc ? new Date(p.dataLanc) : null;
+    if (ref && ref >= ha30) {
+      const semana = Math.floor((ref - ha30) / (7 * 24 * 3600 * 1000));
+      semanasAtivas.add(Math.min(semana, 3));
+    }
+  });
+  // Se não tiver dataLanc, regularidade = 50% base para quem tem produtos
+  const reg = prods.length > 0
+    ? (semanasAtivas.size > 0 ? Math.round(semanasAtivas.size / 4 * 100) : 50)
+    : 0;
+
+  // Score ponderado
+  const score = Math.round(pd * 0.40 + cob * 0.30 + comp * 0.20 + reg * 0.10);
+  return { score, pd, cob, comp, reg, lojas: lojasPromotor.length };
+}
+
+function _notaScore(s) {
+  if (s >= 90) return { nota: 'A+', cor: '#166534', bg: '#dcfce7' };
+  if (s >= 75) return { nota: 'A',  cor: '#1e40af', bg: '#dbeafe' };
+  if (s >= 60) return { nota: 'B',  cor: '#854d0e', bg: '#fef9c3' };
+  return          { nota: 'C',  cor: '#991b1b', bg: '#fee2e2' };
+}
+
+function _medalha(pos) {
+  if (pos === 1) return '🥇';
+  if (pos === 2) return '🥈';
+  if (pos === 3) return '🥉';
+  return String(pos);
+}
+
+function loadRanking() {
+  const role = sessao?.role;
+  const meuNome = sessao?.nome || '';
+  const minhasUFs = sessao?.ufs || (sessao?.uf ? [sessao.uf] : []);
+
+  // Determinar quais promotores mostrar
+  let promotoresFiltro = [];
+  if (role === 'promotor') {
+    promotoresFiltro = [meuNome];
+  } else if (role === 'vendedor') {
+    // Promotores que têm lançamentos nas UFs do vendedor
+    promotoresFiltro = [...new Set(
+      produtos.filter(p => minhasUFs.includes(p.uf)).map(p => p.promotor).filter(Boolean)
+    )];
+  } else {
+    // admin / diretor — todos os promotores
+    promotoresFiltro = [...new Set(usuarios.filter(u => u.role === 'promotor').map(u => u.nome))];
+    // Complementar com promotores presentes nos lançamentos
+    const dosProd = [...new Set(produtos.map(p => p.promotor).filter(Boolean))];
+    dosProd.forEach(n => { if (!promotoresFiltro.includes(n)) promotoresFiltro.push(n); });
+  }
+
+  // Calcular scores
+  const ranking = promotoresFiltro
+    .filter(Boolean)
+    .map(nome => ({ nome, ...(_calcScorePromotor(nome)) }))
+    .sort((a, b) => b.score - a.score);
+
+  // — Título e subtítulo
+  const tituloEl = document.getElementById('rankTitulo');
+  const subEl    = document.getElementById('rankSubtitulo');
+  if (role === 'promotor') {
+    if (tituloEl) tituloEl.textContent = '🏆 Meu Desempenho';
+    if (subEl)    subEl.textContent    = 'Mês atual · Sua UF: ' + (sessao?.uf || '—');
+  } else if (role === 'vendedor') {
+    if (tituloEl) tituloEl.textContent = '🏆 Ranking — Minha Região';
+    if (subEl)    subEl.textContent    = 'UFs: ' + minhasUFs.join(', ') + ' · Mês atual';
+  } else {
+    if (tituloEl) tituloEl.textContent = '🏆 Ranking Geral de Promotores';
+    if (subEl)    subEl.textContent    = 'Todas as regiões · Mês atual';
+  }
+
+  // — KPIs (admin/diretor)
+  const kpisEl = document.getElementById('rankKpis');
+  if (kpisEl) {
+    if (role === 'admin' || role === 'diretor') {
+      kpisEl.style.display = 'grid';
+      const media = ranking.length ? Math.round(ranking.reduce((s, r) => s + r.score, 0) / ranking.length) : 0;
+      const totalLojas = ranking.reduce((s, r) => s + r.lojas, 0);
+      const notaC = ranking.filter(r => r.score < 60).length;
+      document.getElementById('kpiMedia').textContent  = media;
+      document.getElementById('kpiTotal').textContent  = ranking.length;
+      document.getElementById('kpiLojas').textContent  = totalLojas;
+      document.getElementById('kpiAlerta').textContent = notaC;
+    } else {
+      kpisEl.style.display = 'none';
+    }
+  }
+
+  // — Meu score card (promotor)
+  const meuScoreEl = document.getElementById('rankMeuScore');
+  if (meuScoreEl) {
+    if (role === 'promotor') {
+      meuScoreEl.style.display = 'block';
+      const meu = ranking.find(r => normTxt(r.nome) === normTxt(meuNome)) || { score: 0, pd: 0, cob: 0, comp: 0, reg: 0 };
+      const pos  = ranking.findIndex(r => normTxt(r.nome) === normTxt(meuNome)) + 1;
+      const nota = _notaScore(meu.score);
+      document.getElementById('rankMeuPts').textContent  = meu.score;
+      document.getElementById('rankMeuNome').textContent = meu.nome || meuNome;
+      document.getElementById('rankMeuPos').textContent  = pos > 0 ? `${_medalha(pos)} ${pos}º lugar na sua região` : '—';
+      document.getElementById('rankMeuNota').textContent = 'Nota ' + nota.nota;
+      // barras
+      const _bar = (id, val) => {
+        const el = document.getElementById(id); if (el) el.style.width = val + '%';
+        const t  = document.getElementById(id.replace('Bar', 'Met')); if (t) t.textContent = val + '%';
+      };
+      setTimeout(() => { _bar('rankBarPD', meu.pd); _bar('rankBarCob', meu.cob); _bar('rankBarComp', meu.comp); _bar('rankBarReg', meu.reg); }, 80);
+    } else {
+      meuScoreEl.style.display = 'none';
+    }
+  }
+
+  // — Badges (promotor)
+  const badgesWrap = document.getElementById('rankBadgesWrap');
+  if (badgesWrap) {
+    if (role === 'promotor') {
+      badgesWrap.style.display = 'block';
+      const meu = ranking.find(r => normTxt(r.nome) === normTxt(meuNome)) || { score: 0, pd: 0, cob: 0 };
+      const pos  = ranking.findIndex(r => normTxt(r.nome) === normTxt(meuNome)) + 1;
+      const badges = [
+        { icon: '⭐', label: 'Cobertura Total',     ok: meu.cob >= 80 },
+        { icon: '🎯', label: 'Lançamento Completo',  ok: meu.comp >= 80 },
+        { icon: '🔥', label: 'Sequência de Ouro',    ok: meu.reg >= 75 },
+        { icon: '🏆', label: 'Top Promotor',          ok: pos === 1 },
+        { icon: '💯', label: 'Score Perfeito',        ok: meu.score >= 90 },
+      ];
+      const row = document.getElementById('rankBadgesRow');
+      if (row) row.innerHTML = badges.map(b =>
+        `<div style="background:#fff;border-radius:8px;padding:6px 10px;box-shadow:0 1px 3px rgba(0,0,0,.07);display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#1e293b;${b.ok ? '' : 'opacity:.3;filter:grayscale(1)'}">
+          ${b.icon} ${b.label}
+        </div>`
+      ).join('');
+    } else {
+      badgesWrap.style.display = 'none';
+    }
+  }
+
+  // — Lista de ranking
+  const listaLabel = document.getElementById('rankListaLabel');
+  const listaCount = document.getElementById('rankListaCount');
+  const listaBody  = document.getElementById('rankListaBody');
+  if (listaLabel) {
+    if (role === 'promotor') listaLabel.textContent = 'Ranking da sua região';
+    else if (role === 'vendedor') listaLabel.textContent = '🗺️ Promotores da sua região';
+    else listaLabel.textContent = 'Ranking completo — todas as regiões';
+  }
+  if (listaCount) listaCount.textContent = ranking.length + ' promotores';
+
+  if (!listaBody) return;
+  if (!ranking.length) {
+    listaBody.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Nenhum lançamento encontrado</div>';
+    return;
+  }
+
+  listaBody.innerHTML = ranking.map((r, i) => {
+    const pos  = i + 1;
+    const nota = _notaScore(r.score);
+    const isMe = normTxt(r.nome) === normTxt(meuNome);
+    const meStyle = isMe ? 'background:#eff6ff;border-left:3px solid #2563eb;' : '';
+    const initials = r.nome.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+    const avatarColors = ['#166534','#1d4ed8','#6d28d9','#854d0e','#0e7490','#be185d','#1e3a5f','#065f46'];
+    const avatarBg = avatarColors[pos % avatarColors.length];
+    const posDisp = pos <= 3 ? _medalha(pos) : `<span style="font-size:12px;font-weight:700;color:${pos > ranking.length - 2 ? '#ef4444' : '#94a3b8'}">${pos}</span>`;
+    // Para promotor, ocultar score dos outros
+    const scoreDisp = (role === 'promotor' && !isMe)
+      ? `<span style="background:${nota.bg};color:${nota.cor};font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px">${nota.nota}</span>`
+      : `<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:${nota.cor}">${r.score}</div><span style="background:${nota.bg};color:${nota.cor};font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px">${nota.nota}</span></div>`;
+    const detalhe = (role !== 'promotor')
+      ? `<div style="font-size:10px;color:#94a3b8">${r.lojas} loja${r.lojas !== 1 ? 's' : ''} · ${r.pd}% em dia</div>`
+      : '';
+    const euLabel = isMe ? `<span style="font-size:10px;color:#2563eb;font-weight:700"> (você)</span>` : '';
+    return `<div style="padding:9px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f1f5f9;${meStyle}">
+      <div style="width:28px;text-align:center;flex-shrink:0">${posDisp}</div>
+      <div style="width:34px;height:34px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${initials}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:#1e293b">${r.nome}${euLabel}</div>
+        ${detalhe}
+      </div>
+      <div>${scoreDisp}</div>
+    </div>`;
+  }).join('') + '<div style="height:1px"></div>';
 }
 
 // ══════════════════════════════════════════════
