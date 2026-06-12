@@ -1243,6 +1243,13 @@
       </div>
     </div>
 
+    <!-- Botão Gerar Excel — entre filtro e tabela (Produtos / Lojas) -->
+    <div id="barExcelContextual" class="hidden flex justify-end mb-3">
+      <button id="btnExportCSV" onclick="gerarExcelContextual()"
+        style="background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(30,58,95,.45)">
+        <i class="ti ti-file-spreadsheet" style="font-size:14px" aria-hidden="true"></i> Gerar Excel
+      </button>
+    </div>
     <!-- Tabela -->
     <div class="bg-white rounded-2xl shadow overflow-hidden mb-6">
       <div class="overflow-x-auto">
@@ -1266,13 +1273,6 @@
       <div id="semDados" class="hidden text-center py-12 text-slate-400 text-sm">
         Nenhum produto cadastrado ainda.
       </div>
-    </div>
-    <!-- Botão Gerar Excel — entre filtro e tabela (Produtos / Lojas) -->
-    <div id="barExcelContextual" class="hidden flex justify-end mb-3">
-      <button id="btnExportCSV" onclick="gerarExcelContextual()"
-        style="background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(30,58,95,.45)">
-        <i class="ti ti-file-spreadsheet" style="font-size:14px" aria-hidden="true"></i> Gerar Excel
-      </button>
     </div>
 
     <!-- View: Lojas -->
@@ -8622,7 +8622,9 @@ async function exportarLojasExcel() {
       if (!prods.length) return null;
       let ultData = null, promotorNome = '—';
       prods.forEach(p => {
-        const d = p.dataRegistro ? new Date(p.dataRegistro+'T00:00:00') : null;
+        const dReg = p.dataRegistro    ? new Date(p.dataRegistro+'T00:00:00')    : null;
+        const dAtu = p.dataAtualizacao ? new Date(p.dataAtualizacao+'T00:00:00') : null;
+        const d    = (dReg && dAtu) ? (dAtu > dReg ? dAtu : dReg) : (dReg || dAtu);
         if (d && (!ultData || d > ultData)) { ultData = d; promotorNome = p.promotor || '—'; }
       });
       const diasSem = ultData ? Math.round((hoje - ultData) / 86400000) : 9999;
