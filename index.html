@@ -3058,7 +3058,7 @@ const FS_SELLOUT_HIST    = db.collection('sellout_historico');
     if (mTrack && mDotEl && mWrap) {
       mTrack.innerHTML = comLogo.map((f, i) => {
         const src = getSrc(f);
-        const bg  = isBgPreta(f) ? '#1a1a1a' : '#ffffff';
+        const bg  = '#ffffff';
         const sz  = isGrande(f) ? 'max-width:86%;max-height:80%' : 'max-width:72%;max-height:70%';
         const st  = i === 0 ? 'transform:translateX(0);opacity:1' : 'transform:translateX(100%);opacity:0';
         return `<div class="m-slide" style="${st};background:${bg}"><img src="${src}" alt="${(f.nome||'').replace(/"/g,'&quot;')}" style="${sz};width:auto;height:auto;object-fit:contain;display:block;" loading="lazy"/></div>`;
