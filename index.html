@@ -233,6 +233,18 @@
     @media (min-width: 380px) { #loginFabGrid > div { height: 44px !important; } }
     #loginLogoWrap { padding: 0 !important; margin-bottom: 10px !important; }
 
+    /* ── Mobile: slideshow de representadas (abaixo do form) ── */
+    #loginFabLogos { display: none !important; }
+    #loginMobileRepresentadas { display: none; margin-top: 14px; padding-bottom: 8px; }
+    #loginMobileSlideLabel { text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 8px; }
+    #loginMobileSlideCard { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; position: relative; overflow: hidden; height: 130px; }
+    #loginMobileSlideTrack { position: absolute; inset: 0; }
+    .m-slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transition: transform 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.55s; }
+    .m-slide img { max-width: 78%; max-height: 74%; width: auto; height: auto; object-fit: contain; display: block; }
+    #loginMobileSlideDots { display: flex; justify-content: center; gap: 5px; margin-top: 8px; }
+    .m-dot { width: 6px; height: 6px; border-radius: 50%; background: #cbd5e1; transition: background 0.3s, width 0.3s; cursor: pointer; border: none; padding: 0; }
+    .m-dot.on { background: #2563eb; width: 16px; border-radius: 3px; }
+
     /* ── Login desktop: dois painéis ── */
     @media (min-width: 768px) {
       #loginScreen { background: #27272a !important; padding: 0 !important; align-items: stretch !important; }
@@ -340,6 +352,11 @@
       </button>
       <p class="text-xs text-slate-400 text-center">Use como um app, sem abrir o navegador</p>
     </div>
+    </div>
+    <div id="loginMobileRepresentadas">
+      <div id="loginMobileSlideLabel">Nossas Representadas</div>
+      <div id="loginMobileSlideCard"><div id="loginMobileSlideTrack"></div></div>
+      <div id="loginMobileSlideDots"></div>
     </div>
   </div>
 </div>
@@ -3034,9 +3051,45 @@ const FS_SELLOUT_HIST    = db.collection('sellout_historico');
         <img src="${src}" alt="${(f.nome||'').replace(/"/g,'&quot;')}" style="${sz};width:auto;height:auto;object-fit:contain;display:block;" loading="lazy"/>
       </div>`;
     };
-    const grid = document.getElementById('loginFabGrid');
-    const wrap = document.getElementById('loginFabLogos');
-    if (grid && wrap) { grid.innerHTML = comLogo.map(logoBox).join(''); wrap.style.display = 'block'; }
+    // ── Mobile: slideshow abaixo do form ──
+    const mTrack  = document.getElementById('loginMobileSlideTrack');
+    const mDotEl  = document.getElementById('loginMobileSlideDots');
+    const mWrap   = document.getElementById('loginMobileRepresentadas');
+    if (mTrack && mDotEl && mWrap) {
+      mTrack.innerHTML = comLogo.map((f, i) => {
+        const src = getSrc(f);
+        const bg  = isBgPreta(f) ? '#1a1a1a' : '#ffffff';
+        const sz  = isGrande(f) ? 'max-width:86%;max-height:80%' : 'max-width:72%;max-height:70%';
+        const st  = i === 0 ? 'transform:translateX(0);opacity:1' : 'transform:translateX(100%);opacity:0';
+        return `<div class="m-slide" style="${st};background:${bg}"><img src="${src}" alt="${(f.nome||'').replace(/"/g,'&quot;')}" style="${sz};width:auto;height:auto;object-fit:contain;display:block;" loading="lazy"/></div>`;
+      }).join('');
+      mDotEl.innerHTML = comLogo.map((_, i) =>
+        `<button class="m-dot${i===0?' on':''}" aria-label="Logo ${i+1}"></button>`
+      ).join('');
+      mWrap.style.display = 'block';
+      const mSlides = mTrack.querySelectorAll('.m-slide');
+      const mDots   = mDotEl.querySelectorAll('.m-dot');
+      const mTotal  = mSlides.length;
+      if (mTotal >= 2) {
+        let mCur = 0;
+        function goMSlide(next) {
+          const prev = mCur;
+          mSlides[prev].style.transform = 'translateX(-100%)'; mSlides[prev].style.opacity = '0';
+          mDots[prev].classList.remove('on');
+          mSlides[next].style.transform = 'translateX(0)'; mSlides[next].style.opacity = '1';
+          mDots[next].classList.add('on');
+          mCur = next;
+          const upcoming = (next + 1) % mTotal;
+          if (upcoming !== prev) {
+            mSlides[upcoming].style.transition = 'none';
+            mSlides[upcoming].style.transform = 'translateX(100%)'; mSlides[upcoming].style.opacity = '0';
+            requestAnimationFrame(() => { mSlides[upcoming].style.transition = 'transform 0.55s cubic-bezier(0.4,0,0.2,1),opacity 0.55s'; });
+          }
+        }
+        mDots.forEach((d, i) => d.addEventListener('click', () => goMSlide(i)));
+        setInterval(() => goMSlide((mCur + 1) % mTotal), 3000);
+      }
+    }
     // ── Desktop: slideshow no quadrado branco ──
     const track = document.getElementById('loginSlideshowTrack');
     const dotsEl = document.getElementById('loginSlideshowDots');
