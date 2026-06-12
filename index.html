@@ -1741,10 +1741,10 @@
       </div><!-- /tabPanelConc -->
 
       <!-- ── Barra de abas dos gráficos ── -->
-      <div style="background:var(--color-background-secondary);padding:8px;border-radius:12px;display:flex;gap:6px;margin-top:12px">
-        <button id="gTab-dist" onclick="setGraficoTab('dist')" style="flex:1;padding:9px 8px;border:none;border-radius:8px;font-size:13px;cursor:pointer;background:var(--color-background-primary);color:#185FA5;font-weight:500;box-shadow:0 1px 4px rgba(0,0,0,.10);transition:all .15s">Distribuição</button>
-        <button id="gTab-mov"  onclick="setGraficoTab('mov')"  style="flex:1;padding:9px 8px;border:none;border-radius:8px;font-size:13px;cursor:pointer;background:transparent;color:var(--color-text-secondary);font-weight:400;transition:all .15s">Movimentações</button>
-        <button id="gTab-conc" onclick="setGraficoTab('conc')" style="flex:1;padding:9px 8px;border:none;border-radius:8px;font-size:13px;cursor:pointer;background:transparent;color:var(--color-text-secondary);font-weight:400;transition:all .15s">Concorrência</button>
+      <div style="background:#e8edf2;padding:3px;border-radius:10px;display:flex;gap:2px;margin-top:12px">
+        <button id="gTab-dist" onclick="setGraficoTab('dist')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:#1e3a5f;color:#fff;font-weight:600;box-shadow:0 2px 6px rgba(30,58,95,.35);transition:all .2s">Distribuição</button>
+        <button id="gTab-mov"  onclick="setGraficoTab('mov')"  style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;color:#64748b;font-weight:600;transition:all .2s">Movimentações</button>
+        <button id="gTab-conc" onclick="setGraficoTab('conc')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;color:#64748b;font-weight:600;transition:all .2s">Concorrência</button>
       </div>
     </div>
 
@@ -7240,11 +7240,11 @@ function setGraficoTab(tab) {
     const btn = document.getElementById('gTab-'+k);
     if (!btn) return;
     const ativo = k === tab;
-    btn.style.background  = ativo ? 'var(--color-background-primary)' : 'transparent';
-    btn.style.color       = ativo ? '#185FA5' : 'var(--color-text-secondary)';
-    btn.style.fontWeight  = ativo ? '500' : '400';
-    btn.style.boxShadow   = ativo ? '0 1px 4px rgba(0,0,0,.10)' : 'none';
-    btn.style.borderRadius = '8px';
+    btn.style.background  = ativo ? '#1e3a5f' : 'transparent';
+    btn.style.color       = ativo ? '#fff' : '#64748b';
+    btn.style.fontWeight  = '600';
+    btn.style.boxShadow   = ativo ? '0 2px 6px rgba(30,58,95,.35)' : 'none';
+    btn.style.borderRadius = '7px';
   });
   if (tab === 'dist') { setGUnd(_gUnd); }
   if (tab === 'mov')  { renderMovChart(); }
