@@ -3115,7 +3115,7 @@ const FS_SELLOUT_HIST    = db.collection('sellout_historico');
     track.innerHTML = comLogo.map((f, i) => {
       const src = getSrc(f);
       const st = i === 0 ? 'transform:translateX(0);opacity:1' : 'transform:translateX(100%);opacity:0';
-      const imgSz = isGrande(f) ? 'max-width:88% !important;max-height:68% !important' : '';
+      const imgSz = isGrande(f) ? 'max-width:92% !important;max-height:78% !important' : '';
       return `<div class="login-slide" style="${st}"><img src="${src}" alt="${(f.nome||'').replace(/"/g,'&quot;')}" style="${imgSz}" loading="lazy"/></div>`;
     }).join('');
     dotsEl.innerHTML = comLogo.map((_, i) =>
