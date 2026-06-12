@@ -1803,7 +1803,8 @@
     <!-- Totais -->
     <div id="barTotaisFiltrados" class="bg-white rounded-2xl shadow px-4 py-3 mb-4 flex justify-end gap-3 items-center">
       <span class="text-xs text-slate-500 font-medium mr-auto">Totais filtrados:</span>
-      <span id="cntTotalQtd" class="bg-slate-200 text-slate-700 text-xs font-semibold rounded-full px-3 py-1">Qtd: —</span>
+      <span id="cntTotalPC"  class="bg-blue-100 text-blue-800 text-xs font-semibold rounded-full px-3 py-1">PC: —</span>
+      <span id="cntTotalKG"  class="bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-full px-3 py-1">KG: —</span>
     </div>
     <div class="flex items-center gap-3 pb-4">
       <button onclick="toggleDarkMode()" title="Alternar modo escuro"
@@ -6127,9 +6128,12 @@ function renderTabela() {
   document.getElementById('cntExp').textContent  = `${exp} Vencido${exp!==1?'s':''}`;
   document.getElementById('cntWarn').textContent = `${warn} Atenção`;
   document.getElementById('cntOk').textContent   = `${ok} OK`;
-  const totalQtd = lista.reduce((s,p)=>s+(Number(p.quantidade)||0),0);
-  const elQtd = document.getElementById('cntTotalQtd');
-  if (elQtd) elQtd.textContent = 'Qtd: '+totalQtd.toLocaleString('pt-BR');
+  const totalPC = lista.filter(p=>(p.und||'').toUpperCase()==='PC').reduce((s,p)=>s+(Number(p.quantidade)||0),0);
+  const totalKG = lista.filter(p=>(p.und||'').toUpperCase()==='KG').reduce((s,p)=>s+(Number(p.quantidade)||0),0);
+  const elPC = document.getElementById('cntTotalPC');
+  const elKG = document.getElementById('cntTotalKG');
+  if (elPC) elPC.textContent = 'PC: '+totalPC.toLocaleString('pt-BR')+' Pc';
+  if (elKG) elKG.textContent = 'KG: '+totalKG.toLocaleString('pt-BR')+' Kg';
 
   const tbody=document.getElementById('corpoTabela');
   const semEl=document.getElementById('semDados');
