@@ -1574,43 +1574,49 @@
       <!-- ── Painel Ranking de Lojas ── -->
       <div id="tabPanelRank" style="display:none">
 
-        <!-- Filtro cascata -->
-        <div style="background:#e8edf2;padding:3px;border-radius:10px;margin-bottom:12px">
-          <button onclick="toggleRankFiltro()" id="rankFiltBtn" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:transparent;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#64748b;border-radius:7px;transition:all .2s">
-            <span style="display:flex;align-items:center;gap:7px">
-              <i class="ti ti-adjustments-horizontal" style="font-size:15px" aria-hidden="true"></i>
-              <span id="rankFiltResumo">Filtros</span>
-            </span>
-            <i class="ti ti-chevron-down" id="rankFiltChev" style="font-size:13px;transition:transform .2s" aria-hidden="true"></i>
-          </button>
-          <div id="rankFiltBody" style="display:none;padding:10px 10px 8px;flex-direction:column;gap:9px">
-            <div>
-              <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Fábrica</div>
-              <select id="rFab" onchange="onRankChangeFab()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white w-full"></select>
-            </div>
-            <div>
-              <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Vendedor</div>
-              <select id="rVend" onchange="onRankChangeVend()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white w-full"></select>
-            </div>
-            <div>
-              <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">UF</div>
-              <select id="rUF" onchange="onRankChangeUF()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white w-full"></select>
-            </div>
-            <div>
-              <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Produto</div>
-              <select id="rProd" onchange="renderRankingLojas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white w-full"></select>
-            </div>
-            <button onclick="limparRankFiltros()" style="align-self:flex-start;padding:5px 13px;font-size:12px;font-weight:600;border-radius:7px;background:transparent;border:1px solid #cbd5e1;color:#64748b;cursor:pointer">Limpar</button>
+        <!-- Filtro horizontal -->
+        <div style="background:#e8edf2;padding:10px 14px;border-radius:10px;margin-bottom:12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <i class="ti ti-adjustments-horizontal" style="font-size:15px;color:#1e3a5f" aria-hidden="true"></i>
+            <span style="font-size:12px;font-weight:600;color:#1e3a5f;white-space:nowrap">Filtros — Ranking</span>
+          </div>
+          <div style="width:0.5px;height:22px;background:#b0bac8;flex-shrink:0"></div>
+          <select id="rFab" onchange="onRankChangeFab()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;flex:1;min-width:90px;max-width:140px"></select>
+          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+          <select id="rVend" onchange="onRankChangeVend()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;flex:1;min-width:90px;max-width:140px"></select>
+          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+          <select id="rUF" onchange="onRankChangeUF()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;width:80px;flex-shrink:0"></select>
+          <div style="width:0.5px;height:22px;background:#b0bac8;flex-shrink:0"></div>
+          <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+            <input type="text" id="rDtIni" placeholder="DD/MM/AAAA" oninput="renderRankingLojas()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;width:106px">
+            <span style="font-size:12px;color:#64748b;flex-shrink:0">até</span>
+            <input type="text" id="rDtFim" placeholder="DD/MM/AAAA" oninput="renderRankingLojas()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;width:106px">
+          </div>
+          <div style="width:0.5px;height:22px;background:#b0bac8;flex-shrink:0"></div>
+          <div style="display:flex;background:#fff;border-radius:8px;border:0.5px solid #b0bac8;overflow:hidden;flex-shrink:0">
+            <button id="rModoProd" onclick="setRankModo('produto')" style="font-size:12px;font-weight:600;padding:4px 11px;border:none;background:#1e3a5f;color:#fff;cursor:pointer;height:30px;display:flex;align-items:center;gap:4px;border-radius:7px">
+              <i class="ti ti-building-store" style="font-size:13px" aria-hidden="true"></i> Por produto
+            </button>
+            <button id="rModoLoja" onclick="setRankModo('loja')" style="font-size:12px;font-weight:600;padding:4px 11px;border:none;background:transparent;color:#64748b;cursor:pointer;height:30px;display:flex;align-items:center;gap:4px">
+              <i class="ti ti-package" style="font-size:13px" aria-hidden="true"></i> Por loja
+            </button>
           </div>
         </div>
 
+        <!-- Select secundário -->
+        <div style="margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span id="rSelectLabel" style="font-size:12px;color:#64748b;white-space:nowrap;flex-shrink:0">Produto:</span>
+          <select id="rSecundario" onchange="renderRankingLojas()" style="font-size:13px;padding:6px 10px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;flex:1"></select>
+        </div>
+
         <!-- Insight -->
-        <div id="rankInsight" style="display:none;background:#eff6ff;border-left:3px solid #1e3a5f;border-radius:0 8px 8px 0;padding:9px 13px;margin-bottom:12px;font-size:13px;color:#1e3a5f;line-height:1.6"></div>
+        <div id="rankInsight" style="display:none;background:#eff6ff;border-left:3px solid #1e3a5f;border-radius:0 8px 8px 0;padding:9px 13px;margin-bottom:10px;font-size:13px;color:#1e3a5f;line-height:1.6"></div>
 
         <!-- Lista ranking -->
         <div class="bg-white rounded-2xl shadow overflow-hidden">
-          <div style="background:#1e3a5f;padding:9px 14px">
+          <div style="background:#1e3a5f;padding:9px 14px;display:flex;align-items:center;justify-content:space-between">
             <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.85)" id="rankListHeader">Lojas com mais ocorrências de vencimento</span>
+            <span style="font-size:11px;color:rgba(255,255,255,.55)" id="rankListCount"></span>
           </div>
           <div id="rankListBody" style="min-height:60px"></div>
         </div>
@@ -1861,20 +1867,10 @@
       <span id="cntTotalPC"  class="bg-blue-100 text-blue-800 text-xs font-semibold rounded-full px-3 py-1">PC: —</span>
       <span id="cntTotalKG"  class="bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-full px-3 py-1">KG: —</span>
     </div>
-    <div class="flex items-center gap-3 pb-4">
-      <button onclick="toggleDarkMode()" title="Alternar modo escuro"
-        class="dark-toggle-btn bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-lg px-3 py-1.5 transition flex items-center gap-2">
-        🌙 Tema Escuro
-      </button>
-      <span class="text-xs text-slate-400 ml-auto">Dados salvos localmente no navegador · v2.1</span>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════
-     Aba: Ranking de Promotores
-     ════════════════════════════════════════ -->
-<div id="viewRanking" style="display:none;margin-bottom:24px">
+    <!-- ════════════════════════════════════════
+         Aba: Ranking de Promotores
+         ════════════════════════════════════════ -->
+    <div id="viewRanking" style="display:none;margin-bottom:24px">
 
   <!-- ── Cabeçalho ── -->
   <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
@@ -1977,7 +1973,19 @@
     <div id="rankBadgesRow" style="display:flex;gap:8px;flex-wrap:wrap"></div>
   </div>
 
-</div>
+    </div><!-- /viewRanking -->
+
+    <!-- Rodapé -->
+    <div class="flex items-center gap-3 pb-4 mt-2">
+      <button onclick="toggleDarkMode()" title="Alternar modo escuro"
+        class="dark-toggle-btn bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-lg px-3 py-1.5 transition flex items-center gap-2">
+        🌙 Tema Escuro
+      </button>
+      <span class="text-xs text-slate-400 ml-auto">Dados salvos localmente no navegador · v2.1</span>
+    </div>
+
+  </div><!-- /max-w-7xl -->
+</div><!-- /mainApp -->
 
 <!-- Modal Calculadora -->
 <div id="calcModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)fecharCalculadora()">
@@ -7428,16 +7436,14 @@ function setGraficoTab(tab) {
 // ── RANKING DE LOJAS (sub-aba Gráficos) ───────
 // ══════════════════════════════════════════════
 
-let _rankFiltAberto = false;
+let _rankModo = 'produto';
 
-function toggleRankFiltro() {
-  _rankFiltAberto = !_rankFiltAberto;
-  const body = document.getElementById('rankFiltBody');
-  const chev = document.getElementById('rankFiltChev');
-  const btn  = document.getElementById('rankFiltBtn');
-  if (body) body.style.display = _rankFiltAberto ? 'flex' : 'none';
-  if (chev) chev.style.transform = _rankFiltAberto ? 'rotate(180deg)' : '';
-  if (btn)  { btn.style.background = _rankFiltAberto ? '#1e3a5f' : 'transparent'; btn.style.color = _rankFiltAberto ? '#fff' : '#64748b'; }
+function _parseRankDate(str) {
+  if (!str || str.length < 10) return null;
+  const parts = str.split('/');
+  if (parts.length < 3) return null;
+  const dt = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
+  return isNaN(dt) ? null : dt;
 }
 
 function _rankPopSel(id, vals, ph) {
@@ -7447,131 +7453,151 @@ function _rankPopSel(id, vals, ph) {
 }
 
 function _rankBase() {
-  const fab  = document.getElementById('rFab')?.value  || '';
-  const vend = document.getElementById('rVend')?.value || '';
-  const uf   = document.getElementById('rUF')?.value   || '';
-  const prod = document.getElementById('rProd')?.value || '';
-  // Usa array global `produtos` — mesmo dado já carregado no app
+  const fab   = document.getElementById('rFab')?.value  || '';
+  const vend  = document.getElementById('rVend')?.value || '';
+  const uf    = document.getElementById('rUF')?.value   || '';
+  const dtIni = _parseRankDate(document.getElementById('rDtIni')?.value || '');
+  const dtFim = _parseRankDate(document.getElementById('rDtFim')?.value || '');
+  const hoje  = new Date(); hoje.setHours(0,0,0,0);
   let base = produtos.filter(p => {
     if (!p.validade) return false;
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
     const d = new Date(p.validade + 'T00:00:00');
     const dias = Math.round((d - hoje) / 86400000);
-    return dias <= 20; // só os que precisam de atenção (vencidos ou ≤20 dias)
+    if (!dtIni && !dtFim) return dias <= 20;
+    if (dtIni && d < dtIni) return false;
+    if (dtFim && d > dtFim) return false;
+    return true;
   });
   if (sessao?.role === 'vendedor') base = base.filter(p => sessao.ufs?.includes(p.uf));
   if (sessao?.role === 'promotor') base = base.filter(p => normTxt(p.promotor) === normTxt(sessao.nome || ''));
-  // Busca vendedor nos usuarios pelo match de UF do produto
-  const _getFabProd = p => {
-    const cat = catalogo.find(c => normTxt(c.nome) === normTxt(p.produto || ''));
-    return cat?.fabrica || p.fabrica || '';
-  };
-  const _getVendProd = p => {
-    const u = usuarios.find(u => u.role === 'vendedor' && (u.ufs||[]).includes(p.uf));
-    return u?.nome || '';
-  };
-  if (fab)  base = base.filter(p => normTxt(_getFabProd(p)) === normTxt(fab));
-  if (vend) base = base.filter(p => normTxt(_getVendProd(p)) === normTxt(vend));
+  const _getFab = p => { const cat = catalogo.find(c => normTxt(c.nome) === normTxt(p.produto||'')); return cat?.fabrica || p.fabrica || ''; };
+  const _getVend = p => { const u = usuarios.find(u => u.role==='vendedor' && (u.ufs||[]).includes(p.uf)); return u?.nome || ''; };
+  if (fab)  base = base.filter(p => normTxt(_getFab(p)) === normTxt(fab));
+  if (vend) base = base.filter(p => normTxt(_getVend(p)) === normTxt(vend));
   if (uf)   base = base.filter(p => (p.uf||'') === uf);
-  if (prod) base = base.filter(p => normTxt(p.produto||'') === normTxt(prod));
-  return { base, fab, vend, uf, prod,
-    _getFab: _getFabProd, _getVend: _getVendProd };
+  return { base, fab, vend, uf, _getFab, _getVend };
+}
+
+function setRankModo(modo) {
+  _rankModo = modo;
+  const btnP = document.getElementById('rModoProd');
+  const btnL = document.getElementById('rModoLoja');
+  const lbl  = document.getElementById('rSelectLabel');
+  if (btnP) { btnP.style.background = modo==='produto'?'#1e3a5f':'transparent'; btnP.style.color = modo==='produto'?'#fff':'#64748b'; btnP.style.borderRadius = modo==='produto'?'7px':'0'; }
+  if (btnL) { btnL.style.background = modo==='loja'?'#1e3a5f':'transparent'; btnL.style.color = modo==='loja'?'#fff':'#64748b'; btnL.style.borderRadius = modo==='loja'?'7px':'0'; }
+  if (lbl)  lbl.textContent = modo==='produto' ? 'Produto:' : 'Loja:';
+  _rankPopSecundario();
+  renderRankingLojas();
+}
+
+function _rankPopSecundario() {
+  const { base } = _rankBase();
+  if (_rankModo === 'produto') {
+    _rankPopSel('rSecundario', [...new Set(base.map(p=>p.produto).filter(Boolean))].sort(), 'Todos os produtos');
+  } else {
+    _rankPopSel('rSecundario', [...new Set(base.map(p=>p.loja).filter(Boolean))].sort(), 'Todas as lojas');
+  }
 }
 
 function onRankChangeFab() {
   const { base, _getFab, _getVend } = _rankBase();
-  _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos');
-  _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas');
-  _rankPopSel('rProd', [...new Set(base.map(p=>p.produto).filter(Boolean))].sort(), 'Todos');
+  _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos os vendedores');
+  _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas as UFs');
+  _rankPopSecundario();
   renderRankingLojas();
 }
 function onRankChangeVend() {
-  const { base, _getFab, _getVend } = _rankBase();
-  _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas');
-  _rankPopSel('rProd', [...new Set(base.map(p=>p.produto).filter(Boolean))].sort(), 'Todos');
+  const { base } = _rankBase();
+  _rankPopSel('rUF', [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas as UFs');
+  _rankPopSecundario();
   renderRankingLojas();
 }
 function onRankChangeUF() {
-  const { base, _getFab, _getVend } = _rankBase();
-  _rankPopSel('rProd', [...new Set(base.map(p=>p.produto).filter(Boolean))].sort(), 'Todos');
+  _rankPopSecundario();
   renderRankingLojas();
 }
 
 function limparRankFiltros() {
-  ['rFab','rVend','rUF','rProd'].forEach(id => { const s = document.getElementById(id); if (s) s.value = ''; });
+  ['rFab','rVend','rUF','rDtIni','rDtFim','rSecundario'].forEach(id => { const s = document.getElementById(id); if (s) s.value = ''; });
   initRankingLojas();
 }
 
 function initRankingLojas() {
   const { base, _getFab, _getVend } = _rankBase();
-  _rankPopSel('rFab',  [...new Set(base.map(_getFab).filter(Boolean))].sort(), 'Todas');
-  _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos');
-  _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas');
-  _rankPopSel('rProd', [...new Set(base.map(p=>p.produto).filter(Boolean))].sort(), 'Todos');
+  _rankPopSel('rFab',  [...new Set(base.map(_getFab).filter(Boolean))].sort(), 'Todas as fábricas');
+  _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos os vendedores');
+  _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas as UFs');
+  _rankPopSecundario();
   renderRankingLojas();
 }
 
 function renderRankingLojas() {
-  const { base, fab, vend, uf, prod, _getFab, _getVend } = _rankBase();
-  const ativos = [fab, vend, uf, prod].filter(Boolean);
-
-  // Resumo no botão
-  const resumoEl = document.getElementById('rankFiltResumo');
-  if (resumoEl) resumoEl.textContent = ativos.length ? 'Filtros: ' + ativos.join(' · ') : 'Filtros';
-
-  // Cabeçalho da lista
+  const { base, fab, vend, uf, _getFab } = _rankBase();
+  const sec   = document.getElementById('rSecundario')?.value || '';
+  const hoje  = new Date(); hoje.setHours(0,0,0,0);
   const hdrEl = document.getElementById('rankListHeader');
-  if (hdrEl) {
-    if (prod) hdrEl.textContent = 'Ranking — ' + prod;
-    else if (fab)  hdrEl.textContent = 'Ranking — ' + fab;
-    else if (vend) hdrEl.textContent = 'Ranking — ' + vend;
-    else if (uf)   hdrEl.textContent = 'Ranking — UF ' + uf;
-    else hdrEl.textContent = 'Lojas com mais ocorrências de vencimento';
-  }
-
-  // Agrupar por loja e calcular score
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const porLoja = Object.values(
-    base.reduce((acc, p) => {
-      const loja = p.loja || '—';
-      if (!acc[loja]) acc[loja] = { loja, itens: [] };
-      acc[loja].itens.push(p);
-      return acc;
-    }, {})
-  ).map(g => {
-    const sc = g.itens.reduce((s, p) => {
-      const d = Math.round((new Date(p.validade+'T00:00:00') - hoje) / 86400000);
-      return s + (d < 0 ? 3 : d <= 5 ? 2 : 1);
-    }, 0);
-    return { ...g, sc };
-  }).sort((a, b) => b.sc - a.sc);
-
-  // Insight
+  const cntEl = document.getElementById('rankListCount');
+  const bodyEl= document.getElementById('rankListBody');
   const insEl = document.getElementById('rankInsight');
-  if (insEl) {
-    if (ativos.length && porLoja.length) {
-      const top = porLoja[0];
-      const ctx = prod ? `do produto <b>${prod}</b>`
-        : fab  ? `da fábrica <b>${fab}</b>`
-        : vend ? `na carteira de <b>${vend}</b>`
-        : `na UF <b>${uf}</b>`;
-      insEl.innerHTML = `<b>${top.loja}</b> concentra o maior número de ocorrências ${ctx}.`;
-      insEl.style.display = 'block';
-    } else insEl.style.display = 'none';
-  }
-
-  // Renderizar lista
-  const bodyEl = document.getElementById('rankListBody');
   if (!bodyEl) return;
-  if (!porLoja.length) {
-    bodyEl.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Nenhuma ocorrência encontrada para os filtros selecionados.</div>';
-    return;
+
+  const _sit = p => { const d = Math.round((new Date(p.validade+'T00:00:00')-hoje)/86400000); return d<0?'vencido':d<=5?'critico':'atencao'; };
+  const _sc  = p => { const d = Math.round((new Date(p.validade+'T00:00:00')-hoje)/86400000); return d<0?3:d<=5?2:1; };
+  const _badge = temV => temV
+    ? '<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;background:#fee2e2;color:#991b1b;flex-shrink:0">Vencido</span>'
+    : '<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;background:#fef9c3;color:#854d0e;flex-shrink:0">A vencer</span>';
+
+  if (_rankModo === 'produto') {
+    let view = sec ? base.filter(p => normTxt(p.produto||'')===normTxt(sec)) : base;
+    const porLoja = Object.values(view.reduce((acc, p) => {
+      const loja = p.loja||'—';
+      if (!acc[loja]) acc[loja] = { loja, sc:0, total:0, temV:false };
+      acc[loja].sc += _sc(p); acc[loja].total++; if (_sit(p)==='vencido') acc[loja].temV=true;
+      return acc;
+    }, {})).sort((a,b)=>b.sc-a.sc);
+    if (hdrEl) hdrEl.textContent = sec ? 'Ranking — '+sec : 'Lojas com mais ocorrências de vencimento';
+    if (cntEl) cntEl.textContent = porLoja.length+' loja'+(porLoja.length!==1?'s':'');
+    if (insEl) {
+      if (porLoja.length && (sec||fab||vend||uf)) {
+        const ctx = sec?`do produto <b>${sec}</b>`:fab?`da fábrica <b>${fab}</b>`:vend?`do vendedor <b>${vend}</b>`:`da UF <b>${uf}</b>`;
+        insEl.innerHTML = `<b>${porLoja[0].loja}</b> concentra o maior número de ocorrências ${ctx}.`;
+        insEl.style.display='block';
+      } else insEl.style.display='none';
+    }
+    if (!porLoja.length) { bodyEl.innerHTML='<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Nenhuma ocorrência encontrada para os filtros selecionados.</div>'; return; }
+    bodyEl.innerHTML = porLoja.map((r,i)=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid #f1f5f9${i===porLoja.length-1?';border-bottom:none':''}">
+        <div style="width:28px;text-align:center;font-size:13px;font-weight:600;color:#94a3b8;flex-shrink:0">${i+1}º</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.loja}</div>
+          <div style="font-size:11px;color:#94a3b8">${r.total} ocorrência${r.total!==1?'s':''}</div>
+        </div>${_badge(r.temV)}
+      </div>`).join('');
+
+  } else {
+    let view = sec ? base.filter(p => normTxt(p.loja||'')===normTxt(sec)) : base;
+    const porProd = Object.values(view.reduce((acc, p) => {
+      const prod = p.produto||'—'; const fab2 = _getFab(p);
+      if (!acc[prod]) acc[prod] = { prod, fab:fab2, sc:0, total:0, temV:false };
+      acc[prod].sc += _sc(p); acc[prod].total++; if (_sit(p)==='vencido') acc[prod].temV=true;
+      return acc;
+    }, {})).sort((a,b)=>b.sc-a.sc);
+    if (hdrEl) hdrEl.textContent = sec ? 'Ranking — '+sec : 'Produtos com mais ocorrências de vencimento';
+    if (cntEl) cntEl.textContent = porProd.length+' produto'+(porProd.length!==1?'s':'');
+    if (insEl) {
+      if (porProd.length && sec) { insEl.innerHTML=`<b>${porProd[0].prod}</b> é o produto com mais ocorrências de vencimento em <b>${sec}</b>.`; insEl.style.display='block'; }
+      else insEl.style.display='none';
+    }
+    if (!porProd.length) { bodyEl.innerHTML='<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Nenhuma ocorrência encontrada para os filtros selecionados.</div>'; return; }
+    bodyEl.innerHTML = porProd.map((r,i)=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid #f1f5f9${i===porProd.length-1?';border-bottom:none':''}">
+        <div style="width:28px;text-align:center;font-size:13px;font-weight:600;color:#94a3b8;flex-shrink:0">${i+1}º</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.prod}</div>
+          <div style="font-size:11px;color:#94a3b8">${r.fab?r.fab+' · ':''}${r.total} ocorrência${r.total!==1?'s':''}</div>
+        </div>${_badge(r.temV)}
+      </div>`).join('');
   }
-  bodyEl.innerHTML = porLoja.map((r, i) => `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #f1f5f9${i===porLoja.length-1?';border-bottom:none':''}">
-      <div style="width:30px;text-align:right;font-size:13px;font-weight:600;color:#94a3b8;flex-shrink:0">${i+1}º</div>
-      <div style="font-size:13px;font-weight:600;color:#1e293b;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.loja}</div>
-    </div>`).join('');
 }
 
 // ── Gráficos de distribuição ─────────────────
