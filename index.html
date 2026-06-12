@@ -233,6 +233,9 @@
     @media (min-width: 380px) { #loginFabGrid > div { height: 44px !important; } }
     #loginLogoWrap { padding: 0 !important; margin-bottom: 10px !important; }
 
+    /* ── Mobile: ocultar footer do form e slideshow de representadas ── */
+    @media (max-width: 767px) { #loginFormFooter { display: none !important; } }
+    @media (min-width: 768px) { #loginMobileRepresentadas { display: none !important; } #loginMobileFooter { display: none !important; } }
     /* ── Mobile: slideshow de representadas (abaixo do form) ── */
     #loginFabLogos { display: none !important; }
     #loginMobileRepresentadas { display: none; margin-top: 14px; padding-bottom: 8px; }
@@ -339,6 +342,7 @@
         Entrar
       </button>
     </div>
+    <div id="loginFormFooter">
     <div class="flex justify-center mt-4">
       <button onclick="toggleDarkMode()" title="Alternar modo escuro"
         class="dark-toggle-btn bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-lg px-3 py-1.5 transition flex items-center gap-2">
@@ -353,10 +357,24 @@
       <p class="text-xs text-slate-400 text-center">Use como um app, sem abrir o navegador</p>
     </div>
     </div>
+    </div>
     <div id="loginMobileRepresentadas">
       <div id="loginMobileSlideLabel">Nossas Representadas</div>
       <div id="loginMobileSlideCard"><div id="loginMobileSlideTrack"></div></div>
       <div id="loginMobileSlideDots"></div>
+    </div>
+    <div id="loginMobileFooter" class="flex flex-col items-center mt-4 gap-2">
+      <button onclick="toggleDarkMode()" title="Alternar modo escuro"
+        class="dark-toggle-btn bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-lg px-3 py-1.5 transition flex items-center gap-2">
+        🌙 Tema Escuro
+      </button>
+      <div id="installBtnWrapMobile" class="flex flex-col items-center gap-1 w-full">
+        <button onclick="instalarApp()" class="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg px-4 py-2 transition border border-blue-200 w-full justify-center">
+          <i class="ti ti-device-mobile" style="font-size:15px" aria-hidden="true"></i>
+          Adicionar à tela inicial
+        </button>
+        <p class="text-xs text-slate-400 text-center">Use como um app, sem abrir o navegador</p>
+      </div>
     </div>
   </div>
 </div>
