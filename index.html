@@ -1571,6 +1571,52 @@
 
       </div><!-- /tabPanelDist -->
 
+      <!-- ── Painel Ranking de Lojas ── -->
+      <div id="tabPanelRank" style="display:none">
+
+        <!-- Filtro cascata -->
+        <div style="background:#e8edf2;padding:3px;border-radius:10px;margin-bottom:12px">
+          <button onclick="toggleRankFiltro()" id="rankFiltBtn" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:transparent;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#64748b;border-radius:7px;transition:all .2s">
+            <span style="display:flex;align-items:center;gap:7px">
+              <i class="ti ti-adjustments-horizontal" style="font-size:15px" aria-hidden="true"></i>
+              <span id="rankFiltResumo">Filtros</span>
+            </span>
+            <i class="ti ti-chevron-down" id="rankFiltChev" style="font-size:13px;transition:transform .2s" aria-hidden="true"></i>
+          </button>
+          <div id="rankFiltBody" style="display:none;padding:10px 10px 8px;flex-direction:column;gap:9px">
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Fábrica</div>
+              <select id="rFab" onchange="onRankChangeFab()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white w-full"></select>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Vendedor</div>
+              <select id="rVend" onchange="onRankChangeVend()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white w-full"></select>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">UF</div>
+              <select id="rUF" onchange="onRankChangeUF()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white w-full"></select>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Produto</div>
+              <select id="rProd" onchange="renderRankingLojas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white w-full"></select>
+            </div>
+            <button onclick="limparRankFiltros()" style="align-self:flex-start;padding:5px 13px;font-size:12px;font-weight:600;border-radius:7px;background:transparent;border:1px solid #cbd5e1;color:#64748b;cursor:pointer">Limpar</button>
+          </div>
+        </div>
+
+        <!-- Insight -->
+        <div id="rankInsight" style="display:none;background:#eff6ff;border-left:3px solid #1e3a5f;border-radius:0 8px 8px 0;padding:9px 13px;margin-bottom:12px;font-size:13px;color:#1e3a5f;line-height:1.6"></div>
+
+        <!-- Lista ranking -->
+        <div class="bg-white rounded-2xl shadow overflow-hidden">
+          <div style="background:#1e3a5f;padding:9px 14px">
+            <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.85)" id="rankListHeader">Lojas com mais ocorrências de vencimento</span>
+          </div>
+          <div id="rankListBody" style="min-height:60px"></div>
+        </div>
+
+      </div><!-- /tabPanelRank -->
+
       <!-- ── Painel 2: Movimentações ── -->
       <div id="tabPanelMov" style="display:none">
       <!-- Filtros movimentações -->
@@ -1751,6 +1797,7 @@
       <!-- ── Barra de abas dos gráficos ── -->
       <div style="background:#e8edf2;padding:3px;border-radius:10px;display:flex;gap:2px;margin-top:12px">
         <button id="gTab-dist" onclick="setGraficoTab('dist')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:#1e3a5f;color:#fff;font-weight:600;box-shadow:0 2px 6px rgba(30,58,95,.35);transition:all .2s">Distribuição</button>
+        <button id="gTab-rank" onclick="setGraficoTab('rank')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;color:#64748b;font-weight:600;transition:all .2s">Ranking</button>
         <button id="gTab-mov"  onclick="setGraficoTab('mov')"  style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;color:#64748b;font-weight:600;transition:all .2s">Movimentações</button>
         <button id="gTab-conc" onclick="setGraficoTab('conc')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;color:#64748b;font-weight:600;transition:all .2s">Concorrência</button>
       </div>
@@ -7348,12 +7395,12 @@ let _gTabAtual = 'dist';
 
 function setGraficoTab(tab) {
   _gTabAtual = tab;
-  const paineis = { dist: 'tabPanelDist', mov: 'tabPanelMov', conc: 'tabPanelConc' };
+  const paineis = { dist: 'tabPanelDist', rank: 'tabPanelRank', mov: 'tabPanelMov', conc: 'tabPanelConc' };
   Object.entries(paineis).forEach(([k, id]) => {
     const el = document.getElementById(id);
     if (el) el.style.display = k === tab ? '' : 'none';
   });
-  ['dist','mov','conc'].forEach(k => {
+  ['dist','rank','mov','conc'].forEach(k => {
     const btn = document.getElementById('gTab-'+k);
     if (!btn) return;
     const ativo = k === tab;
@@ -7364,8 +7411,159 @@ function setGraficoTab(tab) {
     btn.style.borderRadius = '7px';
   });
   if (tab === 'dist') { setGUnd(_gUnd); }
+  if (tab === 'rank') { initRankingLojas(); }
   if (tab === 'mov')  { renderMovChart(); }
   if (tab === 'conc') { renderConcChart(); }
+}
+
+// ══════════════════════════════════════════════
+// ── RANKING DE LOJAS (sub-aba Gráficos) ───────
+// ══════════════════════════════════════════════
+
+let _rankFiltAberto = false;
+
+function toggleRankFiltro() {
+  _rankFiltAberto = !_rankFiltAberto;
+  const body = document.getElementById('rankFiltBody');
+  const chev = document.getElementById('rankFiltChev');
+  const btn  = document.getElementById('rankFiltBtn');
+  if (body) body.style.display = _rankFiltAberto ? 'flex' : 'none';
+  if (chev) chev.style.transform = _rankFiltAberto ? 'rotate(180deg)' : '';
+  if (btn)  { btn.style.background = _rankFiltAberto ? '#1e3a5f' : 'transparent'; btn.style.color = _rankFiltAberto ? '#fff' : '#64748b'; }
+}
+
+function _rankPopSel(id, vals, ph) {
+  const sel = document.getElementById(id); if (!sel) return;
+  const cv  = sel.value;
+  sel.innerHTML = `<option value="">${ph}</option>` + vals.map(v => `<option value="${v}"${v===cv?' selected':''}>${v}</option>`).join('');
+}
+
+function _rankBase() {
+  const fab  = document.getElementById('rFab')?.value  || '';
+  const vend = document.getElementById('rVend')?.value || '';
+  const uf   = document.getElementById('rUF')?.value   || '';
+  const prod = document.getElementById('rProd')?.value || '';
+  // Usa array global `produtos` — mesmo dado já carregado no app
+  let base = produtos.filter(p => {
+    if (!p.validade) return false;
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const d = new Date(p.validade + 'T00:00:00');
+    const dias = Math.round((d - hoje) / 86400000);
+    return dias <= 20; // só os que precisam de atenção (vencidos ou ≤20 dias)
+  });
+  if (sessao?.role === 'vendedor') base = base.filter(p => sessao.ufs?.includes(p.uf));
+  if (sessao?.role === 'promotor') base = base.filter(p => normTxt(p.promotor) === normTxt(sessao.nome || ''));
+  // Busca vendedor nos usuarios pelo match de UF do produto
+  const _getFabProd = p => {
+    const cat = catalogo.find(c => normTxt(c.nome) === normTxt(p.produto || ''));
+    return cat?.fabrica || p.fabrica || '';
+  };
+  const _getVendProd = p => {
+    const u = usuarios.find(u => u.role === 'vendedor' && (u.ufs||[]).includes(p.uf));
+    return u?.nome || '';
+  };
+  if (fab)  base = base.filter(p => normTxt(_getFabProd(p)) === normTxt(fab));
+  if (vend) base = base.filter(p => normTxt(_getVendProd(p)) === normTxt(vend));
+  if (uf)   base = base.filter(p => (p.uf||'') === uf);
+  if (prod) base = base.filter(p => normTxt(p.produto||'') === normTxt(prod));
+  return { base, fab, vend, uf, prod,
+    _getFab: _getFabProd, _getVend: _getVendProd };
+}
+
+function onRankChangeFab() {
+  const { base, _getFab, _getVend } = _rankBase();
+  _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos');
+  _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas');
+  _rankPopSel('rProd', [...new Set(base.map(p=>p.produto).filter(Boolean))].sort(), 'Todos');
+  renderRankingLojas();
+}
+function onRankChangeVend() {
+  const { base, _getFab, _getVend } = _rankBase();
+  _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas');
+  _rankPopSel('rProd', [...new Set(base.map(p=>p.produto).filter(Boolean))].sort(), 'Todos');
+  renderRankingLojas();
+}
+function onRankChangeUF() {
+  const { base, _getFab, _getVend } = _rankBase();
+  _rankPopSel('rProd', [...new Set(base.map(p=>p.produto).filter(Boolean))].sort(), 'Todos');
+  renderRankingLojas();
+}
+
+function limparRankFiltros() {
+  ['rFab','rVend','rUF','rProd'].forEach(id => { const s = document.getElementById(id); if (s) s.value = ''; });
+  initRankingLojas();
+}
+
+function initRankingLojas() {
+  const { base, _getFab, _getVend } = _rankBase();
+  _rankPopSel('rFab',  [...new Set(base.map(_getFab).filter(Boolean))].sort(), 'Todas');
+  _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos');
+  _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas');
+  _rankPopSel('rProd', [...new Set(base.map(p=>p.produto).filter(Boolean))].sort(), 'Todos');
+  renderRankingLojas();
+}
+
+function renderRankingLojas() {
+  const { base, fab, vend, uf, prod, _getFab, _getVend } = _rankBase();
+  const ativos = [fab, vend, uf, prod].filter(Boolean);
+
+  // Resumo no botão
+  const resumoEl = document.getElementById('rankFiltResumo');
+  if (resumoEl) resumoEl.textContent = ativos.length ? 'Filtros: ' + ativos.join(' · ') : 'Filtros';
+
+  // Cabeçalho da lista
+  const hdrEl = document.getElementById('rankListHeader');
+  if (hdrEl) {
+    if (prod) hdrEl.textContent = 'Ranking — ' + prod;
+    else if (fab)  hdrEl.textContent = 'Ranking — ' + fab;
+    else if (vend) hdrEl.textContent = 'Ranking — ' + vend;
+    else if (uf)   hdrEl.textContent = 'Ranking — UF ' + uf;
+    else hdrEl.textContent = 'Lojas com mais ocorrências de vencimento';
+  }
+
+  // Agrupar por loja e calcular score
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const porLoja = Object.values(
+    base.reduce((acc, p) => {
+      const loja = p.loja || '—';
+      if (!acc[loja]) acc[loja] = { loja, itens: [] };
+      acc[loja].itens.push(p);
+      return acc;
+    }, {})
+  ).map(g => {
+    const sc = g.itens.reduce((s, p) => {
+      const d = Math.round((new Date(p.validade+'T00:00:00') - hoje) / 86400000);
+      return s + (d < 0 ? 3 : d <= 5 ? 2 : 1);
+    }, 0);
+    return { ...g, sc };
+  }).sort((a, b) => b.sc - a.sc);
+
+  // Insight
+  const insEl = document.getElementById('rankInsight');
+  if (insEl) {
+    if (ativos.length && porLoja.length) {
+      const top = porLoja[0];
+      const ctx = prod ? `do produto <b>${prod}</b>`
+        : fab  ? `da fábrica <b>${fab}</b>`
+        : vend ? `na carteira de <b>${vend}</b>`
+        : `na UF <b>${uf}</b>`;
+      insEl.innerHTML = `<b>${top.loja}</b> concentra o maior número de ocorrências ${ctx}.`;
+      insEl.style.display = 'block';
+    } else insEl.style.display = 'none';
+  }
+
+  // Renderizar lista
+  const bodyEl = document.getElementById('rankListBody');
+  if (!bodyEl) return;
+  if (!porLoja.length) {
+    bodyEl.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Nenhuma ocorrência encontrada para os filtros selecionados.</div>';
+    return;
+  }
+  bodyEl.innerHTML = porLoja.map((r, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #f1f5f9${i===porLoja.length-1?';border-bottom:none':''}">
+      <div style="width:30px;text-align:right;font-size:13px;font-weight:600;color:#94a3b8;flex-shrink:0">${i+1}º</div>
+      <div style="font-size:13px;font-weight:600;color:#1e293b;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.loja}</div>
+    </div>`).join('');
 }
 
 // ── Gráficos de distribuição ─────────────────
