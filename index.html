@@ -1996,8 +1996,13 @@
 
         <!-- Lista de lojas -->
         <div id="rotListaLojas" style="display:none">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <span style="font-size:13px;font-weight:600;color:#1e3a5f">Lojas disponíveis</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-size:13px;font-weight:600;color:#1e3a5f">Lojas disponíveis</span>
+              <select id="rotSelRede" onchange="rotOnRedeChange()" style="border:1px solid #cbd5e1;border-radius:8px;padding:5px 10px;font-size:12px;color:#1e293b;background:white">
+                <option value="">Todas as Redes</option>
+              </select>
+            </div>
             <button onclick="salvarRoteirizacao()" style="display:inline-flex;align-items:center;gap:6px;background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 8px rgba(30,58,95,.35)">
               <i class="ti ti-device-floppy" style="font-size:14px"></i> Salvar
             </button>
@@ -8907,7 +8912,8 @@ function setView(v) {
 // ══════════════════════════════════════════════
 
 // Estado local da roteirização (alterações não salvas)
-let _rotState = {}; // { lojaId: { vinculada: bool, dias: ['Seg','Ter',...] } }
+let _rotState    = {}; // { lojaId: { vinculada: bool, dias: ['Seg','Ter',...] } }
+let _rotLojasTodas = []; // lista completa antes do filtro de rede
 
 function initRoteirizacao() {
   const isAdmin  = sessao?.role === 'admin';
@@ -8920,7 +8926,6 @@ function initRoteirizacao() {
   if (filtroVend) filtroVend.style.display = isAdmin ? '' : 'none';
 
   if (isAdmin) {
-    // Popular dropdown de vendedores
     const vendedores = usuarios.filter(u => u.role === 'vendedor').sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR'));
     const cv = selVend ? selVend.value : '';
     if (selVend) {
@@ -8931,7 +8936,6 @@ function initRoteirizacao() {
           return `<option value="${esc(v.nome)}" ${v.nome===cv?'selected':''}>${esc(label)}</option>`;
         }).join('');
     }
-    // Só popular promotores se já tiver vendedor selecionado
     if (selVend && selVend.value) {
       _rotPopularPromotores(selVend.value);
     } else {
@@ -8939,7 +8943,6 @@ function initRoteirizacao() {
       _rotMostrarListaLojas(null);
     }
   } else if (isVend) {
-    // Promotores da UF do vendedor
     _rotPopularPromotores(null);
     if (selProm && selProm.value) _rotCarregarLojas(selProm.value);
   }
@@ -8948,7 +8951,6 @@ function initRoteirizacao() {
 function _rotPopularPromotores(vendedorNome) {
   const selProm = document.getElementById('rotSelPromotor');
   if (!selProm) return;
-  // Obter lista de promotores a partir de `usuarios`
   let todosProms = usuarios.filter(u => u.role === 'promotor');
   // Complementar com nomes que aparecem em produtos mas não estão em usuarios
   const nomesExtras = [...new Set(produtos.map(p => p.promotor).filter(Boolean))];
@@ -8958,10 +8960,20 @@ function _rotPopularPromotores(vendedorNome) {
   if (vendedorNome) {
     const vend = usuarios.find(u => u.nome === vendedorNome && u.role === 'vendedor');
     const ufsVend = vend?.ufs || [];
-    proms = todosProms.filter(p => !p.uf || ufsVend.includes(p.uf));
+    // Filtrar por UF do promotor OU pela UF dos produtos que ele registrou
+    proms = todosProms.filter(p => {
+      if (p.uf && ufsVend.includes(p.uf)) return true;
+      // fallback: UFs dos produtos que esse promotor registrou
+      const ufsProds = [...new Set(produtos.filter(pr => pr.promotor === p.nome).map(pr => pr.uf).filter(Boolean))];
+      return ufsProds.some(u => ufsVend.includes(u));
+    });
   } else if (sessao?.role === 'vendedor') {
     const ufsVend = sessao.ufs || [];
-    proms = todosProms.filter(p => !p.uf || ufsVend.includes(p.uf));
+    proms = todosProms.filter(p => {
+      if (p.uf && ufsVend.includes(p.uf)) return true;
+      const ufsProds = [...new Set(produtos.filter(pr => pr.promotor === p.nome).map(pr => pr.uf).filter(Boolean))];
+      return ufsProds.some(u => ufsVend.includes(u));
+    });
   } else {
     proms = todosProms;
   }
@@ -8975,24 +8987,47 @@ function _rotPopularPromotores(vendedorNome) {
 function rotOnVendedorChange() {
   const selVend = document.getElementById('rotSelVendedor');
   _rotState = {};
+  _rotLojasTodas = [];
   _rotPopularPromotores(selVend.value || null);
 }
 
 function rotOnPromotorChange() {
   const selProm = document.getElementById('rotSelPromotor');
   _rotState = {};
+  _rotLojasTodas = [];
   _rotCarregarLojas(selProm.value || null);
+}
+
+function rotOnRedeChange() {
+  if (!_rotLojasTodas.length) return;
+  const rede = document.getElementById('rotSelRede')?.value || '';
+  const filtradas = rede ? _rotLojasTodas.filter(l => l.rede === rede) : _rotLojasTodas;
+  _rotRenderLojas(filtradas);
 }
 
 function _rotCarregarLojas(promotorNome) {
   if (!promotorNome) { _rotMostrarListaLojas(null); return; }
-  // Carregar lojas do Firebase (ou usar array em memória) e pré-marcar as vinculadas
-  // Determinar UF do promotor para filtrar lojas
+
+  // Determinar UFs do promotor — campo uf do cadastro OU UFs dos produtos dele
   const prom = usuarios.find(u => u.nome === promotorNome && u.role === 'promotor');
-  const ufProm = prom?.uf || null;
-  // Lojas: usar array `lojas` já em memória, filtrar pela UF do promotor se disponível
-  let lojasDisp = ufProm ? lojas.filter(l => l.uf === ufProm) : lojas;
+  let ufsPromotor = prom?.uf ? [prom.uf] : [];
+  if (!ufsPromotor.length) {
+    // fallback: UFs onde o promotor já registrou produtos
+    ufsPromotor = [...new Set(produtos.filter(p => p.promotor === promotorNome).map(p => p.uf).filter(Boolean))];
+  }
+  // Também incluir lojas já vinculadas a ele (podem ser de outras UFs)
+  const lojasVinculadas = lojas.filter(l => (l.promotorResponsavel || '') === promotorNome);
+  const idsVinculadas = new Set(lojasVinculadas.map(l => String(l.id)));
+
+  let lojasDisp;
+  if (ufsPromotor.length) {
+    // Lojas da UF do promotor + lojas já vinculadas (para não perder vínculos de outra UF)
+    lojasDisp = lojas.filter(l => ufsPromotor.includes(l.uf) || idsVinculadas.has(String(l.id)));
+  } else {
+    lojasDisp = [...lojas];
+  }
   lojasDisp = [...lojasDisp].sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
+
   // Montar estado inicial: vinculada se promotorResponsavel === promotorNome
   _rotState = {};
   lojasDisp.forEach(l => {
@@ -9000,6 +9035,8 @@ function _rotCarregarLojas(promotorNome) {
     const dias = vinculada ? (l.diasVisita || []) : [];
     _rotState[String(l.id)] = { vinculada, dias: [...dias] };
   });
+
+  _rotLojasTodas = lojasDisp;
   _rotMostrarListaLojas(lojasDisp);
 }
 
@@ -9007,20 +9044,33 @@ function _rotMostrarListaLojas(lojasDisp) {
   const listDiv     = document.getElementById('rotListaLojas');
   const emptyDiv    = document.getElementById('rotEmpty');
   const progressWrap= document.getElementById('rotProgressWrap');
+  const selRede     = document.getElementById('rotSelRede');
 
   if (!lojasDisp || !lojasDisp.length) {
     if (listDiv)      listDiv.style.display    = 'none';
     if (emptyDiv)     emptyDiv.style.display   = '';
     if (progressWrap) progressWrap.style.display = 'none';
+    if (selRede)      selRede.innerHTML = '<option value="">Todas as Redes</option>';
     return;
+  }
+
+  // Popular filtro de rede com as redes das lojas disponíveis
+  if (selRede) {
+    const redes = [...new Set(lojasDisp.map(l => l.rede).filter(Boolean))].sort();
+    const cv = selRede.value;
+    selRede.innerHTML = '<option value="">Todas as Redes</option>' +
+      redes.map(r => `<option value="${esc(r)}" ${r===cv?'selected':''}>${esc(r)}</option>`).join('');
   }
 
   if (emptyDiv)     emptyDiv.style.display   = 'none';
   if (listDiv)      listDiv.style.display    = '';
   if (progressWrap) progressWrap.style.display = '';
 
-  _rotRenderLojas(lojasDisp);
-  _rotAtualizarProgress(lojasDisp.length);
+  // Aplicar filtro de rede se já selecionado
+  const redeSel = selRede?.value || '';
+  const lojasVisiveis = redeSel ? lojasDisp.filter(l => l.rede === redeSel) : lojasDisp;
+  _rotRenderLojas(lojasVisiveis);
+  _rotAtualizarProgress();
 }
 
 const _DIAS_SEMANA = ['Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -9076,8 +9126,7 @@ function _rotToggleLoja(lojaId, chkEl) {
     }).join('');
   }
   // Atualizar barra de progresso
-  const total = Object.keys(_rotState).length;
-  _rotAtualizarProgress(total);
+  _rotAtualizarProgress();
 }
 
 function _rotToggleDia(lojaId, btn, dia) {
@@ -9098,7 +9147,9 @@ function _rotToggleDia(lojaId, btn, dia) {
   }
 }
 
-function _rotAtualizarProgress(total) {
+function _rotAtualizarProgress() {
+  // Barra mostra sempre sobre o total de lojas disponíveis para o promotor (sem filtro de rede)
+  const total    = _rotLojasTodas.length;
   const vinculadas = Object.values(_rotState).filter(s => s.vinculada).length;
   const pct = total > 0 ? Math.round(vinculadas / total * 100) : 0;
   const lbl = document.getElementById('rotProgressLabel');
