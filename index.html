@@ -1992,9 +1992,11 @@
               <option value="Alerta">Alerta</option>
               <option value="Urgente">Urgente</option>
             </select>
-            <select id="comunDestinatarios" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
-              <option value="todos">Todos os promotores</option>
-              <option value="regiao">Somente minha região</option>
+            <select id="comunDestinatarios" onchange="_comunOnDestinatariosChange()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+              <!-- Populado dinamicamente por initComunicados() -->
+            </select>
+            <select id="comunDestEspecifico" style="display:none" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+              <!-- Populado quando selecionado "específico" -->
             </select>
             <button onclick="publicarComunicado()" id="comunBtnPublicar"
               style="margin-left:auto;background:#1e3a5f;color:white;border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
@@ -2423,6 +2425,30 @@
 </div>
 
 <!-- Modal Primeiro Acesso -->
+<!-- ── Modal Comunicados (popup automático para promotor) ── -->
+<div id="modalComunicadosPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;display:none;align-items:center;justify-content:center;padding:16px">
+  <div style="background:white;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+    <div style="background:#1e293b;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <i class="ti ti-speakerphone" style="font-size:16px;color:#f1f5f9" aria-hidden="true"></i>
+        <span style="font-size:14px;font-weight:600;color:#f1f5f9">Comunicados</span>
+        <span id="popupComunBadge" style="font-size:11px;background:#ef4444;color:white;padding:2px 8px;border-radius:99px;font-weight:600"></span>
+      </div>
+      <button onclick="fecharPopupComunicados()" style="background:none;border:none;color:#94a3b8;font-size:18px;cursor:pointer;line-height:1;padding:0">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div id="popupComunLista" style="max-height:360px;overflow-y:auto"></div>
+    <div style="padding:12px 18px;border-top:0.5px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;background:#f8fafc">
+      <span style="font-size:11px;color:#94a3b8" id="popupComunFooterTxt">Marque todos como lidos para fechar</span>
+      <button onclick="fecharPopupComunicados()" style="font-size:12px;padding:6px 16px;border-radius:8px;border:0.5px solid #cbd5e1;background:white;color:#64748b;cursor:pointer">
+        Ver depois
+      </button>
+    </div>
+  </div>
+</div>
+<!-- ── Fim Modal Comunicados ── -->
+
 <div id="modalPrimeiroAcesso" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
     <div id="paStep1">
@@ -3949,6 +3975,8 @@ function entrarNoApp(user) {
   if (btnComun) btnComun.style.display = 'inline-flex';
   // Carregar badge de não lidos
   setTimeout(atualizarBadgeComunicados, 600);
+  // Popup de comunicados não lidos para promotores
+  if (user.role === 'promotor') setTimeout(abrirPopupComunicadosPromotor, 1200);
   // Resetar view ao entrar
   _viewAtual = 'produtos';
   setView('produtos');
@@ -8907,10 +8935,87 @@ function _comunPodePubilcar() {
   return ['admin','vendedor','diretor'].includes(sessao?.role);
 }
 
+// Filtro unificado de visibilidade de comunicados por perfil
+function _comunVisivel(c) {
+  const role = sessao?.role || '';
+  if (role === 'admin' || role === 'diretor') return true;
+
+  let dest = c.destinatarios || 'todos_promotores';
+  // backward compat com valores antigos
+  if (dest === 'todos')  dest = 'todos_promotores';
+  if (dest === 'regiao') dest = 'regiao_promotores';
+
+  if (role === 'promotor') {
+    if (dest === 'todos_promotores' || dest === 'todos_geral') return true;
+    if (dest === 'regiao_promotores') {
+      const autor = usuarios.find(u => normTxt(u.nome) === normTxt(c.autorNome||'') && u.role === 'vendedor');
+      if (!autor) return true;
+      return (autor.ufs || []).includes(sessao?.uf || '');
+    }
+    if (dest === 'especifico_promotor') {
+      return normTxt(c.destinatarioNome||'') === normTxt(sessao?.nome||'');
+    }
+    return false;
+  }
+
+  if (role === 'vendedor') {
+    if (dest === 'todos_vendedores' || dest === 'todos_geral') return true;
+    if (dest === 'especifico_vendedor') {
+      return normTxt(c.destinatarioNome||'') === normTxt(sessao?.nome||'');
+    }
+    return false;
+  }
+
+  return false;
+}
+
+function _comunOnDestinatariosChange() {
+  const destSel  = document.getElementById('comunDestinatarios');
+  const espSel   = document.getElementById('comunDestEspecifico');
+  if (!destSel || !espSel) return;
+  const dest = destSel.value;
+  if (dest === 'especifico_promotor' || dest === 'especifico_vendedor') {
+    const roleAlvo = dest === 'especifico_promotor' ? 'promotor' : 'vendedor';
+    let lista = usuarios.filter(u => u.role === roleAlvo);
+    // Vendedor só vê promotores da sua região
+    if (sessao?.role === 'vendedor' && roleAlvo === 'promotor') {
+      const minhasUFs = sessao?.ufs || [];
+      lista = lista.filter(u => minhasUFs.includes(u.uf || ''));
+    }
+    lista.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+    espSel.innerHTML = lista.map(u => `<option value="${esc(u.nome)}">${esc(u.nome)}</option>`).join('');
+    espSel.style.display = '';
+  } else {
+    espSel.style.display = 'none';
+  }
+}
+
 function initComunicados() {
-  // Mostrar/ocultar formulário de publicação
   const formWrap = document.getElementById('comunFormWrap');
   if (formWrap) formWrap.style.display = _comunPodePubilcar() ? '' : 'none';
+
+  // Popular select de destinatários conforme perfil
+  const destSel = document.getElementById('comunDestinatarios');
+  if (destSel) {
+    const role = sessao?.role;
+    let opts = [];
+    if (role === 'admin' || role === 'diretor') {
+      opts = [
+        { v:'todos_promotores',   l:'Todos os promotores' },
+        { v:'todos_vendedores',   l:'Todos os vendedores' },
+        { v:'todos_geral',        l:'Todos (promotores + vendedores)' },
+        { v:'especifico_promotor',l:'Um promotor específico' },
+        { v:'especifico_vendedor',l:'Um vendedor específico' },
+      ];
+    } else if (role === 'vendedor') {
+      opts = [
+        { v:'regiao_promotores',   l:'Todos os promotores da minha região' },
+        { v:'especifico_promotor', l:'Um promotor específico da minha região' },
+      ];
+    }
+    destSel.innerHTML = opts.map(o => `<option value="${o.v}">${o.l}</option>`).join('');
+  }
+
   loadComunicados();
 }
 
@@ -8921,12 +9026,30 @@ async function loadComunicados() {
     <i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:8px"></i>Carregando...</div>`;
 
   try {
-    const snap = await FS_COMUNICADOS.orderBy('criadoEm','desc').limit(50).get();
-    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const snap = await FS_COMUNICADOS.orderBy('criadoEm','desc').limit(80).get();
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(_comunVisivel);
     _renderComunicados(docs);
   } catch(e) {
     lista.innerHTML = `<div style="padding:24px;text-align:center;color:#ef4444;font-size:12px">Erro ao carregar: ${e.message}</div>`;
   }
+}
+
+function _comunDestLabel(c) {
+  const role = sessao?.role;
+  if (role !== 'admin' && role !== 'diretor' && role !== 'vendedor') return '';
+  const _labels = {
+    'todos_promotores':   '→ Todos os promotores',
+    'todos_vendedores':   '→ Todos os vendedores',
+    'todos_geral':        '→ Todos',
+    'regiao_promotores':  '→ Promotores da região',
+    'todos':              '→ Todos os promotores',
+    'regiao':             '→ Promotores da região',
+    'especifico_promotor':'→ ' + esc(c.destinatarioNome||''),
+    'especifico_vendedor':'→ ' + esc(c.destinatarioNome||''),
+  };
+  const txt = _labels[c.destinatarios] || '';
+  if (!txt) return '';
+  return `<span style="font-size:10px;color:#64748b;background:#f1f5f9;padding:2px 7px;border-radius:99px">${txt}</span>`;
 }
 
 function _renderComunicados(docs) {
@@ -8960,6 +9083,7 @@ function _renderComunicados(docs) {
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-size:11px;background:${catCor.bg};color:${catCor.cor};padding:2px 8px;border-radius:99px;font-weight:600">${esc(c.categoria||'Geral')}</span>
           <span style="font-size:10px;color:#94a3b8">${esc(c.autorNome||'')}${dtStr?' · '+dtStr:''}</span>
+          ${_comunDestLabel(c)}
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           ${!jaLeu ? `<span style="font-size:10px;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:99px;font-weight:600">● Novo</span>` : `<span style="font-size:10px;color:#94a3b8">✓ Lido</span>`}
@@ -8983,8 +9107,14 @@ async function publicarComunicado() {
   const titulo    = (document.getElementById('comunTitulo')?.value || '').trim();
   const mensagem  = (document.getElementById('comunMensagem')?.value || '').trim();
   const categoria = document.getElementById('comunCategoria')?.value || 'Geral';
-  const dest      = document.getElementById('comunDestinatarios')?.value || 'todos';
+  const dest      = document.getElementById('comunDestinatarios')?.value || 'todos_promotores';
+  const destNome  = (dest === 'especifico_promotor' || dest === 'especifico_vendedor')
+    ? (document.getElementById('comunDestEspecifico')?.value || '').trim()
+    : '';
   if (!titulo || !mensagem) { alert('Preencha o título e a mensagem.'); return; }
+  if ((dest === 'especifico_promotor' || dest === 'especifico_vendedor') && !destNome) {
+    alert('Selecione o destinatário específico.'); return;
+  }
 
   const btn = document.getElementById('comunBtnPublicar');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="font-size:13px"></i> Publicando…'; }
@@ -8993,6 +9123,7 @@ async function publicarComunicado() {
     await FS_COMUNICADOS.add({
       titulo, mensagem, categoria,
       destinatarios: dest,
+      destinatarioNome: destNome,
       autorNome: sessao?.nome || '',
       autorRole: sessao?.role || '',
       criadoEm: new Date().toISOString(),
@@ -9041,14 +9172,96 @@ async function atualizarBadgeComunicados() {
   if (!badge) return;
   const meuId = sessao?.id || sessao?.usuario || sessao?.nome || '';
   try {
-    const snap = await FS_COMUNICADOS.orderBy('criadoEm','desc').limit(50).get();
+    const snap = await FS_COMUNICADOS.orderBy('criadoEm','desc').limit(80).get();
     const naoLidos = snap.docs.filter(d => {
-      const lidos = d.data().lidos || [];
-      return !lidos.includes(meuId);
+      const c = { id: d.id, ...d.data() };
+      if (!_comunVisivel(c)) return false;
+      return !(c.lidos || []).includes(meuId);
     }).length;
     if (naoLidos > 0) { badge.textContent = naoLidos; badge.style.display = ''; }
     else badge.style.display = 'none';
   } catch(e) { badge.style.display = 'none'; }
+}
+
+async function abrirPopupComunicadosPromotor() {
+  const meuId = sessao?.id || sessao?.usuario || sessao?.nome || '';
+  let docs = [];
+  try {
+    const snap = await FS_COMUNICADOS.orderBy('criadoEm','desc').limit(50).get();
+    docs = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(c => _comunVisivel(c) && !(c.lidos || []).includes(meuId));
+  } catch(e) { return; }
+
+  if (!docs.length) return;
+
+  const lista  = document.getElementById('popupComunLista');
+  const badge  = document.getElementById('popupComunBadge');
+  const modal  = document.getElementById('modalComunicadosPopup');
+  if (!lista || !modal) return;
+
+  let naoLidos = docs.length;
+  const _atualizarBadgePopup = () => {
+    if (naoLidos > 0) badge.textContent = naoLidos + ' não lido' + (naoLidos>1?'s':'');
+    else { badge.textContent = 'Tudo lido ✓'; badge.style.background = '#16a34a'; }
+    const ftxt = document.getElementById('popupComunFooterTxt');
+    if (ftxt) ftxt.textContent = naoLidos > 0 ? 'Marque todos como lidos para fechar' : 'Todos os comunicados foram lidos!';
+  };
+
+  lista.innerHTML = docs.map(c => {
+    const catCor = _CATEG_CORES[c.categoria] || _CATEG_CORES['Geral'];
+    const dt = c.criadoEm ? new Date(c.criadoEm) : null;
+    const dtStr = dt ? dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div id="popupCard_${c.id}" style="border-bottom:0.5px solid #f1f5f9;padding:14px 18px;background:#f8faff">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <span style="font-size:11px;background:${catCor.bg};color:${catCor.cor};padding:2px 8px;border-radius:99px;font-weight:600">${esc(c.categoria||'Geral')}</span>
+        <span style="font-size:10px;color:#94a3b8">${esc(c.autorNome||'')}${dtStr?' · '+dtStr:''}</span>
+        <span id="popupBadge_${c.id}" style="font-size:10px;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:99px;font-weight:600">● Novo</span>
+      </div>
+      <p style="font-size:13px;font-weight:700;color:#1e293b;margin:0 0 4px">${esc(c.titulo||'')}</p>
+      <p style="font-size:12px;color:#475569;margin:0 0 10px;line-height:1.6">${esc(c.mensagem||'').replace(/\n/g,'<br>')}</p>
+      <button id="popupBtn_${c.id}" onclick="marcarLidoPopup('${c.id}')"
+        style="font-size:11px;padding:5px 14px;border-radius:99px;border:0.5px solid #93c5fd;background:white;color:#1e40af;cursor:pointer;font-weight:500">
+        ✓ Marcar como lido
+      </button>
+    </div>`;
+  }).join('');
+
+  badge.textContent = naoLidos + ' não lido' + (naoLidos>1?'s':'');
+  modal.style.display = 'flex';
+
+  // expor função de atualizar badge para marcarLidoPopup
+  window._popupComunNaoLidos   = naoLidos;
+  window._popupComunAtualizarFn = () => { naoLidos = window._popupComunNaoLidos; _atualizarBadgePopup(); };
+}
+
+async function marcarLidoPopup(docId) {
+  const meuId = sessao?.id || sessao?.usuario || sessao?.nome || '';
+  const btn   = document.getElementById('popupBtn_' + docId);
+  const card  = document.getElementById('popupCard_' + docId);
+  const badgeEl = document.getElementById('popupBadge_' + docId);
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+  try {
+    await FS_COMUNICADOS.doc(docId).update({
+      lidos: firebase.firestore.FieldValue.arrayUnion(meuId)
+    });
+    if (card)    { card.style.background = 'white'; }
+    if (badgeEl) { badgeEl.textContent = '✓ Lido'; badgeEl.style.background = '#f1f5f9'; badgeEl.style.color = '#94a3b8'; }
+    if (btn)     { btn.textContent = '✓ Lido'; btn.style.opacity = '0.5'; btn.style.cursor = 'default'; }
+    window._popupComunNaoLidos = Math.max(0, (window._popupComunNaoLidos||1) - 1);
+    if (window._popupComunAtualizarFn) window._popupComunAtualizarFn();
+    atualizarBadgeComunicados();
+    // Atualizar também a lista principal se estiver aberta
+    if (document.getElementById('viewComunicados')?.style.display !== 'none') loadComunicados();
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Marcar como lido'; }
+    alert('Erro: ' + e.message);
+  }
+}
+
+function fecharPopupComunicados() {
+  const modal = document.getElementById('modalComunicadosPopup');
+  if (modal) modal.style.display = 'none';
 }
 
 // ══════════════════════════════════════════════
