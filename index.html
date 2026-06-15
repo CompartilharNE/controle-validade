@@ -1311,6 +1311,9 @@
     <!-- View: SellOut (Admin only) -->
     <div id="viewSellOut" style="display:none;margin-bottom:24px">
 
+      <!-- Painel exclusivo Admin (produto + Gerar Excel) -->
+      <div id="soAdminOnly">
+
       <!-- Filtros SellOut -->
       <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
         <div class="flex items-center justify-between cursor-pointer" onclick="toggleFiltrosSellOut()">
@@ -1385,6 +1388,53 @@
         </button>
       </div>
 
+      </div><!-- /soAdminOnly -->
+
+      <!-- Filtro Vendedor / Diretor (retraído) -->
+      <div id="soFiltroVD" style="display:none;margin-bottom:12px">
+        <div class="bg-white rounded-2xl shadow" style="border:1px solid #bfdbfe;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer" onclick="toggleSoFiltroVD()">
+            <div style="display:flex;align-items:center;gap:8px">
+              <i class="ti ti-list-search" style="font-size:17px;color:#1d4ed8" aria-hidden="true"></i>
+              <span style="font-size:14px;font-weight:600;color:#1d4ed8">Filtros</span>
+              <i id="soVDChevron" class="ti ti-chevron-down" style="font-size:13px;color:#64748b;transition:transform .2s" aria-hidden="true"></i>
+              <span id="soVDResumo" style="font-size:11px;color:#64748b"></span>
+            </div>
+            <button onclick="event.stopPropagation();limparSoFiltroVD()" style="background:none;border:0.5px solid #cbd5e1;border-radius:6px;padding:3px 10px;font-size:11px;color:#64748b;cursor:pointer">Limpar</button>
+          </div>
+          <div id="soVDFiltroBody" style="display:none;padding:14px;border-top:0.5px solid #bfdbfe">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+              <div>
+                <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Data inicial</label>
+                <input type="date" id="soVDDtI" onchange="_soVDUpdateResumo();renderAcompSellOutVD()" style="border:0.5px solid #cbd5e1;border-radius:6px;padding:6px 10px;font-size:12px;width:100%;background:#fff;color:#1e293b">
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Data final</label>
+                <input type="date" id="soVDDtF" onchange="_soVDUpdateResumo();renderAcompSellOutVD()" style="border:0.5px solid #cbd5e1;border-radius:6px;padding:6px 10px;font-size:12px;width:100%;background:#fff;color:#1e293b">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+              <div>
+                <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Fábrica</label>
+                <select id="soVDFab" onchange="_soVDUpdateResumo();renderAcompSellOutVD()" style="border:0.5px solid #cbd5e1;border-radius:6px;padding:6px 10px;font-size:12px;width:100%;background:#fff;color:#1e293b">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Rede</label>
+                <select id="soVDRede" onchange="_soVDUpdateResumo();renderAcompSellOutVD()" style="border:0.5px solid #cbd5e1;border-radius:6px;padding:6px 10px;font-size:12px;width:100%;background:#fff;color:#1e293b">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:6px">UF</label>
+              <div id="soVDUFChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /soFiltroVD -->
+
       <!-- ── Acompanhamento de SellOut ── -->
       <div id="acompSellOutCard" class="bg-white rounded-2xl shadow overflow-hidden mt-4" style="border:1px solid #e2e8f0">
 
@@ -1397,6 +1447,8 @@
           </div>
         </div>
 
+        <!-- Filtros exclusivos Admin (período + avançados) -->
+        <div id="acompAdminFilters">
         <!-- Filtro de período (sempre visível) -->
         <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #e2e8f0;background:#f8fafc;flex-wrap:wrap">
           <span style="font-size:12px;font-weight:500;color:#64748b">Período:</span>
@@ -1459,6 +1511,8 @@
           </div>
         </div>
 
+        </div><!-- /acompAdminFilters -->
+
         <!-- Tabela -->
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -1470,7 +1524,7 @@
                 <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:left;white-space:nowrap">Produtos</th>
                 <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:left;white-space:nowrap">Enviada em</th>
                 <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:left;white-space:nowrap">Aprovação</th>
-                <th style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:center;white-space:nowrap">Ação</th>
+                <th id="acompAcaoTh" style="color:#fff;font-weight:600;font-size:11px;padding:8px 10px;text-align:center;white-space:nowrap">Ação</th>
               </tr>
             </thead>
             <tbody id="acompTbody"></tbody>
@@ -1729,7 +1783,24 @@
             <i id="concCardChevron" class="ti ti-chevron-down" style="font-size:15px;color:#64748b;transition:transform .2s" aria-hidden="true"></i>
           </div>
         </div>
-        <div id="filtrosConcBody" class="flex flex-wrap items-end gap-3 mt-3 pt-3" style="border-top:0.5px solid #bfdbfe;display:none">
+        <div id="filtrosConcBody" class="flex flex-col gap-3 mt-3 pt-3" style="border-top:0.5px solid #bfdbfe;display:none">
+          <!-- Período -->
+          <div class="flex flex-wrap items-end gap-2">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-slate-500">Data inicial</label>
+              <input type="date" id="cDtI" onchange="renderConcChart()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" />
+            </div>
+            <span style="font-size:12px;color:#94a3b8;padding-bottom:10px">até</span>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-slate-500">Data final</label>
+              <input type="date" id="cDtF" onchange="renderConcChart()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" />
+            </div>
+            <button type="button" onclick="limparPeriodoConc()" style="height:38px;padding:0 12px;font-size:12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;color:#64748b;cursor:pointer;display:flex;align-items:center;gap:4px;align-self:flex-end">
+              <i class="ti ti-x" style="font-size:12px" aria-hidden="true"></i> Limpar período
+            </button>
+          </div>
+          <!-- Cascata -->
+          <div class="flex flex-wrap items-end gap-3">
           <div class="flex flex-col gap-1">
             <label class="text-xs text-slate-500">Fábrica</label>
             <select id="cFabrica" onchange="renderConcChart()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select>
@@ -1759,6 +1830,7 @@
             <label class="text-xs text-slate-500">Produto</label>
             <select id="cProduto" onchange="renderConcChart()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select>
           </div>
+          </div><!-- fim cascata -->
         </div>
       </div>
 
@@ -1883,6 +1955,24 @@
     </div>
   </div>
 
+  <!-- ── Filtro Ranking (admin/vendedor/diretor) ── -->
+  <div id="rankFiltroWrap" style="display:none;margin-bottom:12px">
+    <div id="rankFiltroBar" onclick="toggleRankFiltroPromotor()" style="background:#e8edf2;padding:9px 14px;border-radius:10px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+      <i class="ti ti-adjustments-horizontal" style="font-size:15px;color:#1e3a5f" aria-hidden="true"></i>
+      <span style="font-size:12px;font-weight:600;color:#1e3a5f">Filtros</span>
+      <span id="rankFiltroResumo" style="font-size:12px;color:#64748b;margin-left:2px"></span>
+      <i class="ti ti-chevron-down" id="rankFiltroChev" style="font-size:13px;color:#94a3b8;margin-left:auto;transition:transform .2s" aria-hidden="true"></i>
+    </div>
+    <div id="rankFiltroBody" style="display:none;background:#e8edf2;padding:0 14px 12px;border-radius:0 0 10px 10px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:8px">
+        <select id="rFiltFab" onchange="onRankFiltroChange()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;flex:1;min-width:100px;max-width:180px"></select>
+        <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+        <select id="rFiltUF" onchange="onRankFiltroChange()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;width:90px;flex-shrink:0"></select>
+        <button onclick="limparRankFiltroProm()" style="font-size:11px;padding:3px 10px;border:0.5px solid #b0bac8;border-radius:7px;background:transparent;color:#64748b;cursor:pointer;height:28px;margin-left:auto">Limpar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── KPIs (admin/diretor) ── -->
   <div id="rankKpis" style="display:none;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
     <div class="bg-white rounded-xl shadow p-3" style="text-align:center">
@@ -1965,6 +2055,32 @@
       <span style="font-size:10px;font-weight:700;background:rgba(255,255,255,.15);color:#93c5fd;padding:2px 8px;border-radius:10px;margin-left:auto" id="rankListaCount"></span>
     </div>
     <div id="rankListaBody" style="min-height:60px"></div>
+  </div>
+
+  <!-- ── Painel Detalhe Promotor ── -->
+  <div id="rankDetalhe" style="display:none;margin-bottom:12px;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(30,58,95,.12)">
+    <div style="background:#1e3a5f;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="rdAvatar" style="width:32px;height:32px;border-radius:50%;background:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0"></div>
+        <div>
+          <div id="rdNome" style="font-size:13px;font-weight:600;color:#fff"></div>
+          <div id="rdSub" style="font-size:11px;color:rgba(255,255,255,.55)"></div>
+        </div>
+      </div>
+      <button onclick="fecharRankDetalhe()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:6px;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <i class="ti ti-x" style="font-size:13px" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div style="background:#fff;border:0.5px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;overflow:hidden">
+      <div id="rdScoreWrap" style="padding:14px;display:flex;align-items:center;gap:14px;border-bottom:0.5px solid #f1f5f9"></div>
+      <div id="rdMetricas" style="padding:14px;border-bottom:0.5px solid #f1f5f9"></div>
+      <div id="rdLojas" style="padding:14px;border-bottom:0.5px solid #f1f5f9"></div>
+      <div style="padding:12px 14px;display:flex;justify-content:flex-end">
+        <button onclick="fecharRankDetalhe()" style="font-size:12px;font-weight:600;padding:6px 14px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:5px">
+          <i class="ti ti-arrow-left" style="font-size:13px" aria-hidden="true"></i> Voltar ao ranking
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- ── Conquistas (somente promotor) ── -->
@@ -2305,27 +2421,72 @@
       </span>
       <button onclick="fecharModalConcorrencia()" style="background:none;border:none;font-size:20px;color:#94a3b8;cursor:pointer;line-height:1">×</button>
     </div>
-    <p style="font-size:12px;color:#64748b;margin:0 0 16px">Informe o nome e preço dos concorrentes nesta loja (até 3)</p>
+    <p style="font-size:12px;color:#64748b;margin:0 0 12px">Informe o nome e preço dos concorrentes nesta loja (até 3)</p>
 
-    <div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:12px">
-      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 1</label>
-        <input id="conc1_nome" type="text" placeholder="Escrever" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
-      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Preço R$</label>
-        <input id="conc1_preco" type="text" inputmode="numeric" placeholder="0,00" maxlength="12" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="_mascaraPreco(this); atualizarBtnConcorrencia()" /></div>
+    <!-- Toggle: sem concorrente -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+      <div id="concToggleTrack" onclick="_concToggleSem()" style="width:38px;height:22px;background:#e2e8f0;border-radius:11px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s">
+        <div id="concToggleKnob" style="position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
+      </div>
+      <div>
+        <p style="font-size:13px;font-weight:600;color:#1e293b;margin:0">Este produto não tem concorrente</p>
+        <p style="font-size:11px;color:#64748b;margin:0">Marque quando não houver produto similar</p>
+      </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:12px">
-      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 2</label>
-        <input id="conc2_nome" type="text" placeholder="Escrever" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
-      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Preço R$</label>
-        <input id="conc2_preco" type="text" inputmode="numeric" placeholder="0,00" maxlength="12" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="_mascaraPreco(this); atualizarBtnConcorrencia()" /></div>
+    <!-- Campos de concorrentes -->
+    <div id="concCampos">
+      <!-- Concorrente 1 -->
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 1</label>
+        <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:start">
+          <div style="position:relative">
+            <input id="conc1_nome" type="text" placeholder="Digite para buscar..." autocomplete="off"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full"
+              oninput="_concFiltrarDrop(this,'concDrop1'); _concAtualizarBtn()" />
+            <div id="concDrop1" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:4px;z-index:10050;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+          </div>
+          <input id="conc1_preco" type="text" inputmode="numeric" placeholder="0,00" maxlength="12"
+            class="border border-slate-300 rounded-lg px-3 py-2 text-sm"
+            oninput="_mascaraPreco(this); _concAtualizarBtn()" />
+        </div>
+      </div>
+      <!-- Concorrente 2 -->
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 2 <span style="font-weight:400;opacity:.6">(opcional)</span></label>
+        <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:start">
+          <div style="position:relative">
+            <input id="conc2_nome" type="text" placeholder="Digite para buscar..." autocomplete="off"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full"
+              oninput="_concFiltrarDrop(this,'concDrop2'); _concAtualizarBtn()" />
+            <div id="concDrop2" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:4px;z-index:10050;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+          </div>
+          <input id="conc2_preco" type="text" inputmode="numeric" placeholder="0,00" maxlength="12"
+            class="border border-slate-300 rounded-lg px-3 py-2 text-sm"
+            oninput="_mascaraPreco(this); _concAtualizarBtn()" />
+        </div>
+      </div>
+      <!-- Concorrente 3 -->
+      <div style="margin-bottom:18px">
+        <label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 3 <span style="font-weight:400;opacity:.6">(opcional)</span></label>
+        <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:start">
+          <div style="position:relative">
+            <input id="conc3_nome" type="text" placeholder="Digite para buscar..." autocomplete="off"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full"
+              oninput="_concFiltrarDrop(this,'concDrop3'); _concAtualizarBtn()" />
+            <div id="concDrop3" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:4px;z-index:10050;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+          </div>
+          <input id="conc3_preco" type="text" inputmode="numeric" placeholder="0,00" maxlength="12"
+            class="border border-slate-300 rounded-lg px-3 py-2 text-sm"
+            oninput="_mascaraPreco(this); _concAtualizarBtn()" />
+        </div>
+      </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:20px">
-      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Concorrente 3</label>
-        <input id="conc3_nome" type="text" placeholder="Escrever" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="atualizarBtnConcorrencia()" /></div>
-      <div><label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:3px">Preço R$</label>
-        <input id="conc3_preco" type="text" inputmode="numeric" placeholder="0,00" maxlength="12" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full" oninput="_mascaraPreco(this); atualizarBtnConcorrencia()" /></div>
+    <!-- Mensagem sem concorrente -->
+    <div id="concSemMsg" style="display:none;text-align:center;padding:16px 0 22px;color:#94a3b8">
+      <i class="ti ti-circle-off" style="font-size:26px;display:block;margin-bottom:6px" aria-hidden="true"></i>
+      <p style="font-size:13px;margin:0">Sem concorrente registrado para este produto</p>
     </div>
 
     <div class="flex gap-2">
@@ -3221,6 +3382,7 @@ const FS_CFG_FABRICAS    = db.collection('config').doc('fabricas');
 const FS_CFG_CONSOLIDADO = db.collection('config').doc('consolidado');
 const FS_CFG_REDES       = db.collection('config').doc('redes');
 const FS_SELLOUT_HIST    = db.collection('sellout_historico');
+const FS_CONCORRENTES_DB = db.collection('concorrentes_db');
 
 // ── Logos das fábricas na tela de login ─────
 (function _carregarLogosLogin() {
@@ -3507,7 +3669,7 @@ function entrarNoApp(user) {
   const btnHist2 = document.getElementById('btnViewHistorico');
   if (btnHist2) btnHist2.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
   const btnSO2 = document.getElementById('btnViewSellOut');
-  if (btnSO2) btnSO2.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
+  if (btnSO2) btnSO2.style.display = (['admin','vendedor','diretor'].includes(user.role)) ? 'inline-flex' : 'none';
   // Resetar view ao entrar
   _viewAtual = 'produtos';
   setView('produtos');
@@ -5793,27 +5955,162 @@ function _confirmarLancamentoNAO() {
 let _concorrencia     = null; // usado no formulário de novo produto
 let _concorrenciaEdit = null; // usado no modal de edição
 let _concorrenciaCtx  = 'novo'; // 'novo' | 'edit'
+let _concSemFlag      = false; // toggle "sem concorrente"
+let _concDbNomes      = [];    // sugestões carregadas do Firebase
+let _concEditProdutoNome = ''; // nome do produto em edição (para sugestões)
+
+// Normaliza nome de produto para usar como doc ID no Firebase
+function _concNormId(nome) {
+  return (nome || '').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,100);
+}
+
+// Carrega nomes de concorrentes do Firebase para o produto
+function _concCarregarSugestoes(nomeProduto) {
+  _concDbNomes = [];
+  if (!nomeProduto) return;
+  const docId = _concNormId(nomeProduto);
+  FS_CONCORRENTES_DB.doc(docId).get().then(snap => {
+    if (snap.exists && Array.isArray(snap.data().nomes)) {
+      _concDbNomes = snap.data().nomes;
+    }
+  }).catch(() => {});
+}
+
+// Salva novos nomes de concorrentes no Firebase (arrayUnion)
+function _concSalvarNovosNomes(nomeProduto, nomesNovos) {
+  if (!nomeProduto || !nomesNovos.length) return;
+  const filtrados = nomesNovos.filter(n => n && !_concDbNomes.includes(n));
+  if (!filtrados.length) return;
+  const docId = _concNormId(nomeProduto);
+  FS_CONCORRENTES_DB.doc(docId).set(
+    { produto: nomeProduto, nomes: firebase.firestore.FieldValue.arrayUnion(...filtrados) },
+    { merge: true }
+  ).catch(() => {});
+}
+
+// Filtra dropdown de sugestões ao digitar
+function _concFiltrarDrop(inp, dropId) {
+  const drop = document.getElementById(dropId);
+  if (!drop) return;
+  const val = inp.value.trim().toLowerCase();
+  if (!val || !_concDbNomes.length) { drop.style.display = 'none'; return; }
+  const matches = _concDbNomes.filter(s => s.toLowerCase().includes(val));
+  if (!matches.length) { drop.style.display = 'none'; return; }
+  drop.innerHTML = matches.map(s =>
+    `<div onclick="_concEscolher('${s.replace(/'/g,"\\'")}','${inp.id}','${dropId}')"
+      style="padding:7px 10px;font-size:13px;cursor:pointer;border-radius:6px;color:#1e293b"
+      onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=''">${esc(s)}</div>`
+  ).join('');
+  drop.style.display = 'block';
+}
+
+function _concEscolher(nome, inpId, dropId) {
+  const inp = document.getElementById(inpId);
+  if (inp) inp.value = nome;
+  const drop = document.getElementById(dropId);
+  if (drop) drop.style.display = 'none';
+  _concAtualizarBtn();
+}
+
+// Fecha todos os dropdowns ao clicar fora
+document.addEventListener('click', function(e) {
+  ['concDrop1','concDrop2','concDrop3'].forEach(id => {
+    const d = document.getElementById(id);
+    if (d && !d.contains(e.target) && e.target.id !== id.replace('Drop','_nome').replace('conc','conc')) {
+      d.style.display = 'none';
+    }
+  });
+});
+
+// Toggle "sem concorrente"
+function _concToggleSem() {
+  _concSemFlag = !_concSemFlag;
+  const track  = document.getElementById('concToggleTrack');
+  const knob   = document.getElementById('concToggleKnob');
+  const campos = document.getElementById('concCampos');
+  const msg    = document.getElementById('concSemMsg');
+  if (_concSemFlag) {
+    if (track) { track.style.background = '#ea580c'; }
+    if (knob)  { knob.style.left = '19px'; }
+    if (campos){ campos.style.opacity = '0.3'; campos.style.pointerEvents = 'none'; }
+    if (msg)   { msg.style.display = 'block'; }
+  } else {
+    if (track) { track.style.background = '#e2e8f0'; }
+    if (knob)  { knob.style.left = '3px'; }
+    if (campos){ campos.style.opacity = '1'; campos.style.pointerEvents = ''; }
+    if (msg)   { msg.style.display = 'none'; }
+  }
+}
+
+// Sincroniza estado visual do toggle
+function _concSincToggle(semFlag) {
+  _concSemFlag = !!semFlag;
+  const track  = document.getElementById('concToggleTrack');
+  const knob   = document.getElementById('concToggleKnob');
+  const campos = document.getElementById('concCampos');
+  const msg    = document.getElementById('concSemMsg');
+  if (_concSemFlag) {
+    if (track) track.style.background = '#ea580c';
+    if (knob)  knob.style.left = '19px';
+    if (campos){ campos.style.opacity = '0.3'; campos.style.pointerEvents = 'none'; }
+    if (msg)   msg.style.display = 'block';
+  } else {
+    if (track) track.style.background = '#e2e8f0';
+    if (knob)  knob.style.left = '3px';
+    if (campos){ campos.style.opacity = '1'; campos.style.pointerEvents = ''; }
+    if (msg)   msg.style.display = 'none';
+  }
+}
+
+// Atualiza btn inline (usado em oninput dos campos no modal)
+function _concAtualizarBtn() {
+  if (_concorrenciaCtx === 'edit') {
+    // no edit context, noop — atualiza só ao salvar
+  } else {
+    // noop live para novo; atualiza ao salvar
+  }
+}
 
 function abrirModalConcorrenciaEdit() {
   _concorrenciaCtx = 'edit';
-  // Pré-preencher com dados do produto em edição
+  const semFlag = _concorrenciaEdit?.semConcorrente || false;
+  _concSincToggle(semFlag);
   ['1','2','3'].forEach(n => {
-    document.getElementById('conc'+n+'_nome').value  = _concorrenciaEdit?.['c'+n]?.nome  || '';
-    document.getElementById('conc'+n+'_preco').value = _concorrenciaEdit?.['c'+n]?.preco || '';
+    document.getElementById('conc'+n+'_nome').value  = (!semFlag && _concorrenciaEdit?.['c'+n]?.nome)  ? _concorrenciaEdit['c'+n].nome  : '';
+    document.getElementById('conc'+n+'_preco').value = (!semFlag && _concorrenciaEdit?.['c'+n]?.preco) ? _concorrenciaEdit['c'+n].preco : '';
+    const drop = document.getElementById('concDrop'+n);
+    if (drop) drop.style.display = 'none';
   });
+  _concCarregarSugestoes(_concEditProdutoNome);
   document.getElementById('modalConcorrencia').classList.remove('hidden');
 }
 function _atualizarBtnEditConcorrencia() {
-  const btn     = document.getElementById('btnEditConcorrencia');
-  const resumo  = document.getElementById('editConcResumo');
-  const temDados = _concorrenciaEdit && Object.keys(_concorrenciaEdit).length > 0;
+  const btn    = document.getElementById('btnEditConcorrencia');
+  const resumo = document.getElementById('editConcResumo');
+  const semFlag = _concorrenciaEdit?.semConcorrente;
+  const temDados = _concorrenciaEdit && (semFlag || Object.keys(_concorrenciaEdit).some(k => _concorrenciaEdit[k]?.nome));
   if (btn) {
-    btn.style.background  = temDados ? '#ea580c' : '#fff7ed';
-    btn.style.color       = temDados ? '#ffffff' : '#c2410c';
-    btn.style.borderColor = temDados ? '#c2410c' : '#fed7aa';
+    if (semFlag) {
+      btn.style.background  = '#64748b';
+      btn.style.color       = '#ffffff';
+      btn.style.borderColor = '#475569';
+    } else if (temDados) {
+      btn.style.background  = '#ea580c';
+      btn.style.color       = '#ffffff';
+      btn.style.borderColor = '#c2410c';
+    } else {
+      btn.style.background  = '#fff7ed';
+      btn.style.color       = '#c2410c';
+      btn.style.borderColor = '#fed7aa';
+    }
   }
   if (resumo) {
-    if (temDados) {
+    if (semFlag) {
+      resumo.style.display = 'flex';
+      resumo.innerHTML = '<div style="color:#64748b;font-size:12px"><i class="ti ti-circle-off" style="font-size:12px;vertical-align:-1px" aria-hidden="true"></i> Sem concorrente</div>';
+    } else if (temDados) {
       resumo.style.display = 'flex';
       resumo.innerHTML = ['c1','c2','c3']
         .filter(k => _concorrenciaEdit[k]?.nome)
@@ -5829,25 +6126,41 @@ function _atualizarBtnEditConcorrencia() {
 
 function abrirModalConcorrencia() {
   _concorrenciaCtx = 'novo';
-  // Pré-preencher se já havia dados
+  const semFlag = _concorrencia?.semConcorrente || false;
+  _concSincToggle(semFlag);
   ['1','2','3'].forEach(n => {
-    document.getElementById('conc'+n+'_nome').value  = _concorrencia?.['c'+n]?.nome  || '';
-    document.getElementById('conc'+n+'_preco').value = _concorrencia?.['c'+n]?.preco || '';
+    document.getElementById('conc'+n+'_nome').value  = (!semFlag && _concorrencia?.['c'+n]?.nome)  ? _concorrencia['c'+n].nome  : '';
+    document.getElementById('conc'+n+'_preco').value = (!semFlag && _concorrencia?.['c'+n]?.preco) ? _concorrencia['c'+n].preco : '';
+    const drop = document.getElementById('concDrop'+n);
+    if (drop) drop.style.display = 'none';
   });
+  _concCarregarSugestoes(document.getElementById('f_produto')?.value || '');
   document.getElementById('modalConcorrencia').classList.remove('hidden');
 }
 function fecharModalConcorrencia() {
+  ['concDrop1','concDrop2','concDrop3'].forEach(id => {
+    const d = document.getElementById(id);
+    if (d) d.style.display = 'none';
+  });
   document.getElementById('modalConcorrencia').classList.add('hidden');
 }
 function salvarConcorrencia() {
-  const dados = {
-    c1: { nome: document.getElementById('conc1_nome').value.trim(), preco: document.getElementById('conc1_preco').value },
-    c2: { nome: document.getElementById('conc2_nome').value.trim(), preco: document.getElementById('conc2_preco').value },
-    c3: { nome: document.getElementById('conc3_nome').value.trim(), preco: document.getElementById('conc3_preco').value },
-  };
-  // Remove entradas vazias
-  ['c1','c2','c3'].forEach(k => { if (!dados[k].nome && !dados[k].preco) delete dados[k]; });
-  const resultado = Object.keys(dados).length ? dados : null;
+  let resultado;
+  if (_concSemFlag) {
+    resultado = { semConcorrente: true };
+  } else {
+    const dados = {
+      c1: { nome: document.getElementById('conc1_nome').value.trim(), preco: document.getElementById('conc1_preco').value },
+      c2: { nome: document.getElementById('conc2_nome').value.trim(), preco: document.getElementById('conc2_preco').value },
+      c3: { nome: document.getElementById('conc3_nome').value.trim(), preco: document.getElementById('conc3_preco').value },
+    };
+    ['c1','c2','c3'].forEach(k => { if (!dados[k].nome && !dados[k].preco) delete dados[k]; });
+    resultado = Object.keys(dados).length ? dados : null;
+    // Salvar nomes novos no Firebase
+    const nomeProd = _concorrenciaCtx === 'edit' ? _concEditProdutoNome : (document.getElementById('f_produto')?.value || '');
+    const novosNomes = ['c1','c2','c3'].map(k => dados[k]?.nome).filter(Boolean);
+    if (nomeProd && novosNomes.length) _concSalvarNovosNomes(nomeProd, novosNomes);
+  }
   if (_concorrenciaCtx === 'edit') {
     _concorrenciaEdit = resultado;
     _atualizarBtnEditConcorrencia();
@@ -5861,19 +6174,25 @@ function salvarConcorrencia() {
 function atualizarBtnConcorrencia() {
   const btn = document.getElementById('btnConcorrencia');
   if (!btn) return;
-  const temDados = _concorrencia && Object.keys(_concorrencia).length > 0;
-  if (temDados) {
-    btn.style.background = '#ea580c';
-    btn.style.color      = '#ffffff';
+  const semFlag  = _concorrencia?.semConcorrente;
+  const temDados = _concorrencia && (semFlag || Object.keys(_concorrencia).some(k => _concorrencia[k]?.nome));
+  if (semFlag) {
+    btn.style.background  = '#64748b';
+    btn.style.color       = '#ffffff';
+    btn.style.borderColor = '#475569';
+  } else if (temDados) {
+    btn.style.background  = '#ea580c';
+    btn.style.color       = '#ffffff';
     btn.style.borderColor = '#c2410c';
   } else {
-    btn.style.background = '#fff7ed';
-    btn.style.color      = '#c2410c';
+    btn.style.background  = '#fff7ed';
+    btn.style.color       = '#c2410c';
     btn.style.borderColor = '#fed7aa';
   }
 }
 function limparConcorrencia() {
   _concorrencia = null;
+  _concSemFlag  = false;
   ['1','2','3'].forEach(n => {
     document.getElementById('conc'+n+'_nome').value  = '';
     document.getElementById('conc'+n+'_preco').value = '';
@@ -6640,12 +6959,12 @@ function _construirSheetXLSX(wb, lista, nomeAba, logoBase64) {
       {v:Number(p.quantidade)||0, nf:'0',         al:cAlign},        // I QTDE
       {v:p.preco||0, nf:'"R$" #,##0.00',         al:rAlign},        // J PREÇO
       {v:p.promotor,                              al:{}},            // K PROMOTOR
-      {v:(p.concorrencia?.c1?.nome)||'',          al:{}},            // L CONCORRENTE 1
-      {v:p.concorrencia?.c1?.preco ? _parsePrecoBR(p.concorrencia.c1.preco) : '', nf:p.concorrencia?.c1?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // M PREÇO CONC. 1
-      {v:(p.concorrencia?.c2?.nome)||'',          al:{}},            // N CONCORRENTE 2
-      {v:p.concorrencia?.c2?.preco ? _parsePrecoBR(p.concorrencia.c2.preco) : '', nf:p.concorrencia?.c2?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // O PREÇO CONC. 2
-      {v:(p.concorrencia?.c3?.nome)||'',          al:{}},            // P CONCORRENTE 3
-      {v:p.concorrencia?.c3?.preco ? _parsePrecoBR(p.concorrencia.c3.preco) : '', nf:p.concorrencia?.c3?.preco?'"R$" #,##0.00':undefined, al:rAlign}, // Q PREÇO CONC. 3
+      {v:p.concorrencia?.semConcorrente ? 'Sem concorrente' : (p.concorrencia?.c1?.nome||''), al:{}}, // L CONCORRENTE 1
+      {v:(!p.concorrencia?.semConcorrente && p.concorrencia?.c1?.preco) ? _parsePrecoBR(p.concorrencia.c1.preco) : '', nf:(!p.concorrencia?.semConcorrente && p.concorrencia?.c1?.preco)?'"R$" #,##0.00':undefined, al:rAlign}, // M PREÇO CONC. 1
+      {v:p.concorrencia?.semConcorrente ? '' : (p.concorrencia?.c2?.nome||''), al:{}},            // N CONCORRENTE 2
+      {v:(!p.concorrencia?.semConcorrente && p.concorrencia?.c2?.preco) ? _parsePrecoBR(p.concorrencia.c2.preco) : '', nf:(!p.concorrencia?.semConcorrente && p.concorrencia?.c2?.preco)?'"R$" #,##0.00':undefined, al:rAlign}, // O PREÇO CONC. 2
+      {v:p.concorrencia?.semConcorrente ? '' : (p.concorrencia?.c3?.nome||''), al:{}},            // P CONCORRENTE 3
+      {v:(!p.concorrencia?.semConcorrente && p.concorrencia?.c3?.preco) ? _parsePrecoBR(p.concorrencia.c3.preco) : '', nf:(!p.concorrencia?.semConcorrente && p.concorrencia?.c3?.preco)?'"R$" #,##0.00':undefined, al:rAlign}, // Q PREÇO CONC. 3
     ];
 
     vals.forEach((item, i) => {
@@ -7809,6 +8128,14 @@ function renderGraficos() {
 // ── Gráfico de Concorrência de Preços ────────
 let _concChart = null;
 
+function limparPeriodoConc() {
+  const di = document.getElementById('cDtI');
+  const df = document.getElementById('cDtF');
+  if (di) di.value = '';
+  if (df) df.value = '';
+  renderConcChart();
+}
+
 function toggleFiltrosConcCard() {
   const body = document.getElementById('filtrosConcBody');
   const chev = document.getElementById('concCardChevron');
@@ -7933,6 +8260,18 @@ function _headerFiltros(elId, filtros) {
 
 function renderConcChart() {
   _popularFiltrosConc();
+  // Montar label de período para o header
+  const _cDtI = document.getElementById('cDtI')?.value || '';
+  const _cDtF = document.getElementById('cDtF')?.value || '';
+  const _periodoLabel = (() => {
+    const fmt = s => s ? s.split('-').reverse().join('/') : null;
+    const di = fmt(_cDtI), df = fmt(_cDtF);
+    if (di && df) return `${di} até ${df}`;
+    if (di)       return `a partir de ${di}`;
+    if (df)       return `até ${df}`;
+    return null;
+  })();
+  const _headerEl = document.getElementById('headerFiltrosConc');
   _headerFiltros('headerFiltrosConc', [
     { label: 'Fábrica',  id: 'cFabrica'  },
     { label: 'Rede',     id: 'cRede'     },
@@ -7941,6 +8280,12 @@ function renderConcChart() {
     { label: 'Loja',     id: 'cLoja'     },
     { label: 'Produto',  id: 'cProduto'  },
   ]);
+  // Acrescentar período ao header se preenchido
+  if (_periodoLabel && _headerEl) {
+    const periodoSpan = `<span style="font-size:12px;color:var(--color-text-secondary)">·</span> <span style="font-size:12px;color:var(--color-text-secondary)">Período:</span> <span style="font-size:12px;font-weight:500;color:var(--color-text-primary)">${_periodoLabel}</span>`;
+    _headerEl.style.display = 'flex';
+    _headerEl.innerHTML += periodoSpan;
+  }
 
   const isVend  = sessao?.role === 'vendedor';
   const isAdmDir = sessao?.role === 'admin' || sessao?.role === 'diretor';
@@ -7951,12 +8296,14 @@ function renderConcChart() {
   const fUF   = document.getElementById('cUF')?.value       || '';
   const fLoja = document.getElementById('cLoja')?.value     || '';
   const fProd = document.getElementById('cProduto')?.value  || '';
+  const fDtI  = document.getElementById('cDtI')?.value      || '';
+  const fDtF  = document.getElementById('cDtF')?.value      || '';
 
   const vendSel = fVend ? usuarios.find(u => u.role === 'vendedor' && u.nome === fVend) : null;
   const ufsVend = isVend ? (sessao?.ufs || []) : (vendSel?.ufs || []);
 
   // Filtrar produtos com concorrência
-  let base = produtos.filter(p => p.concorrencia);
+  let base = produtos.filter(p => p.concorrencia && !p.concorrencia.semConcorrente);
   if (isVend && sessao?.ufs?.length) base = base.filter(p => sessao.ufs.includes(p.uf));
   if (fFab)  base = base.filter(p => p.fabrica === fFab);
   if (fRede) base = base.filter(p => { const l = lojas.find(l => normTxt(l.nome) === normTxt(p.loja)); return l?.rede === fRede; });
@@ -7964,6 +8311,8 @@ function renderConcChart() {
   if (fUF)   base = base.filter(p => p.uf === fUF);
   if (fLoja) base = base.filter(p => normTxt(p.loja) === normTxt(fLoja));
   if (fProd) base = base.filter(p => p.produto === fProd);
+  if (fDtI)  base = base.filter(p => p.dataRegistro && p.dataRegistro >= fDtI);
+  if (fDtF)  base = base.filter(p => p.dataRegistro && p.dataRegistro <= fDtF);
 
   const semDados     = document.getElementById('concSemDados');
   const semProduto   = document.getElementById('concSelecioneProduto');
@@ -8264,8 +8613,21 @@ function setView(v) {
       if (btnSO) { btnSO.style.background = '#1e3a5f'; btnSO.style.color = 'white'; btnSO.style.border = 'none'; btnSO.style.borderBottom = '3px solid #0c1f35'; btnSO.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)'; }
       const btnXLS = document.getElementById('btnExportCSV');
       if (btnXLS) { btnXLS.style.display = 'none'; btnXLS.classList.add('hidden'); }
-      renderSellOut();
-      renderAcompSellOut();
+      const _isAdmin = sessao?.role === 'admin';
+      const _soAdm   = document.getElementById('soAdminOnly');
+      const _soVD    = document.getElementById('soFiltroVD');
+      const _soAF    = document.getElementById('acompAdminFilters');
+      const _soATh   = document.getElementById('acompAcaoTh');
+      if (_soAdm) _soAdm.style.display = _isAdmin ? '' : 'none';
+      if (_soVD)  _soVD.style.display  = _isAdmin ? 'none' : '';
+      if (_soAF)  _soAF.style.display  = _isAdmin ? '' : 'none';
+      if (_soATh) _soATh.style.display = _isAdmin ? '' : 'none';
+      if (_isAdmin) {
+        renderSellOut();
+        renderAcompSellOut();
+      } else {
+        renderAcompSellOutVD();
+      }
       return;
     }
     if (v === 'ranking') {
@@ -8307,23 +8669,26 @@ function _calcScorePromotor(nomeProm) {
   if (!prods.length) return { score: 0, pd: 0, cob: 0, comp: 0, reg: 0, lojas: 0 };
 
   // Métricas
-  // 1. Produtos em Dia (40%) — % sem vencido
+  // 1. Produtos em Dia (10%) — % sem vencido OU em processo de sellout
+  // Produtos com emSellout:true não penalizam o promotor mesmo que vencidos,
+  // pois o promotor sinalizou corretamente e a fábrica é responsável pela ação.
   const total = prods.length;
   const emDia = prods.filter(p => {
     if (!p.validade) return false;
+    if (p.emSellout) return true;           // ← protegido: foi para sellout
     const d = new Date(p.validade + 'T00:00:00');
     return d >= hoje;
   }).length;
   const pd = total > 0 ? Math.round(emDia / total * 100) : 0;
 
-  // 2. Cobertura de Lojas (30%) — lojas únicas lançadas vs total lojas da UF do promotor
+  // 2. Cobertura de Lojas (20%) — lojas únicas lançadas vs total lojas da UF do promotor
   const lojasPromotor = [...new Set(prods.map(p => normTxt(p.loja)).filter(Boolean))];
   const ufProm = prods[0]?.uf || '';
   const totalLojasUF = lojas.filter(l => (l.uf || '') === ufProm).length || lojasPromotor.length || 1;
   const cob = Math.min(100, Math.round(lojasPromotor.length / totalLojasUF * 100));
 
-  // 3. Completude (20%) — % com preço e concorrência preenchidos
-  const comDados = prods.filter(p => p.preco && p.concorrente).length;
+  // 3. Completude (20%) — % com preço e concorrência preenchidos (semConcorrente também conta)
+  const comDados = prods.filter(p => p.preco && (p.concorrente || p.concorrencia?.semConcorrente || (p.concorrencia && Object.keys(p.concorrencia).some(k => p.concorrencia[k]?.nome)))).length;
   const comp = total > 0 ? Math.round(comDados / total * 100) : 0;
 
   // 4. Regularidade (10%) — % semanas dos últimos 30 dias com lançamento
@@ -8343,8 +8708,8 @@ function _calcScorePromotor(nomeProm) {
     ? (semanasAtivas.size > 0 ? Math.round(semanasAtivas.size / 4 * 100) : 50)
     : 0;
 
-  // Score ponderado
-  const score = Math.round(pd * 0.40 + cob * 0.30 + comp * 0.20 + reg * 0.10);
+  // Score ponderado — Regularidade 40%, Completude 30%, Cobertura 20%, Produtos em dia 10%
+  const score = Math.round(pd * 0.10 + cob * 0.20 + comp * 0.30 + reg * 0.40);
   return { score, pd, cob, comp, reg, lojas: lojasPromotor.length };
 }
 
@@ -8362,24 +8727,82 @@ function _medalha(pos) {
   return String(pos);
 }
 
+let _rankingData   = [];
+let _rankFiltroAbP = false;
+
+function toggleRankFiltroPromotor() {
+  _rankFiltroAbP = !_rankFiltroAbP;
+  const body = document.getElementById('rankFiltroBody');
+  const chev = document.getElementById('rankFiltroChev');
+  const bar  = document.getElementById('rankFiltroBar');
+  if (body) body.style.display = _rankFiltroAbP ? 'flex' : 'none';
+  if (chev) chev.style.transform = _rankFiltroAbP ? 'rotate(180deg)' : '';
+  if (bar)  bar.style.borderRadius = _rankFiltroAbP ? '10px 10px 0 0' : '10px';
+}
+function onRankFiltroChange() { loadRanking(); }
+function limparRankFiltroProm() {
+  ['rFiltFab','rFiltUF'].forEach(id => { const s=document.getElementById(id); if(s) s.value=''; });
+  loadRanking();
+}
+
 function loadRanking() {
-  const role     = sessao?.role;
-  const meuNome  = sessao?.nome || '';
+  const role      = sessao?.role;
+  const meuNome   = sessao?.nome || '';
   const minhasUFs = sessao?.ufs || (sessao?.uf ? [sessao.uf] : []);
 
-  // — Promotores a exibir
-  let promotoresFiltro = [];
+  // — Mostrar/ocultar filtro cascata
+  const filtroWrap = document.getElementById('rankFiltroWrap');
+  if (filtroWrap) filtroWrap.style.display = role !== 'promotor' ? 'block' : 'none';
+
+  // — Promotores base (sem filtro de fábrica/UF)
+  let promotoresBase = [];
   if (role === 'promotor') {
-    promotoresFiltro = [meuNome];
+    promotoresBase = [meuNome];
   } else if (role === 'vendedor') {
-    promotoresFiltro = [...new Set(
+    promotoresBase = [...new Set(
       produtos.filter(p => minhasUFs.includes(p.uf)).map(p => p.promotor).filter(Boolean)
     )];
   } else {
-    promotoresFiltro = [...new Set(usuarios.filter(u => u.role === 'promotor').map(u => u.nome))];
+    promotoresBase = [...new Set(usuarios.filter(u => u.role === 'promotor').map(u => u.nome))];
     const dosProd = [...new Set(produtos.map(p => p.promotor).filter(Boolean))];
-    dosProd.forEach(n => { if (!promotoresFiltro.includes(n)) promotoresFiltro.push(n); });
+    dosProd.forEach(n => { if (!promotoresBase.includes(n)) promotoresBase.push(n); });
   }
+
+  // — Popular selects do filtro (com todas as opções disponíveis)
+  if (role !== 'promotor') {
+    const _getFabProd = p => { const cat = catalogo.find(c => normTxt(c.nome)===normTxt(p.produto||'')); return cat?.fabrica||p.fabrica||''; };
+    const allProds = promotoresBase.flatMap(nome => produtos.filter(p => normTxt(p.promotor)===normTxt(nome)));
+    const allFabs  = [...new Set(allProds.map(_getFabProd).filter(Boolean))].sort();
+    const allUFs   = [...new Set(allProds.map(p=>p.uf).filter(Boolean))].sort();
+    const _pop = (id, vals, ph) => {
+      const sel = document.getElementById(id); if (!sel) return;
+      const cv = sel.value;
+      sel.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${v}"${v===cv?' selected':''}>${v}</option>`).join('');
+    };
+    _pop('rFiltFab', allFabs, 'Todas as fábricas');
+    _pop('rFiltUF',  allUFs,  'Todas as UFs');
+    // Resumo dos filtros ativos
+    const filtFabV = document.getElementById('rFiltFab')?.value || '';
+    const filtUFV  = document.getElementById('rFiltUF')?.value  || '';
+    const resumoEl = document.getElementById('rankFiltroResumo');
+    if (resumoEl) {
+      const partes = [filtFabV, filtUFV].filter(Boolean);
+      resumoEl.textContent = partes.length ? '· ' + partes.join(' · ') : '';
+    }
+  }
+
+  // — Aplicar filtros de fábrica e UF à lista de promotores
+  const filtFab = document.getElementById('rFiltFab')?.value || '';
+  const filtUF  = document.getElementById('rFiltUF')?.value  || '';
+  let promotoresFiltro = promotoresBase.filter(nome => {
+    const prods = produtos.filter(p => normTxt(p.promotor)===normTxt(nome));
+    if (filtUF  && !prods.some(p => (p.uf||'')===filtUF)) return false;
+    if (filtFab) {
+      const _getFab = p => { const cat=catalogo.find(c=>normTxt(c.nome)===normTxt(p.produto||'')); return cat?.fabrica||p.fabrica||''; };
+      if (!prods.some(p => normTxt(_getFab(p))===normTxt(filtFab))) return false;
+    }
+    return true;
+  });
 
   const ranking = promotoresFiltro
     .filter(Boolean)
@@ -8451,22 +8874,22 @@ function loadRanking() {
         if (meu.cob < 75) dicas.push({
           icon: 'ti-map-pin', bg: '#fee2e2', cor: '#991b1b',
           titulo: 'Visite mais lojas',
-          texto: `Cobertura em ${meu.cob}% — registre produtos nas lojas da sua UF que ainda não têm lançamento este mês. Isso representa 30% do score.`
+          texto: `Cobertura em ${meu.cob}% — registre produtos nas lojas da sua UF que ainda não têm lançamento este mês. Vale 20% do score.`
         });
         if (meu.comp < 75) dicas.push({
           icon: 'ti-forms', bg: '#fee2e2', cor: '#991b1b',
           titulo: 'Preencha preço e concorrência',
-          texto: `Completude em ${meu.comp}% — ao lançar um produto, informe o preço e o produto concorrente. Vale 20% do score.`
+          texto: `Completude em ${meu.comp}% — ao lançar um produto, informe o preço e o produto concorrente. Vale 30% do score.`
         });
         if (meu.reg < 75) dicas.push({
           icon: 'ti-calendar-repeat', bg: '#fef9c3', cor: '#854d0e',
           titulo: 'Lance toda semana',
-          texto: `Regularidade em ${meu.reg}% — faça ao menos um lançamento por semana para manter essa pontuação alta. Vale 10% do score.`
+          texto: `Regularidade em ${meu.reg}% — faça ao menos um lançamento por semana para manter essa pontuação alta. Vale 40% do score.`
         });
         if (meu.pd < 75) dicas.push({
           icon: 'ti-clock-exclamation', bg: '#fef9c3', cor: '#854d0e',
           titulo: 'Retire produtos próximos do vencimento',
-          texto: `Produtos em dia em ${meu.pd}% — acompanhe as datas e retire ou sinalize os itens com menos de 20 dias. Vale 40% do score.`
+          texto: `Produtos em dia em ${meu.pd}% — acompanhe as datas e retire ou sinalize os itens com menos de 20 dias. Vale 10% do score.`
         });
         if (dicas.length) {
           dicasWrap.style.display = 'block';
@@ -8529,38 +8952,163 @@ function loadRanking() {
   if (listaCount) listaCount.textContent = ranking.length + ' promotor' + (ranking.length !== 1 ? 'es' : '');
 
   if (!listaBody) return;
+  // Guardar ranking globalmente para uso no detalhe
+  _rankingData = ranking;
   if (!ranking.length) {
     listaBody.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Nenhum lançamento encontrado</div>';
     return;
   }
 
+  const clicavel = role !== 'promotor';
   listaBody.innerHTML = ranking.map((r, i) => {
-    const pos  = i + 1;
-    const nota = _notaScore(r.score);
-    const isMe = normTxt(r.nome) === normTxt(meuNome);
-    const meStyle = isMe ? 'background:#eff6ff;border-left:3px solid #2563eb;' : '';
-    const initials = r.nome.split(' ').slice(0,2).map(w => w[0]||'').join('').toUpperCase();
+    const pos      = i + 1;
+    const nota     = _notaScore(r.score);
+    const isMe     = normTxt(r.nome) === normTxt(meuNome);
+    const meStyle  = isMe ? 'background:#eff6ff;border-left:3px solid #2563eb;' : '';
+    const hoverSt  = clicavel ? 'cursor:pointer' : '';
+    const initials = r.nome.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
     const avatarColors = ['#166534','#1d4ed8','#6d28d9','#854d0e','#0e7490','#be185d','#1e3a5f','#065f46'];
-    const avatarBg  = avatarColors[pos % avatarColors.length];
-    const posDisp   = pos <= 3
-      ? ['🥇','🥈','🥉'][i]
-      : `<span style="font-size:12px;font-weight:700;color:#94a3b8">${pos}</span>`;
-    const scoreDisp = (role === 'promotor' && !isMe)
+    const avatarBg = avatarColors[pos % avatarColors.length];
+    const posDisp  = pos<=3 ? ['🥇','🥈','🥉'][i] : `<span style="font-size:12px;font-weight:700;color:#94a3b8">${pos}</span>`;
+    const scoreDisp = (role==='promotor'&&!isMe)
       ? `<span style="background:${nota.bg};color:${nota.cor};font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px">${nota.nota}</span>`
       : `<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:${nota.cor}">${r.score}</div><span style="background:${nota.bg};color:${nota.cor};font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px">${nota.nota}</span></div>`;
-    const detalhe  = role !== 'promotor'
-      ? `<div style="font-size:10px;color:#94a3b8">${r.lojas} loja${r.lojas!==1?'s':''} · ${r.pd}% em dia</div>` : '';
-    const euLabel  = isMe ? `<span style="font-size:10px;color:#2563eb;font-weight:700"> (você)</span>` : '';
-    return `<div style="padding:9px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f1f5f9;${meStyle}">
+    const detalhe = role!=='promotor' ? `<div style="font-size:10px;color:#94a3b8">${r.lojas} loja${r.lojas!==1?'s':''} · ${r.pd}% em dia</div>` : '';
+    const euLabel = isMe ? `<span style="font-size:10px;color:#2563eb;font-weight:700"> (você)</span>` : '';
+    const chevron = clicavel ? `<i class="ti ti-chevron-right" style="font-size:14px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>` : '';
+    const onclk   = clicavel ? `onclick="loadRankingDetalhe('${r.nome.replace(/'/g,"\\'")}')"` : '';
+    return `<div ${onclk} style="padding:9px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f1f5f9;${meStyle}${hoverSt}">
       <div style="width:28px;text-align:center;font-size:15px;flex-shrink:0">${posDisp}</div>
       <div style="width:34px;height:34px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${initials}</div>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600;color:#1e293b">${r.nome}${euLabel}</div>
         ${detalhe}
       </div>
-      <div>${scoreDisp}</div>
+      <div style="display:flex;align-items:center;gap:8px">${scoreDisp}${chevron}</div>
     </div>`;
   }).join('') + '<div style="height:2px"></div>';
+}
+
+function loadRankingDetalhe(nome) {
+  const meu  = _rankingData.find(r => normTxt(r.nome)===normTxt(nome));
+  const pos  = _rankingData.findIndex(r => normTxt(r.nome)===normTxt(nome)) + 1;
+  if (!meu) return;
+  const nota = _notaScore(meu.score);
+  const initials = meu.nome.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  const avatarColors = ['#166534','#1d4ed8','#6d28d9','#854d0e','#0e7490','#be185d','#1e3a5f','#065f46'];
+  const avatarBg = avatarColors[pos % avatarColors.length];
+
+  // UF do promotor
+  const prodsPromot = produtos.filter(p => normTxt(p.promotor)===normTxt(nome));
+  const ufProm = prodsPromot[0]?.uf || '—';
+
+  // Cabeçalho
+  const rdAvatar = document.getElementById('rdAvatar');
+  const rdNome   = document.getElementById('rdNome');
+  const rdSub    = document.getElementById('rdSub');
+  if (rdAvatar) { rdAvatar.textContent = initials; rdAvatar.style.background = avatarBg; }
+  if (rdNome)   rdNome.textContent = meu.nome;
+  if (rdSub)    rdSub.textContent  = `${pos}º lugar · UF: ${ufProm}`;
+
+  // Score overview
+  const rdScore = document.getElementById('rdScoreWrap');
+  if (rdScore) rdScore.innerHTML = `
+    <div style="width:64px;height:64px;border-radius:50%;background:#1e3a5f;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+      <div style="font-size:26px;font-weight:800;color:#fff;line-height:1">${meu.score}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.05em">score</div>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px">Score geral: ${meu.score}/100</div>
+      <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:6px;background:${nota.bg};color:${nota.cor}">Nota ${nota.nota}</span>
+      <div style="font-size:11px;color:#64748b;margin-top:6px">${meu.lojas} loja${meu.lojas!==1?'s':''} coberta${meu.lojas!==1?'s':''} · ${prodsPromot.length} lançamentos</div>
+    </div>`;
+
+  // Composição do score
+  const metrics = [
+    { label:'Regularidade',              icon:'ti-calendar-repeat',cor:'#6d28d9', bg:'#ede9fe', barC:'#8b5cf6', val:meu.reg,  peso:40 },
+    { label:'Completude dos lançamentos',icon:'ti-forms',         cor:'#854d0e', bg:'#fef9c3', barC:'#eab308', val:meu.comp, peso:30 },
+    { label:'Cobertura de lojas',        icon:'ti-map-pin',       cor:'#1e40af', bg:'#dbeafe', barC:'#3b82f6', val:meu.cob,  peso:20 },
+    { label:'Produtos em dia',           icon:'ti-clock-check',   cor:'#166534', bg:'#dcfce7', barC:'#22c55e', val:meu.pd,   peso:10 },
+  ];
+  const pts = metrics.map(m => Math.round(m.val * m.peso / 100));
+  const rdMet = document.getElementById('rdMetricas');
+  if (rdMet) rdMet.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Composição do score</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${metrics.map((m,i) => `
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:26px;height:26px;border-radius:7px;background:${m.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ${m.icon}" style="font-size:13px;color:${m.cor}" aria-hidden="true"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;color:#1e293b;font-weight:500">${m.label}</span>
+            <span style="font-size:12px;font-weight:700;color:${m.cor}">${m.val}% <span style="color:#94a3b8;font-weight:400">× ${m.peso}% =</span> <span style="color:#1e293b">${pts[i]} pts</span></span>
+          </div>
+          <div style="height:6px;background:#f1f5f9;border-radius:4px"><div style="height:6px;border-radius:4px;background:${m.barC};width:${Math.min(m.val,100)}%;transition:width .5s"></div></div>
+        </div>
+      </div>`).join('')}
+      <div style="background:#f8fafc;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <span style="font-size:12px;color:#475569;font-weight:500">Total</span>
+        <span style="font-size:13px;font-weight:800;color:#1e293b">${pts.join(' + ')} = <span style="color:${nota.cor}">${meu.score} pts</span></span>
+      </div>
+    </div>`;
+
+  // Lojas visitadas vs não visitadas
+  const lojasVisitadas = [...new Set(prodsPromot.map(p=>p.loja).filter(Boolean))];
+  const todasLojasUF   = lojas.filter(l=>(l.uf||'')===ufProm).map(l=>l.nome||l.loja||'').filter(Boolean);
+  const lojasNaoVisit  = todasLojasUF.filter(l => !lojasVisitadas.some(lv => normTxt(lv)===normTxt(l)));
+  const rdLojas = document.getElementById('rdLojas');
+  if (rdLojas) {
+    const itensVisit = lojasVisitadas.slice(0,8).map(l => {
+      const cnt = prodsPromot.filter(p => normTxt(p.loja||'')===normTxt(l)).length;
+      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f0fdf4;border-radius:8px;margin-bottom:5px">
+        <i class="ti ti-circle-check" style="font-size:14px;color:#166534;flex-shrink:0" aria-hidden="true"></i>
+        <span style="font-size:13px;flex:1;color:#1e293b">${l}</span>
+        <span style="font-size:11px;color:#64748b">${cnt} produto${cnt!==1?'s':''}</span>
+      </div>`;
+    }).join('');
+    const itensNaoVisit = lojasNaoVisit.slice(0,4).map(l =>
+      `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff8f8;border-radius:8px;border:0.5px solid #fecaca;margin-bottom:5px">
+        <i class="ti ti-circle-x" style="font-size:14px;color:#dc2626;flex-shrink:0" aria-hidden="true"></i>
+        <span style="font-size:13px;flex:1;color:#64748b">${l}</span>
+        <span style="font-size:11px;color:#dc2626">sem lançamento</span>
+      </div>`
+    ).join('');
+    const maisNaoVisit = lojasNaoVisit.length > 4 ? `<div style="font-size:11px;color:#94a3b8;text-align:center;margin-top:4px">+ ${lojasNaoVisit.length-4} loja${lojasNaoVisit.length-4!==1?'s':''} sem lançamento</div>` : '';
+    rdLojas.innerHTML = `
+      <div style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Lojas este mês</div>
+      ${itensVisit}
+      ${itensNaoVisit}
+      ${maisNaoVisit}
+      ${!itensVisit && !itensNaoVisit ? '<div style="font-size:13px;color:#94a3b8;text-align:center;padding:8px 0">Nenhuma loja registrada</div>' : ''}`;
+  }
+
+  // Mostrar detalhe, ocultar lista e filtro
+  const listaDiv  = document.querySelector('#rankListaBody')?.closest('.bg-white.rounded-2xl');
+  const badgesDiv = document.getElementById('rankBadgesWrap');
+  const filtroDiv = document.getElementById('rankFiltroWrap');
+  const kpisDiv   = document.getElementById('rankKpis');
+  if (listaDiv)  listaDiv.style.display  = 'none';
+  if (badgesDiv) badgesDiv.style.display = 'none';
+  if (filtroDiv) filtroDiv.style.display = 'none';
+  if (kpisDiv)   kpisDiv.style.display   = 'none';
+  const det = document.getElementById('rankDetalhe');
+  if (det) det.style.display = 'block';
+  det?.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function fecharRankDetalhe() {
+  const det       = document.getElementById('rankDetalhe');
+  const filtroDiv = document.getElementById('rankFiltroWrap');
+  const kpisDiv   = document.getElementById('rankKpis');
+  if (det) det.style.display = 'none';
+  // Restaurar lista e filtro
+  const listaDiv  = document.querySelector('#rankListaBody')?.closest('.bg-white.rounded-2xl');
+  if (listaDiv)  listaDiv.style.display  = '';
+  const role = sessao?.role;
+  if (filtroDiv && role !== 'promotor') filtroDiv.style.display = 'block';
+  if (kpisDiv   && (role==='admin'||role==='diretor')) kpisDiv.style.display = 'grid';
 }
 
 // ══════════════════════════════════════════════
@@ -8926,6 +9474,22 @@ async function gerarExcelSellOut() {
     selloutHist.unshift({ id: docRef.id, ...histRec });
     renderAcompSellOut();
   } catch(e) {}
+
+  // ── Marcar cada produto do SellOut como emSellout:true ──
+  // Isso protege o promotor: se a fábrica não agir e o produto vencer,
+  // ele não será penalizado no score de "Produtos em dia".
+  try {
+    const batch = db.batch();
+    lista.forEach(g => {
+      (g.lancamentos || []).forEach(p => {
+        if (!p.emSellout) {
+          batch.update(FS_PRODUTOS.doc(String(p.id)), { emSellout: true });
+          p.emSellout = true; // atualiza memória local
+        }
+      });
+    });
+    await batch.commit();
+  } catch(e) { console.warn('Erro ao marcar emSellout:', e); }
 }
 
 // ══════════════════════════════════════════════
@@ -9081,6 +9645,146 @@ function renderAcompSellOut() {
       <td style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;text-align:center;${bgRow}">
         <button onclick="_acompDeletar('${r.id}',${i})" style="background:none;border:none;cursor:pointer;font-size:15px;color:#94a3b8;padding:3px;border-radius:4px" title="Excluir" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">🗑️</button>
       </td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// ── SELLOUT — VISÃO VENDEDOR / DIRETOR ────────
+let _soVDUFs = new Set();
+
+function toggleSoFiltroVD() {
+  const body = document.getElementById('soVDFiltroBody');
+  const chev = document.getElementById('soVDChevron');
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (chev) chev.style.transform = open ? 'rotate(-90deg)' : '';
+}
+
+function _soVDPopSelects() {
+  const fabs  = [...new Set(selloutHist.map(r => r.fabrica).filter(f => f && f !== 'Todas'))].sort();
+  const redes = [...new Set(selloutHist.map(r => r.rede).filter(r => r && r !== 'Todas'))].sort();
+  const selFab  = document.getElementById('soVDFab');
+  const selRede = document.getElementById('soVDRede');
+  if (selFab)  { const cv=selFab.value;  selFab.innerHTML  = '<option value="">Todas</option>'  + fabs.map(f=>`<option ${f===cv?'selected':''}>${esc(f)}</option>`).join(''); }
+  if (selRede) { const cv=selRede.value; selRede.innerHTML = '<option value="">Todas</option>'  + redes.map(r=>`<option ${r===cv?'selected':''}>${esc(r)}</option>`).join(''); }
+}
+
+function _soVDRenderUFChips() {
+  const cont = document.getElementById('soVDUFChips');
+  if (!cont) return;
+  const ufsAll = [...new Set(selloutHist.flatMap(r => r.ufs || []))].sort();
+  cont.innerHTML = ufsAll.map(uf => {
+    const sel = _soVDUFs.has(uf);
+    return `<button type="button" onclick="_soVDToggleUF('${uf}')"
+      style="padding:3px 10px;font-size:11px;font-weight:600;border-radius:5px;cursor:pointer;border:none;
+             background:${sel?'#1e3a5f':'#f1f5f9'};color:${sel?'#fff':'#475569'}">${uf}</button>`;
+  }).join('');
+}
+
+function _soVDToggleUF(uf) {
+  if (_soVDUFs.has(uf)) _soVDUFs.delete(uf); else _soVDUFs.add(uf);
+  _soVDRenderUFChips();
+  _soVDUpdateResumo();
+  renderAcompSellOutVD();
+}
+
+function _soVDUpdateResumo() {
+  const resumo = document.getElementById('soVDResumo');
+  if (!resumo) return;
+  const parts = [];
+  const dtI = document.getElementById('soVDDtI')?.value;
+  const dtF = document.getElementById('soVDDtF')?.value;
+  const _fmtBR = iso => { if (!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}`; };
+  if (dtI || dtF) parts.push((_fmtBR(dtI)||'...') + ' – ' + (_fmtBR(dtF)||'...'));
+  const fab  = document.getElementById('soVDFab')?.value;
+  if (fab)  parts.push(fab);
+  const rede = document.getElementById('soVDRede')?.value;
+  if (rede) parts.push(rede);
+  if (_soVDUFs.size) parts.push([..._soVDUFs].join(' · '));
+  resumo.textContent = parts.length ? '· ' + parts.join(' · ') : '';
+}
+
+function limparSoFiltroVD() {
+  ['soVDDtI','soVDDtF','soVDFab','soVDRede'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  _soVDUFs.clear();
+  _soVDRenderUFChips();
+  _soVDUpdateResumo();
+  renderAcompSellOutVD();
+}
+
+function renderAcompSellOutVD() {
+  _soVDPopSelects();
+  _soVDRenderUFChips();
+  const tbody  = document.getElementById('acompTbody');
+  const semEl  = document.getElementById('acompSemDados');
+  const contEl = document.getElementById('acompContagem');
+  if (!tbody) return;
+
+  const dtI  = document.getElementById('soVDDtI')?.value  || '';
+  const dtF  = document.getElementById('soVDDtF')?.value  || '';
+  const fFab = document.getElementById('soVDFab')?.value  || '';
+  const fRede= document.getElementById('soVDRede')?.value || '';
+
+  const lista = selloutHist.filter(r => {
+    const d = new Date(r.dataGerado); d.setHours(0,0,0,0);
+    if (dtI) { const di = new Date(dtI); if (d < di) return false; }
+    if (dtF) { const df = new Date(dtF); df.setHours(23,59,59,999); if (d > df) return false; }
+    if (fFab  && r.fabrica !== fFab)  return false;
+    if (fRede && r.rede    !== fRede) return false;
+    if (_soVDUFs.size > 0 && !(r.ufs || []).some(u => _soVDUFs.has(u))) return false;
+    return true;
+  });
+
+  if (contEl) contEl.textContent = lista.length + (lista.length === 1 ? ' registro' : ' registros');
+  if (!lista.length) {
+    tbody.innerHTML = '';
+    if (semEl) semEl.classList.remove('hidden');
+    return;
+  }
+  if (semEl) semEl.classList.add('hidden');
+
+  tbody.innerHTML = lista.map(r => {
+    const bgRow  = r.status === 'aprovado' ? 'background:#f0fdf4' : r.status === 'recusado' ? 'background:#fef2f2' : '';
+    const txtClr = r.status === 'aprovado' ? 'color:#14532d'      : r.status === 'recusado' ? 'color:#7f1d1d'      : '';
+    const dataBR = new Date(r.dataGerado).toLocaleDateString('pt-BR');
+    const ufsStr = (r.ufs || []).join(', ') || '—';
+    const qtdProd= r.produtos.length;
+    const cascId = `acompCascVD_${r.id}`;
+
+    let badgeHtml;
+    if (r.status === 'aprovado') {
+      badgeHtml = `<span style="display:inline-flex;align-items:center;gap:4px;background:#dcfce7;color:#15803d;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px">✅ Aprovado</span>`;
+    } else if (r.status === 'recusado') {
+      badgeHtml = `<span style="display:inline-flex;align-items:center;gap:4px;background:#fee2e2;color:#b91c1c;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px">❌ Recusado</span>`;
+    } else {
+      badgeHtml = `<span style="display:inline-flex;align-items:center;gap:4px;background:#fef9c3;color:#92400e;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px">⏳ Pendente</span>`;
+    }
+
+    const prodList = r.produtos.map(p =>
+      `<div style="font-size:11px;color:#475569;padding:2px 0;display:flex;align-items:center;gap:6px">
+        <span style="width:5px;height:5px;border-radius:50%;background:#1e3a5f;flex-shrink:0;display:inline-block"></span>
+        ${esc(p.nome)} — ${p.qtde} ${esc(p.und || '')}
+      </div>`
+    ).join('');
+
+    const tdStyle = `style="padding:7px 10px;border-bottom:0.5px solid #e2e8f0;vertical-align:middle;${bgRow};${txtClr}"`;
+    const enviada = r.dataEnviada ? new Date(r.dataEnviada + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+
+    return `<tr>
+      <td ${tdStyle}>${dataBR}</td>
+      <td ${tdStyle}>${esc(r.fabrica)}</td>
+      <td ${tdStyle}><span style="font-weight:600">${esc(r.rede)}</span><br><span style="font-size:10px">${ufsStr}</span></td>
+      <td ${tdStyle}>
+        <button onclick="document.getElementById('${cascId}').classList.toggle('hidden')"
+          style="background:none;border:none;cursor:pointer;padding:0">
+          <span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">${qtdProd} ${qtdProd===1?'produto':'produtos'} ▾</span>
+        </button>
+        <div id="${cascId}" class="hidden" style="margin-top:6px;background:#f8fafc;border-radius:5px;padding:6px 10px">${prodList}</div>
+      </td>
+      <td ${tdStyle}>${enviada}</td>
+      <td ${tdStyle}>${badgeHtml}</td>
     </tr>`;
   }).join('');
 }
@@ -10082,6 +10786,7 @@ function abrirEditModal(id, isDuplicate) {
     }
   }
   // Concorrência — carregar dados existentes do produto
+  _concEditProdutoNome = p.produto || '';
   _concorrenciaEdit = p.concorrencia ? JSON.parse(JSON.stringify(p.concorrencia)) : null;
   _atualizarBtnEditConcorrencia();
   document.getElementById('editModal').classList.remove('hidden');
