@@ -11826,12 +11826,9 @@ function verificarAlertaVencimento() {
     const badgeSO = jaSOL
       ? `<div style="margin-top:6px"><span style="font-size:11px;background:#fee2e2;color:#991b1b;border-radius:6px;padding:3px 8px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-circle-check" style="font-size:12px" aria-hidden="true"></i> SellOut solicitado</span></div>`
       : '';
-    const btnSO = isPromotor
-      ? (jaSOL
-          ? `<button disabled style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid #3B6D11;background:#EAF3DE;color:#27500A;cursor:default"><i class="ti ti-circle-check" style="font-size:13px" aria-hidden="true"></i> Solicitado</button>`
-          : `<button onclick="_solicitarSellOutAlerta(${p.id})" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid #E24B4A;background:#FCEBEB;color:#A32D2D;cursor:pointer"><i class="ti ti-alert-triangle" style="font-size:13px" aria-hidden="true"></i> Solicitar SellOut</button>`)
+    const btnRow = isPromotor && !jaSOL
+      ? `<div style="display:flex;justify-content:flex-end;margin-top:6px"><button onclick="_solicitarSellOutAlerta(${p.id})" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:5px 10px;border-radius:8px;border:1.5px solid #A32D2D;background:#FCEBEB;color:#A32D2D;cursor:pointer"><i class="ti ti-alert-triangle" style="font-size:13px" aria-hidden="true"></i> Solicitar SellOut</button></div>`
       : '';
-    const btnRow = btnSO ? `<div style="display:flex;justify-content:flex-end;margin-top:6px">${btnSO}</div>` : '';
     return `<div id="alertaItem_${p.id}" style="background:${cor};border-radius:8px;padding:10px 12px;${bordaSO}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -11867,15 +11864,13 @@ function _solicitarSellOutAlerta(prodId) {
   const el = document.getElementById('alertaItem_' + prodId);
   if (el) {
     el.style.border = '2px solid #fca5a5';
+    // Remove botão e adiciona tag verde
     const btnWrap = el.querySelector('div:last-child');
-    if (btnWrap) btnWrap.innerHTML = `<div style="display:flex;justify-content:flex-end;margin-top:6px"><button disabled style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid #3B6D11;background:#EAF3DE;color:#27500A;cursor:default"><i class="ti ti-circle-check" style="font-size:13px" aria-hidden="true"></i> Solicitado</button></div>`;
-    const info = el.querySelector('div > div:first-child');
-    if (info) {
-      const badge = document.createElement('div');
-      badge.style.marginTop = '6px';
-      badge.innerHTML = `<span style="font-size:11px;background:#fee2e2;color:#991b1b;border-radius:6px;padding:3px 8px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-circle-check" style="font-size:12px" aria-hidden="true"></i> SellOut solicitado</span>`;
-      info.appendChild(badge);
-    }
+    if (btnWrap) btnWrap.remove();
+    const tag = document.createElement('div');
+    tag.style.cssText = 'display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:5px 10px;border-radius:8px;color:#27500A;background:#EAF3DE;margin-top:6px';
+    tag.innerHTML = `<i class="ti ti-circle-check" aria-hidden="true" style="font-size:14px"></i> SellOut solicitado`;
+    el.appendChild(tag);
   }
   renderTabela();
   showToast('✅ SellOut solicitado com sucesso!', '#166534');
