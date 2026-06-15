@@ -8839,13 +8839,16 @@ function _calcScorePromotor(nomeProm) {
   }).length;
   const pd = total > 0 ? Math.round(emDia / total * 100) : 0;
 
-  // 2. Cobertura de Lojas (20%) — lojas únicas lançadas vs total lojas da UF do promotor
-  const lojasPromotor = [...new Set(prods.map(p => normTxt(p.loja)).filter(Boolean))];
-  const ufProm = prods[0]?.uf || '';
-  const totalLojasUF = lojas.filter(l => (l.uf || '') === ufProm).length || lojasPromotor.length || 1;
-  const cob = Math.min(100, Math.round(lojasPromotor.length / totalLojasUF * 100));
+  // 2. Atualização de Quantidades (20%) — % de produtos atualizados ou lançados nos últimos 30 dias
+  const ha30atu = new Date(); ha30atu.setDate(ha30atu.getDate() - 30);
+  const ha30atuStr = ha30atu.toISOString().slice(0,10);
+  const atualizados = prods.filter(p => {
+    const dt = p.dataAtualizacao || p.dataRegistro || '';
+    return dt >= ha30atuStr;
+  }).length;
+  const atu = total > 0 ? Math.round(atualizados / total * 100) : 0;
 
-  // 3. Completude (20%) — % com preço e concorrência preenchidos (semConcorrente também conta)
+  // 3. Completude (30%) — % com preço e concorrência preenchidos (semConcorrente também conta)
   const comDados = prods.filter(p => p.preco && (p.concorrente || p.concorrencia?.semConcorrente || (p.concorrencia && Object.keys(p.concorrencia).some(k => p.concorrencia[k]?.nome)))).length;
   const comp = total > 0 ? Math.round(comDados / total * 100) : 0;
 
@@ -8867,9 +8870,9 @@ function _calcScorePromotor(nomeProm) {
     ? (semanasAtivas.size > 0 ? Math.round(semanasAtivas.size / 4 * 100) : 0)
     : 0;
 
-  // Score ponderado — Regularidade 40%, Completude 30%, Cobertura 20%, Produtos em dia 10%
-  const score = Math.round(pd * 0.10 + cob * 0.20 + comp * 0.30 + reg * 0.40);
-  return { score, pd, cob, comp, reg, lojas: lojasPromotor.length };
+  // Score ponderado — Regularidade 40%, Completude 30%, Atualização 20%, Produtos em dia 10%
+  const score = Math.round(pd * 0.10 + atu * 0.20 + comp * 0.30 + reg * 0.40);
+  return { score, pd, atu, comp, reg, lojas: 0 };
 }
 
 function _notaScore(s) {
@@ -9023,17 +9026,17 @@ function loadRanking() {
         const color = val >= 75 ? '#166534' : val >= 50 ? '#854d0e' : '#991b1b';
         if (txt) txt.style.color = color;
       };
-      setTimeout(() => { _setMet('rankBarPD', meu.pd); _setMet('rankBarCob', meu.cob); _setMet('rankBarComp', meu.comp); _setMet('rankBarReg', meu.reg); }, 80);
+      setTimeout(() => { _setMet('rankBarPD', meu.pd); _setMet('rankBarCob', meu.atu); _setMet('rankBarComp', meu.comp); _setMet('rankBarReg', meu.reg); }, 80);
 
       // — Dicas de melhoria (só mostra métricas abaixo de 75%)
       const dicasWrap = document.getElementById('rankDicasWrap');
       const dicasBody = document.getElementById('rankDicasBody');
       if (dicasWrap && dicasBody) {
         const dicas = [];
-        if (meu.cob < 75) dicas.push({
-          icon: 'ti-map-pin', bg: '#fee2e2', cor: '#991b1b',
-          titulo: 'Visite mais lojas',
-          texto: `Cobertura em ${meu.cob}% — registre produtos nas lojas da sua UF que ainda não têm lançamento este mês. Vale 20% do score.`
+        if (meu.atu < 75) dicas.push({
+          icon: 'ti-refresh', bg: '#fee2e2', cor: '#991b1b',
+          titulo: 'Atualize as quantidades',
+          texto: `Atualização em ${meu.atu}% — abra cada produto e atualize a quantidade em loja. Produtos atualizados nos últimos 30 dias contam. Vale 20% do score.`
         });
         if (meu.comp < 75) dicas.push({
           icon: 'ti-forms', bg: '#fee2e2', cor: '#991b1b',
@@ -9079,10 +9082,10 @@ function loadRanking() {
   if (badgesWrap) {
     if (role === 'promotor') {
       badgesWrap.style.display = 'block';
-      const meu = ranking.find(r => normTxt(r.nome) === normTxt(meuNome)) || { score:0, pd:0, cob:0, comp:0, reg:0 };
+      const meu = ranking.find(r => normTxt(r.nome) === normTxt(meuNome)) || { score:0, pd:0, atu:0, comp:0, reg:0 };
       const pos  = ranking.findIndex(r => normTxt(r.nome) === normTxt(meuNome)) + 1;
       const badges = [
-        { icon: 'ti-star',        label: 'Cobertura Total',     ok: meu.cob >= 80 },
+        { icon: 'ti-star',        label: 'Atualização Total',   ok: meu.atu >= 80 },
         { icon: 'ti-target',      label: 'Lançamento Completo', ok: meu.comp >= 80 },
         { icon: 'ti-flame',       label: 'Sequência de Ouro',   ok: meu.reg >= 75 },
         { icon: 'ti-trophy',      label: 'Top Promotor',        ok: pos === 1 },
@@ -9186,7 +9189,7 @@ function loadRankingDetalhe(nome) {
   const metrics = [
     { label:'Regularidade',              icon:'ti-calendar-repeat',cor:'#6d28d9', bg:'#ede9fe', barC:'#8b5cf6', val:meu.reg,  peso:40 },
     { label:'Completude dos lançamentos',icon:'ti-forms',         cor:'#854d0e', bg:'#fef9c3', barC:'#eab308', val:meu.comp, peso:30 },
-    { label:'Cobertura de lojas',        icon:'ti-map-pin',       cor:'#1e40af', bg:'#dbeafe', barC:'#3b82f6', val:meu.cob,  peso:20 },
+    { label:'Atualização de quantidades', icon:'ti-refresh',       cor:'#1e40af', bg:'#dbeafe', barC:'#3b82f6', val:meu.atu,  peso:20 },
     { label:'Produtos em dia',           icon:'ti-clock-check',   cor:'#166534', bg:'#dcfce7', barC:'#22c55e', val:meu.pd,   peso:10 },
   ];
   const pts = metrics.map(m => Math.round(m.val * m.peso / 100));
