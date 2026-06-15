@@ -7799,7 +7799,7 @@ function _rankBase() {
     if (!p.validade) return false;
     const d = new Date(p.validade + 'T00:00:00');
     const dias = Math.round((d - hoje) / 86400000);
-    if (!dtIni && !dtFim) return dias <= 20;
+    if (dias >= 0) return false;
     if (dtIni && d < dtIni) return false;
     if (dtFim && d > dtFim) return false;
     return true;
@@ -7817,6 +7817,7 @@ function _rankBase() {
 }
 
 function setRankModo(modo) {
+  _rankDrillIdx = -1;
   _rankModo = modo;
   const btnP = document.getElementById('rModoProd');
   const btnL = document.getElementById('rModoLoja');
@@ -7837,7 +7838,7 @@ function _rankPopSecundario() {
   }
 }
 
-function onRankChangeFab() {
+function onRankChangeFab() { _rankDrillIdx = -1;
   const { base, _getRede, _getVend } = _rankBase();
   _rankPopSel('rRede', [...new Set(base.map(_getRede).filter(Boolean))].sort(), 'Todas as redes');
   _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos os vendedores');
@@ -7845,25 +7846,26 @@ function onRankChangeFab() {
   _rankPopSecundario();
   renderRankingLojas();
 }
-function onRankChangeRede() {
+function onRankChangeRede() { _rankDrillIdx = -1;
   const { base, _getVend } = _rankBase();
   _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos os vendedores');
   _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas as UFs');
   _rankPopSecundario();
   renderRankingLojas();
 }
-function onRankChangeVend() {
+function onRankChangeVend() { _rankDrillIdx = -1;
   const { base } = _rankBase();
   _rankPopSel('rUF', [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas as UFs');
   _rankPopSecundario();
   renderRankingLojas();
 }
-function onRankChangeUF() {
+function onRankChangeUF() { _rankDrillIdx = -1;
   _rankPopSecundario();
   renderRankingLojas();
 }
 
 function limparRankFiltros() {
+  _rankDrillIdx = -1;
   ['rFab','rRede','rVend','rUF','rDtIni','rDtFim','rSecundario'].forEach(id => { const s = document.getElementById(id); if (s) s.value = ''; });
   initRankingLojas();
 }
@@ -7878,28 +7880,30 @@ function initRankingLojas() {
   renderRankingLojas();
 }
 
+let _rankDrillIdx = -1;
+function _rankToggleDrill(idx) {
+  _rankDrillIdx = (_rankDrillIdx === idx) ? -1 : idx;
+  renderRankingLojas();
+}
+
 function renderRankingLojas() {
   const { base, fab, vend, uf, _getFab } = _rankBase();
   const sec   = document.getElementById('rSecundario')?.value || '';
-  const hoje  = new Date(); hoje.setHours(0,0,0,0);
   const hdrEl = document.getElementById('rankListHeader');
   const cntEl = document.getElementById('rankListCount');
   const bodyEl= document.getElementById('rankListBody');
   const insEl = document.getElementById('rankInsight');
   if (!bodyEl) return;
 
-  const _sit = p => { const d = Math.round((new Date(p.validade+'T00:00:00')-hoje)/86400000); return d<0?'vencido':d<=5?'critico':'atencao'; };
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
   const _sc  = p => { const d = Math.round((new Date(p.validade+'T00:00:00')-hoje)/86400000); return d<0?3:d<=5?2:1; };
-  const _badge = temV => temV
-    ? '<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;background:#fee2e2;color:#991b1b;flex-shrink:0">Vencido</span>'
-    : '<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;background:#fef9c3;color:#854d0e;flex-shrink:0">A vencer</span>';
 
   if (_rankModo === 'produto') {
     let view = sec ? base.filter(p => normTxt(p.produto||'')===normTxt(sec)) : base;
     const porLoja = Object.values(view.reduce((acc, p) => {
       const loja = p.loja||'—';
-      if (!acc[loja]) acc[loja] = { loja, sc:0, total:0, temV:false };
-      acc[loja].sc += _sc(p); acc[loja].total++; if (_sit(p)==='vencido') acc[loja].temV=true;
+      if (!acc[loja]) acc[loja] = { loja, sc:0, total:0 };
+      acc[loja].sc += _sc(p); acc[loja].total++;
       return acc;
     }, {})).sort((a,b)=>b.sc-a.sc);
     if (hdrEl) hdrEl.textContent = sec ? 'Ranking — '+sec : 'Lojas com mais ocorrências de vencimento';
@@ -7912,21 +7916,32 @@ function renderRankingLojas() {
       } else insEl.style.display='none';
     }
     if (!porLoja.length) { bodyEl.innerHTML='<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Nenhuma ocorrência encontrada para os filtros selecionados.</div>'; return; }
-    bodyEl.innerHTML = porLoja.map((r,i)=>`
-      <div class="rank-row" style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid #f1f5f9${i===porLoja.length-1?';border-bottom:none':''}">
+    bodyEl.innerHTML = porLoja.map((r,i) => {
+      const isOpen = _rankDrillIdx === i;
+      const drillItems = Object.values(
+        view.filter(p => normTxt(p.loja||'')===normTxt(r.loja))
+            .reduce((acc,p) => { const k=p.produto||'—'; if(!acc[k]) acc[k]={nome:k,total:0}; acc[k].total++; return acc; }, {})
+      ).sort((a,b)=>b.total-a.total);
+      const drillHTML = isOpen ? `<div style="background:#fef2f2;border-bottom:0.5px solid #fee2e2;padding:8px 14px 10px 50px">
+        <p style="font-size:12px;font-weight:500;color:#991b1b;margin:0 0 6px">Produtos vencidos nesta loja</p>
+        ${drillItems.map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0"><span style="font-size:13px;color:#1e293b">${esc(d.nome)}</span><span style="font-size:12px;padding:2px 8px;border-radius:99px;background:#fee2e2;color:#991b1b;font-weight:500">${d.total}×</span></div>`).join('')}
+      </div>` : '';
+      return `<div><div class="rank-row" onclick="_rankToggleDrill(${i})" style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid #f1f5f9;cursor:pointer${isOpen?';background:#fff5f5':''}">
         <div style="width:28px;text-align:center;font-size:13px;font-weight:600;color:#94a3b8;flex-shrink:0">${i+1}º</div>
         <div style="flex:1;min-width:0">
-          <div class="rank-nome" style="font-size:13px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.loja}</div>
+          <div class="rank-nome" style="font-size:13px;font-weight:600;color:${isOpen?'#991b1b':'#1e293b'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.loja)}</div>
           <div style="font-size:11px;color:#94a3b8">${r.total} ocorrência${r.total!==1?'s':''}</div>
         </div>
-      </div>`).join('');
+        <i class="ti ti-chevron-${isOpen?'down':'right'}" aria-hidden="true" style="font-size:15px;color:${isOpen?'#991b1b':'#94a3b8'};flex-shrink:0"></i>
+      </div>${drillHTML}</div>`;
+    }).join('');
 
   } else {
     let view = sec ? base.filter(p => normTxt(p.loja||'')===normTxt(sec)) : base;
     const porProd = Object.values(view.reduce((acc, p) => {
       const prod = p.produto||'—'; const fab2 = _getFab(p);
-      if (!acc[prod]) acc[prod] = { prod, fab:fab2, sc:0, total:0, temV:false };
-      acc[prod].sc += _sc(p); acc[prod].total++; if (_sit(p)==='vencido') acc[prod].temV=true;
+      if (!acc[prod]) acc[prod] = { prod, fab:fab2, sc:0, total:0 };
+      acc[prod].sc += _sc(p); acc[prod].total++;
       return acc;
     }, {})).sort((a,b)=>b.sc-a.sc);
     if (hdrEl) hdrEl.textContent = sec ? 'Ranking — '+sec : 'Produtos com mais ocorrências de vencimento';
@@ -7936,14 +7951,25 @@ function renderRankingLojas() {
       else insEl.style.display='none';
     }
     if (!porProd.length) { bodyEl.innerHTML='<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Nenhuma ocorrência encontrada para os filtros selecionados.</div>'; return; }
-    bodyEl.innerHTML = porProd.map((r,i)=>`
-      <div class="rank-row" style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid #f1f5f9${i===porProd.length-1?';border-bottom:none':''}">
+    bodyEl.innerHTML = porProd.map((r,i) => {
+      const isOpen = _rankDrillIdx === i;
+      const drillItems = Object.values(
+        view.filter(p => normTxt(p.produto||'')===normTxt(r.prod))
+            .reduce((acc,p) => { const k=p.loja||'—'; if(!acc[k]) acc[k]={nome:k,total:0}; acc[k].total++; return acc; }, {})
+      ).sort((a,b)=>b.total-a.total);
+      const drillHTML = isOpen ? `<div style="background:#fef2f2;border-bottom:0.5px solid #fee2e2;padding:8px 14px 10px 50px">
+        <p style="font-size:12px;font-weight:500;color:#991b1b;margin:0 0 6px">Lojas com este produto vencido</p>
+        ${drillItems.map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0"><span style="font-size:13px;color:#1e293b">${esc(d.nome)}</span><span style="font-size:12px;padding:2px 8px;border-radius:99px;background:#fee2e2;color:#991b1b;font-weight:500">${d.total}×</span></div>`).join('')}
+      </div>` : '';
+      return `<div><div class="rank-row" onclick="_rankToggleDrill(${i})" style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid #f1f5f9;cursor:pointer${isOpen?';background:#fff5f5':''}">
         <div style="width:28px;text-align:center;font-size:13px;font-weight:600;color:#94a3b8;flex-shrink:0">${i+1}º</div>
         <div style="flex:1;min-width:0">
-          <div class="rank-nome" style="font-size:13px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.prod}</div>
+          <div class="rank-nome" style="font-size:13px;font-weight:600;color:${isOpen?'#991b1b':'#1e293b'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.prod)}</div>
           <div style="font-size:11px;color:#94a3b8">${r.fab?r.fab+' · ':''}${r.total} ocorrência${r.total!==1?'s':''}</div>
         </div>
-      </div>`).join('');
+        <i class="ti ti-chevron-${isOpen?'down':'right'}" aria-hidden="true" style="font-size:15px;color:${isOpen?'#991b1b':'#94a3b8'};flex-shrink:0"></i>
+      </div>${drillHTML}</div>`;
+    }).join('');
   }
 }
 
