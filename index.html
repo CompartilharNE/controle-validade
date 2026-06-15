@@ -8431,11 +8431,114 @@ function renderConcChart() {
       </div>`;
     }).join('');
 
-    return `<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px 16px;margin-bottom:10px">
-      <p style="font-size:15px;font-weight:500;color:var(--color-text-primary);margin:0 0 12px 0">${esc(produto)}</p>
+    // Histórico de preços deste produto (todos os registros, ordenados)
+    const histProds = base.filter(p => p.produto === produto && p.historicoPrecos?.length);
+    const histEntries = [];
+    histProds.forEach(p => {
+      (p.historicoPrecos || []).forEach(h => { if (h.preco && h.data) histEntries.push({ preco: Number(h.preco), data: h.data }); });
+    });
+    // Adicionar preço atual de cada produto no histórico
+    base.filter(p => p.produto === produto && p.preco).forEach(p => {
+      const dataAtual = p.dataAtualizacao || p.dataRegistro || '';
+      histEntries.push({ preco: Number(p.preco), data: dataAtual, atual: true });
+    });
+    histEntries.sort((a,b) => a.data.localeCompare(b.data));
+    const histUniq = [];
+    histEntries.forEach(h => { if (!histUniq.length || histUniq[histUniq.length-1].data !== h.data || histUniq[histUniq.length-1].preco !== h.preco) histUniq.push(h); });
+
+    const prodKey = btoa(encodeURIComponent(produto)).replace(/[^a-zA-Z0-9]/g,'').slice(0,20);
+    const btnHist = histUniq.length > 1
+      ? `<button onclick="_toggleHistConc('${prodKey}')" id="btnHC_${prodKey}" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:6px;border:1.5px solid #3b82f6;background:#eff6ff;color:#1d4ed8;font-weight:500;cursor:pointer"><i class="ti ti-chart-line" style="font-size:12px" aria-hidden="true"></i> Histórico (${histUniq.length}×)</button>`
+      : '';
+
+    const histPanelId = 'histPanel_' + prodKey;
+    const histChartId = 'histChart_' + prodKey;
+    const histListaHTML = histUniq.slice().reverse().map((h, i, arr) => {
+      const prev = arr[i + 1];
+      const diff = prev ? h.preco - prev.preco : null;
+      const diffStr = diff === null ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#f1f5f9;color:#64748b">inicial</span>'
+        : diff > 0 ? `<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#166534">↑ +R$ ${diff.toFixed(2).replace('.',',')}</span>`
+        : diff < 0 ? `<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#fee2e2;color:#991b1b">↓ −R$ ${Math.abs(diff).toFixed(2).replace('.',',')}</span>`
+        : `<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#f1f5f9;color:#64748b">sem alteração</span>`;
+      const labelData = h.data ? h.data.split('-').reverse().join('/') : '—';
+      const labelAtual = h.atual ? ' <span style="font-size:10px;color:#94a3b8">— atual</span>' : '';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 6px;background:var(--color-background-primary);border-radius:5px;border:0.5px solid var(--color-border-tertiary);font-size:12px;color:var(--color-text-secondary)">
+        <span>${labelData}${labelAtual}</span>
+        <span style="display:flex;align-items:center;gap:6px"><strong style="color:var(--color-text-primary)">R$ ${h.preco.toFixed(2).replace('.',',')}</strong>${diffStr}</span>
+      </div>`;
+    }).join('');
+
+    const histDatasJS = JSON.stringify(histUniq.map(h => h.data ? h.data.split('-').reverse().join('/') : ''));
+    const histPrecosJS = JSON.stringify(histUniq.map(h => h.preco));
+
+    const histPanel = histUniq.length > 1 ? `
+      <div id="${histPanelId}" style="display:none;margin-top:12px;background:var(--color-background-secondary);border-radius:8px;border:0.5px solid #bfdbfe;padding:12px">
+        <p style="font-size:12px;font-weight:500;color:#1e40af;margin:0 0 10px;display:flex;align-items:center;gap:5px"><i class="ti ti-clock" style="font-size:13px" aria-hidden="true"></i> Evolução do nosso preço</p>
+        <canvas id="${histChartId}" height="120" style="width:100%!important;display:block"></canvas>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-top:10px">${histListaHTML}</div>
+      </div>` : '';
+
+    return `<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px 16px;margin-bottom:10px"
+        data-hist-labels='${histDatasJS}' data-hist-precos='${histPrecosJS}' data-hist-key="${prodKey}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <p style="font-size:15px;font-weight:500;color:var(--color-text-primary);margin:0">${esc(produto)}</p>
+        ${btnHist}
+      </div>
       <div style="display:flex;flex-direction:column;gap:10px">${barras}</div>
+      ${histPanel}
     </div>`;
   }).join('');
+}
+
+// ── Histórico de preço no gráfico de concorrência ──
+var _histConcCharts = {};
+function _toggleHistConc(key) {
+  const panel = document.getElementById('histPanel_' + key);
+  if (!panel) return;
+  const aberto = panel.style.display !== 'none';
+  panel.style.display = aberto ? 'none' : '';
+  const btn = document.getElementById('btnHC_' + key);
+  if (btn) {
+    btn.style.background = aberto ? '#eff6ff' : '#dbeafe';
+  }
+  if (!aberto && !_histConcCharts[key]) {
+    const card = document.querySelector(`[data-hist-key="${key}"]`);
+    if (!card) return;
+    const labels = JSON.parse(card.dataset.histLabels || '[]');
+    const precos = JSON.parse(card.dataset.histPrecos || '[]');
+    const ctx = document.getElementById('histChart_' + key);
+    if (!ctx || labels.length < 2) return;
+    _histConcCharts[key] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data: precos,
+          borderColor: '#2563eb',
+          backgroundColor: '#eff6ff',
+          borderWidth: 2,
+          pointBackgroundColor: '#2563eb',
+          pointRadius: 5,
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => 'R$ ' + c.parsed.y.toFixed(2).replace('.',',') } }
+        },
+        scales: {
+          y: {
+            ticks: { callback: v => 'R$ ' + v.toFixed(2).replace('.',','), font:{size:11} },
+            grid: { color:'#f1f5f9' }
+          },
+          x: { ticks: { font:{size:11} }, grid: { display:false } }
+        }
+      }
+    });
+  }
 }
 
 // ── Accordeão — Filtros Lojas sem lançamento ─
@@ -10808,7 +10911,15 @@ function salvarEdicao() {
   const qtdeAnterior = Number(produtos[idx].quantidade) || 0;
   const qtdeNova     = Number(document.getElementById('edit_quantidade').value) || qtdeAnterior;
   produtos[idx].quantidade = qtdeNova;
-  produtos[idx].preco = Number(document.getElementById('edit_preco').value) || 0;
+  const precoAnterior = Number(produtos[idx].preco) || 0;
+  const precoNovo     = Number(document.getElementById('edit_preco').value) || 0;
+  // Salvar histórico de preço se o valor mudou
+  if (precoAnterior > 0 && precoNovo !== precoAnterior) {
+    const hoje = new Date().toISOString().slice(0,10);
+    if (!Array.isArray(produtos[idx].historicoPrecos)) produtos[idx].historicoPrecos = [];
+    produtos[idx].historicoPrecos.push({ preco: precoAnterior, data: hoje });
+  }
+  produtos[idx].preco = precoNovo;
   if (isAdmin) {
     produtos[idx].promotor = document.getElementById('edit_promotor').value.trim() || produtos[idx].promotor;
     produtos[idx].uf = document.getElementById('edit_uf').value || produtos[idx].uf;
