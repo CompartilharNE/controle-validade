@@ -893,6 +893,10 @@
         style="background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 8px rgba(30,58,95,.35)">
         <i class="ti ti-layout-list" style="font-size:14px" aria-hidden="true"></i> Produtos
       </button>
+      <button id="btnViewRoteirizacao" onclick="setView('roteirizacao')"
+        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
+        <i class="ti ti-route" style="font-size:14px" aria-hidden="true"></i> Roteirização
+      </button>
       <button id="btnViewRanking" onclick="setView('ranking')"
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
         <i class="ti ti-trophy" style="font-size:14px" aria-hidden="true"></i> Ranking
@@ -1948,6 +1952,67 @@
       <span id="cntTotalPC"  class="bg-blue-100 text-blue-800 text-xs font-semibold rounded-full px-3 py-1">PC: —</span>
       <span id="cntTotalKG"  class="bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-full px-3 py-1">KG: —</span>
     </div>
+    <!-- ════════════════════════════════════════
+         Aba: Roteirização
+         ════════════════════════════════════════ -->
+    <div id="viewRoteirizacao" style="display:none;margin-bottom:24px">
+      <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="width:36px;height:36px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center">
+            <i class="ti ti-route" style="font-size:18px;color:#1e40af"></i>
+          </div>
+          <div>
+            <h2 style="font-size:16px;font-weight:700;color:#1e3a5f;margin:0">Roteirização</h2>
+            <p style="font-size:12px;color:#64748b;margin:0">Vincule promotores às lojas e defina os dias de visita</p>
+          </div>
+        </div>
+
+        <!-- Filtro Vendedor (somente admin) -->
+        <div id="rotFiltroVendedor" style="display:none;margin-bottom:12px">
+          <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Vendedor</label>
+          <select id="rotSelVendedor" onchange="rotOnVendedorChange()" style="width:100%;max-width:320px;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white">
+            <option value="">Selecione um vendedor…</option>
+          </select>
+        </div>
+
+        <!-- Filtro Promotor -->
+        <div style="margin-bottom:16px">
+          <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Promotor</label>
+          <select id="rotSelPromotor" onchange="rotOnPromotorChange()" style="width:100%;max-width:320px;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white">
+            <option value="">Selecione um promotor…</option>
+          </select>
+        </div>
+
+        <!-- Barra de progresso -->
+        <div id="rotProgressWrap" style="display:none;margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:600;color:#475569">Lojas vinculadas</span>
+            <span id="rotProgressLabel" style="font-size:12px;font-weight:700;color:#1e40af">0 / 0</span>
+          </div>
+          <div style="background:#e2e8f0;border-radius:99px;height:8px;overflow:hidden">
+            <div id="rotProgressBar" style="height:8px;background:#3b82f6;border-radius:99px;width:0%;transition:width .4s"></div>
+          </div>
+        </div>
+
+        <!-- Lista de lojas -->
+        <div id="rotListaLojas" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:13px;font-weight:600;color:#1e3a5f">Lojas disponíveis</span>
+            <button onclick="salvarRoteirizacao()" style="display:inline-flex;align-items:center;gap:6px;background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 8px rgba(30,58,95,.35)">
+              <i class="ti ti-device-floppy" style="font-size:14px"></i> Salvar
+            </button>
+          </div>
+          <div id="rotLojaBody"></div>
+        </div>
+
+        <!-- Estado vazio -->
+        <div id="rotEmpty" style="text-align:center;padding:32px 16px;color:#94a3b8">
+          <i class="ti ti-route-off" style="font-size:36px;display:block;margin-bottom:8px"></i>
+          <p style="font-size:13px;margin:0">Selecione um promotor para ver as lojas</p>
+        </div>
+      </div>
+    </div>
+
     <!-- ════════════════════════════════════════
          Aba: Ranking de Promotores
          ════════════════════════════════════════ -->
@@ -3665,6 +3730,9 @@ function entrarNoApp(user) {
   // Botão Produtos: visível para todos
   const btnProd3 = document.getElementById('btnViewProdutos');
   if (btnProd3) btnProd3.style.display = 'inline-flex';
+  // Botão Roteirização: visível para admin e vendedor
+  const btnRoteir2 = document.getElementById('btnViewRoteirizacao');
+  if (btnRoteir2) btnRoteir2.style.display = (['admin','vendedor'].includes(user.role)) ? 'inline-flex' : 'none';
   // Botão Ranking: visível para todos os perfis
   const btnRank2 = document.getElementById('btnViewRanking');
   if (btnRank2) btnRank2.style.display = 'inline-flex';
@@ -8616,19 +8684,22 @@ function setView(v) {
   const graficosDiv  = document.getElementById('viewGraficos');
   const historicoDiv = document.getElementById('viewHistorico');
   const selloutDiv   = document.getElementById('viewSellOut');
-  const rankingDiv   = document.getElementById('viewRanking');
+  const rankingDiv      = document.getElementById('viewRanking');
+  const roteirizacaoDiv = document.getElementById('viewRoteirizacao');
   const btnProd      = document.getElementById('btnViewProdutos');
   const btnLojas     = document.getElementById('btnViewLojas');
   const btnGraf      = document.getElementById('btnViewGraficos');
   const btnHist      = document.getElementById('btnViewHistorico');
   const btnSO        = document.getElementById('btnViewSellOut');
   const btnRank      = document.getElementById('btnViewRanking');
+  const btnRoteir    = document.getElementById('btnViewRoteirizacao');
   const _offStyle    = 'transparent';
   // Ocultar tudo primeiro
-  if (graficosDiv)  graficosDiv.style.display  = 'none';
-  if (historicoDiv) historicoDiv.style.display = 'none';
-  if (selloutDiv)   selloutDiv.style.display   = 'none';
-  if (rankingDiv)   rankingDiv.style.display   = 'none';
+  if (graficosDiv)      graficosDiv.style.display      = 'none';
+  if (historicoDiv)     historicoDiv.style.display     = 'none';
+  if (selloutDiv)       selloutDiv.style.display       = 'none';
+  if (rankingDiv)       rankingDiv.style.display       = 'none';
+  if (roteirizacaoDiv)  roteirizacaoDiv.style.display  = 'none';
   // Barra Excel contextual: visível apenas em Produtos e Lojas
   const barExcelV = document.getElementById('barExcelContextual');
   const mostrarExcelV = (v === 'produtos' || v === 'lojas') &&
@@ -8637,10 +8708,11 @@ function setView(v) {
   // Totais filtrados: só na aba Produtos
   const barTotais = document.getElementById('barTotaisFiltrados');
   if (barTotais) barTotais.style.display = v === 'produtos' ? '' : 'none';
-  if (btnGraf) { btnGraf.style.background=_offStyle; btnGraf.style.color='#64748b'; btnGraf.style.border='0.5px solid #cbd5e1'; btnGraf.style.borderBottom=''; btnGraf.style.boxShadow='none'; }
-  if (btnHist) { btnHist.style.background=_offStyle; btnHist.style.color='#64748b'; btnHist.style.border='0.5px solid #cbd5e1'; btnHist.style.borderBottom=''; btnHist.style.boxShadow='none'; }
-  if (btnSO)   { btnSO.style.background  =_offStyle; btnSO.style.color  ='#64748b'; btnSO.style.border  ='0.5px solid #cbd5e1'; btnSO.style.borderBottom='';   btnSO.style.boxShadow='none'; }
-  if (btnRank) { btnRank.style.background=_offStyle; btnRank.style.color='#64748b'; btnRank.style.border='0.5px solid #cbd5e1'; btnRank.style.borderBottom=''; btnRank.style.boxShadow='none'; }
+  if (btnGraf)   { btnGraf.style.background  =_offStyle; btnGraf.style.color  ='#64748b'; btnGraf.style.border  ='0.5px solid #cbd5e1'; btnGraf.style.borderBottom=''; btnGraf.style.boxShadow='none'; }
+  if (btnHist)   { btnHist.style.background  =_offStyle; btnHist.style.color  ='#64748b'; btnHist.style.border  ='0.5px solid #cbd5e1'; btnHist.style.borderBottom=''; btnHist.style.boxShadow='none'; }
+  if (btnSO)     { btnSO.style.background    =_offStyle; btnSO.style.color    ='#64748b'; btnSO.style.border    ='0.5px solid #cbd5e1'; btnSO.style.borderBottom=''; btnSO.style.boxShadow='none'; }
+  if (btnRank)   { btnRank.style.background  =_offStyle; btnRank.style.color  ='#64748b'; btnRank.style.border  ='0.5px solid #cbd5e1'; btnRank.style.borderBottom=''; btnRank.style.boxShadow='none'; }
+  if (btnRoteir) { btnRoteir.style.background=_offStyle; btnRoteir.style.color='#64748b'; btnRoteir.style.border='0.5px solid #cbd5e1'; btnRoteir.style.borderBottom=''; btnRoteir.style.boxShadow='none'; }
   // Ocultar formulário de adicionar produto quando não está na aba Produtos
   const formWrap = document.getElementById('formAdicionarWrap');
   if (formWrap) {
@@ -8787,6 +8859,20 @@ function setView(v) {
       }
       return;
     }
+    if (v === 'roteirizacao') {
+      if (tabelaDiv)        tabelaDiv.style.display       = 'none';
+      if (lojasDiv)         lojasDiv.classList.add('hidden');
+      if (roteirizacaoDiv)  roteirizacaoDiv.style.display  = 'block';
+      if (cardFiltroProd)   cardFiltroProd.style.display   = 'none';
+      const _fdbRot = document.getElementById('filtroDataBadge'); if (_fdbRot) _fdbRot.style.display = 'none';
+      btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
+      if (btnLojas)  { btnLojas.style.background  = 'transparent'; btnLojas.style.color  = '#64748b'; btnLojas.style.border  = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom  = ''; btnLojas.style.boxShadow  = 'none'; }
+      if (btnRoteir) { btnRoteir.style.background = '#1e3a5f'; btnRoteir.style.color = 'white'; btnRoteir.style.border = 'none'; btnRoteir.style.borderBottom = '3px solid #0c1f35'; btnRoteir.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)'; }
+      const btnXLRot = document.getElementById('btnExportCSV');
+      if (btnXLRot) { btnXLRot.style.display = 'none'; btnXLRot.classList.add('hidden'); }
+      initRoteirizacao();
+      return;
+    }
     if (v === 'ranking') {
       if (tabelaDiv)    tabelaDiv.style.display  = 'none';
       if (lojasDiv)     lojasDiv.classList.add('hidden');
@@ -8813,6 +8899,262 @@ function setView(v) {
       btnXL2.style.background = '#1e3a5f';
     }
     if (btnXLCtx2) btnXLCtx2.textContent = 'Produtos';
+  }
+}
+
+// ══════════════════════════════════════════════
+// ── ROTEIRIZAÇÃO ──────────────────────────────
+// ══════════════════════════════════════════════
+
+// Estado local da roteirização (alterações não salvas)
+let _rotState = {}; // { lojaId: { vinculada: bool, dias: ['Seg','Ter',...] } }
+
+function initRoteirizacao() {
+  const isAdmin  = sessao?.role === 'admin';
+  const isVend   = sessao?.role === 'vendedor';
+  const filtroVend = document.getElementById('rotFiltroVendedor');
+  const selVend    = document.getElementById('rotSelVendedor');
+  const selProm    = document.getElementById('rotSelPromotor');
+
+  // Mostrar filtro de vendedor só para admin
+  if (filtroVend) filtroVend.style.display = isAdmin ? '' : 'none';
+
+  if (isAdmin) {
+    // Popular dropdown de vendedores
+    const vendedores = usuarios.filter(u => u.role === 'vendedor').sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR'));
+    const cv = selVend ? selVend.value : '';
+    if (selVend) {
+      selVend.innerHTML = '<option value="">Selecione um vendedor…</option>' +
+        vendedores.map(v => {
+          const ufsStr = (v.ufs||[]).join(' · ');
+          const label  = ufsStr ? `${v.nome} (${ufsStr})` : v.nome;
+          return `<option value="${esc(v.nome)}" ${v.nome===cv?'selected':''}>${esc(label)}</option>`;
+        }).join('');
+    }
+    // Só popular promotores se já tiver vendedor selecionado
+    if (selVend && selVend.value) {
+      _rotPopularPromotores(selVend.value);
+    } else {
+      if (selProm) selProm.innerHTML = '<option value="">Selecione um promotor…</option>';
+      _rotMostrarListaLojas(null);
+    }
+  } else if (isVend) {
+    // Promotores da UF do vendedor
+    _rotPopularPromotores(null);
+    if (selProm && selProm.value) _rotCarregarLojas(selProm.value);
+  }
+}
+
+function _rotPopularPromotores(vendedorNome) {
+  const selProm = document.getElementById('rotSelPromotor');
+  if (!selProm) return;
+  // Obter lista de promotores a partir de `usuarios`
+  let todosProms = usuarios.filter(u => u.role === 'promotor');
+  // Complementar com nomes que aparecem em produtos mas não estão em usuarios
+  const nomesExtras = [...new Set(produtos.map(p => p.promotor).filter(Boolean))];
+  nomesExtras.forEach(n => { if (!todosProms.find(u => u.nome === n)) todosProms.push({ nome: n, uf: '' }); });
+
+  let proms;
+  if (vendedorNome) {
+    const vend = usuarios.find(u => u.nome === vendedorNome && u.role === 'vendedor');
+    const ufsVend = vend?.ufs || [];
+    proms = todosProms.filter(p => !p.uf || ufsVend.includes(p.uf));
+  } else if (sessao?.role === 'vendedor') {
+    const ufsVend = sessao.ufs || [];
+    proms = todosProms.filter(p => !p.uf || ufsVend.includes(p.uf));
+  } else {
+    proms = todosProms;
+  }
+  proms = proms.sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  const cv = selProm.value;
+  selProm.innerHTML = '<option value="">Selecione um promotor…</option>' +
+    proms.map(p => `<option value="${esc(p.nome)}" ${p.nome===cv?'selected':''}>${esc(p.nome)}</option>`).join('');
+  _rotMostrarListaLojas(null);
+}
+
+function rotOnVendedorChange() {
+  const selVend = document.getElementById('rotSelVendedor');
+  _rotState = {};
+  _rotPopularPromotores(selVend.value || null);
+}
+
+function rotOnPromotorChange() {
+  const selProm = document.getElementById('rotSelPromotor');
+  _rotState = {};
+  _rotCarregarLojas(selProm.value || null);
+}
+
+function _rotCarregarLojas(promotorNome) {
+  if (!promotorNome) { _rotMostrarListaLojas(null); return; }
+  // Carregar lojas do Firebase (ou usar array em memória) e pré-marcar as vinculadas
+  // Determinar UF do promotor para filtrar lojas
+  const prom = usuarios.find(u => u.nome === promotorNome && u.role === 'promotor');
+  const ufProm = prom?.uf || null;
+  // Lojas: usar array `lojas` já em memória, filtrar pela UF do promotor se disponível
+  let lojasDisp = ufProm ? lojas.filter(l => l.uf === ufProm) : lojas;
+  lojasDisp = [...lojasDisp].sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  // Montar estado inicial: vinculada se promotorResponsavel === promotorNome
+  _rotState = {};
+  lojasDisp.forEach(l => {
+    const vinculada = (l.promotorResponsavel || '') === promotorNome;
+    const dias = vinculada ? (l.diasVisita || []) : [];
+    _rotState[String(l.id)] = { vinculada, dias: [...dias] };
+  });
+  _rotMostrarListaLojas(lojasDisp);
+}
+
+function _rotMostrarListaLojas(lojasDisp) {
+  const listDiv     = document.getElementById('rotListaLojas');
+  const emptyDiv    = document.getElementById('rotEmpty');
+  const progressWrap= document.getElementById('rotProgressWrap');
+
+  if (!lojasDisp || !lojasDisp.length) {
+    if (listDiv)      listDiv.style.display    = 'none';
+    if (emptyDiv)     emptyDiv.style.display   = '';
+    if (progressWrap) progressWrap.style.display = 'none';
+    return;
+  }
+
+  if (emptyDiv)     emptyDiv.style.display   = 'none';
+  if (listDiv)      listDiv.style.display    = '';
+  if (progressWrap) progressWrap.style.display = '';
+
+  _rotRenderLojas(lojasDisp);
+  _rotAtualizarProgress(lojasDisp.length);
+}
+
+const _DIAS_SEMANA = ['Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function _rotRenderLojas(lojasDisp) {
+  const body = document.getElementById('rotLojaBody');
+  if (!body) return;
+  body.innerHTML = lojasDisp.map(l => {
+    const lid = String(l.id);
+    const st = _rotState[lid] || { vinculada: false, dias: [] };
+    const diasHTML = _DIAS_SEMANA.map(d => {
+      const ativo = st.dias.includes(d);
+      const disabled = !st.vinculada;
+      return `<button
+        onclick="_rotToggleDia('${lid}',this,'${d}')"
+        data-dia="${d}"
+        ${disabled ? 'disabled' : ''}
+        style="padding:4px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid ${ativo && !disabled ? '#3b82f6' : '#cbd5e1'};background:${ativo && !disabled ? '#dbeafe' : 'white'};color:${ativo && !disabled ? '#1e40af' : '#94a3b8'};cursor:${disabled ? 'not-allowed' : 'pointer'};opacity:${disabled ? '.45' : '1'};transition:all .15s"
+      >${d}</button>`;
+    }).join('');
+    return `<div id="rotRow_${lid}" style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;min-width:160px">
+          <input type="checkbox" id="rotChk_${lid}" onchange="_rotToggleLoja('${lid}',this)"
+            ${st.vinculada ? 'checked' : ''}
+            style="width:16px;height:16px;accent-color:#1e40af;cursor:pointer">
+          <span style="font-size:13px;font-weight:600;color:#1e293b">${esc(l.nome||l.id)}</span>
+          ${l.rede ? `<span style="font-size:11px;color:#64748b;background:#f1f5f9;padding:2px 7px;border-radius:99px">${esc(l.rede)}</span>` : ''}
+        </label>
+        <div style="display:flex;gap:4px;flex-wrap:wrap" id="rotDias_${lid}">${diasHTML}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _rotToggleLoja(lojaId, chkEl) {
+  const lid = String(lojaId);
+  if (!_rotState[lid]) _rotState[lid] = { vinculada: false, dias: [] };
+  _rotState[lid].vinculada = chkEl.checked;
+  if (!chkEl.checked) _rotState[lid].dias = [];
+  // Re-render botões de dias desta loja
+  const diasDiv = document.getElementById('rotDias_' + lid);
+  if (diasDiv) {
+    const st = _rotState[lid];
+    diasDiv.innerHTML = _DIAS_SEMANA.map(d => {
+      const ativo = st.dias.includes(d);
+      return `<button
+        onclick="_rotToggleDia('${lojaId}',this,'${d}')"
+        data-dia="${d}"
+        ${!st.vinculada ? 'disabled' : ''}
+        style="padding:4px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid ${ativo ? '#3b82f6' : '#cbd5e1'};background:${ativo ? '#dbeafe' : 'white'};color:${ativo ? '#1e40af' : '#94a3b8'};cursor:${!st.vinculada ? 'not-allowed' : 'pointer'};opacity:${!st.vinculada ? '.45' : '1'};transition:all .15s"
+      >${d}</button>`;
+    }).join('');
+  }
+  // Atualizar barra de progresso
+  const total = Object.keys(_rotState).length;
+  _rotAtualizarProgress(total);
+}
+
+function _rotToggleDia(lojaId, btn, dia) {
+  const lid = String(lojaId);
+  if (!_rotState[lid]) return;
+  const dias = _rotState[lid].dias;
+  const idx = dias.indexOf(dia);
+  if (idx >= 0) {
+    dias.splice(idx, 1);
+    btn.style.background  = 'white';
+    btn.style.color       = '#94a3b8';
+    btn.style.borderColor = '#cbd5e1';
+  } else {
+    dias.push(dia);
+    btn.style.background  = '#dbeafe';
+    btn.style.color       = '#1e40af';
+    btn.style.borderColor = '#3b82f6';
+  }
+}
+
+function _rotAtualizarProgress(total) {
+  const vinculadas = Object.values(_rotState).filter(s => s.vinculada).length;
+  const pct = total > 0 ? Math.round(vinculadas / total * 100) : 0;
+  const lbl = document.getElementById('rotProgressLabel');
+  const bar = document.getElementById('rotProgressBar');
+  if (lbl) lbl.textContent = `${vinculadas} / ${total}`;
+  if (bar) bar.style.width = pct + '%';
+}
+
+async function salvarRoteirizacao() {
+  const selProm = document.getElementById('rotSelPromotor');
+  const promotorNome = selProm?.value;
+  if (!promotorNome) { alert('Selecione um promotor antes de salvar.'); return; }
+
+  const btnSalvar = document.querySelector('#rotListaLojas button');
+  if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.textContent = 'Salvando…'; }
+
+  try {
+    const batch = db.batch();
+
+    for (const [lojaId, st] of Object.entries(_rotState)) {
+      const ref = FS_LOJAS.doc(String(lojaId));
+      if (st.vinculada) {
+        batch.update(ref, { promotorResponsavel: promotorNome, diasVisita: st.dias });
+      } else {
+        // Se essa loja estava com esse promotor, limpar
+        const lojaLocal = lojas.find(l => String(l.id) === String(lojaId));
+        if (lojaLocal && (lojaLocal.promotorResponsavel || '') === promotorNome) {
+          batch.update(ref, { promotorResponsavel: '', diasVisita: [] });
+        }
+      }
+    }
+
+    await batch.commit();
+
+    // Atualizar array local
+    for (const [lojaId, st] of Object.entries(_rotState)) {
+      const lojaLocal = lojas.find(l => String(l.id) === String(lojaId));
+      if (lojaLocal) {
+        if (st.vinculada) {
+          lojaLocal.promotorResponsavel = promotorNome;
+          lojaLocal.diasVisita = [...st.dias];
+        } else if ((lojaLocal.promotorResponsavel || '') === promotorNome) {
+          lojaLocal.promotorResponsavel = '';
+          lojaLocal.diasVisita = [];
+        }
+      }
+    }
+
+    if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ti ti-check" style="font-size:14px"></i> Salvo!'; }
+    setTimeout(() => {
+      if (btnSalvar) btnSalvar.innerHTML = '<i class="ti ti-device-floppy" style="font-size:14px"></i> Salvar';
+    }, 2000);
+  } catch (e) {
+    console.error('Erro ao salvar roteirização:', e);
+    alert('Erro ao salvar: ' + e.message);
+    if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ti ti-device-floppy" style="font-size:14px"></i> Salvar'; }
   }
 }
 
