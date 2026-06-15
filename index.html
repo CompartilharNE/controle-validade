@@ -707,6 +707,11 @@
               <option value="diretor">Diretor</option>
             </select>
           </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-slate-600">Telefone (WhatsApp)</label>
+            <input id="u_telefone" type="tel" placeholder="Ex: 81999999999"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
           <div class="flex flex-col gap-1 col-span-2" id="u_uf_container">
             <label class="text-xs font-medium text-slate-600">UF do Promotor</label>
             <select id="u_uf" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
@@ -725,6 +730,12 @@
               <label class="flex items-center gap-1 text-xs"><input type="checkbox" value="RN"> RN</label>
               <label class="flex items-center gap-1 text-xs"><input type="checkbox" value="SE"> SE</label>
             </div>
+          </div>
+          <div class="flex flex-col gap-1 col-span-2" id="u_vendresp_container">
+            <label class="text-xs font-medium text-slate-600">Vendedor Responsável</label>
+            <select id="u_vendresp" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+              <option value="">Selecione</option>
+            </select>
           </div>
           <div class="col-span-2 flex gap-2 pt-1">
             <button onclick="salvarUsuario()"
@@ -747,7 +758,7 @@
         </div>
         <div class="overflow-x-auto">
           <table>
-            <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>UF(s)</th><th>Ação</th></tr></thead>
+            <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>UF(s)</th><th>Telefone</th><th>Ação</th></tr></thead>
             <tbody id="corpoUsuarios"></tbody>
           </table>
         </div>
@@ -3095,6 +3106,11 @@
           <option value="diretor">Diretor</option>
         </select>
       </div>
+      <div class="flex flex-col gap-1 col-span-2">
+        <label class="text-xs font-medium text-slate-600">Telefone (WhatsApp)</label>
+        <input id="eu_telefone" type="tel" placeholder="Ex: 81999999999"
+          class="border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+      </div>
       <div class="flex flex-col gap-1 col-span-2" id="eu_uf_container" style="display:none">
         <label class="text-xs font-medium text-slate-600">UF do Promotor</label>
         <select id="eu_uf" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
@@ -3113,6 +3129,12 @@
           <label class="flex items-center gap-1 text-xs"><input type="checkbox" value="RN"> RN</label>
           <label class="flex items-center gap-1 text-xs"><input type="checkbox" value="SE"> SE</label>
         </div>
+      </div>
+      <div class="flex flex-col gap-1 col-span-2" id="eu_vendresp_container" style="display:none">
+        <label class="text-xs font-medium text-slate-600">Vendedor Responsável</label>
+        <select id="eu_vendresp" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+          <option value="">Selecione</option>
+        </select>
       </div>
       <div class="col-span-2 flex gap-2 pt-1">
         <button onclick="salvarEdicaoUsuario()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm transition">Salvar</button>
@@ -4910,13 +4932,15 @@ function salvarUsuario() {
   if (!nome||!usuario||!senha) { showToast('⚠️ Preencha todos os campos.','#92400e'); return; }
   if (senha.length<4) { showToast('⚠️ Senha: mínimo 4 caracteres.','#92400e'); return; }
   if (usuarios.find(u=>u.usuario===usuario)) { showToast('⚠️ Login já existe.','#92400e'); return; }
-  let uf = '', ufs = [];
+  let uf = '', ufs = [], vendedorResponsavel = '';
+  const telefone = (document.getElementById('u_telefone')?.value || '').trim().replace(/\D/g,'');
   if (role === 'promotor') {
     uf = document.getElementById('u_uf')?.value || '';
+    vendedorResponsavel = document.getElementById('u_vendresp')?.value || '';
   } else if (role === 'vendedor') {
     ufs = Array.from(document.querySelectorAll('#u_ufs_checkboxes input[type=checkbox]:checked')).map(cb => cb.value);
   }
-  usuarios.push({id:Date.now(), nome, usuario, senha, role, uf, ufs});
+  usuarios.push({id:Date.now(), nome, usuario, senha, role, uf, ufs, vendedorResponsavel, telefone});
   salvarUsuarios(); limparFormUsuario(); renderUsuarios();
   showToast('✅ Usuário criado!','#166534');
 }
@@ -4936,6 +4960,12 @@ function limparFormUsuario() {
   document.getElementById('u_uf_container').style.display='';
   document.getElementById('u_ufs_vendedor_container').style.display='none';
   document.querySelectorAll('#u_ufs_checkboxes input[type=checkbox]').forEach(cb=>cb.checked=false);
+  const vendrespEl = document.getElementById('u_vendresp');
+  if (vendrespEl) vendrespEl.value='';
+  const vendrespContainer = document.getElementById('u_vendresp_container');
+  if (vendrespContainer) vendrespContainer.style.display='';
+  const telEl = document.getElementById('u_telefone');
+  if (telEl) telEl.value='';
 }
 function salvarUsuarios() { FS_CFG_USUARIOS.set({ lista: usuarios }); }
 function renderUsuarios() {
@@ -4953,7 +4983,11 @@ function renderUsuarios() {
   }
   function ufDisplay(u) {
     if (u.role==='vendedor' && u.ufs && u.ufs.length) return u.ufs.join(', ');
-    if (u.role==='promotor' && u.uf) return u.uf;
+    if (u.role==='promotor') {
+      let txt = u.uf || '—';
+      if (u.vendedorResponsavel) txt += ` · ${u.vendedorResponsavel}`;
+      return txt;
+    }
     if (u.role==='diretor')  return 'Todos';
     return '—';
   }
@@ -4962,6 +4996,7 @@ function renderUsuarios() {
     <td class="font-mono text-xs">${esc(u.usuario)}</td>
     <td><span class="${roleCls(u)}">${roleBadge(u)}</span></td>
     <td class="text-xs text-slate-500">${ufDisplay(u)}</td>
+    <td class="text-xs text-slate-500">${u.telefone ? esc(u.telefone) : '—'}</td>
     <td class="text-center">
       <button onclick="abrirEditUsuario(${u.id})" class="text-blue-500 hover:text-blue-700 font-bold text-base px-1" title="Editar">✏️</button>
       ${u.id!==sessao?.id?`<button onclick="deletarUsuario(${u.id})" class="text-red-500 hover:text-red-700 font-bold text-lg px-1">×</button>`:'<span class="text-slate-300 text-xs">você</span>'}
@@ -8985,18 +9020,21 @@ function _rotPopularPromotores(vendedorNome) {
 
   let proms;
   if (vendedorNome) {
+    // Filtrar por vendedorResponsavel; fallback UF para promotores sem campo preenchido
     const vend = usuarios.find(u => u.nome === vendedorNome && u.role === 'vendedor');
     const ufsVend = vend?.ufs || [];
-    // Filtrar por UF do promotor OU pela UF dos produtos que ele registrou
     proms = todosProms.filter(p => {
+      if (p.vendedorResponsavel) return p.vendedorResponsavel === vendedorNome;
+      // fallback legado: sem vendedorResponsavel, usa UF
       if (p.uf && ufsVend.includes(p.uf)) return true;
-      // fallback: UFs dos produtos que esse promotor registrou
       const ufsProds = [...new Set(produtos.filter(pr => pr.promotor === p.nome).map(pr => pr.uf).filter(Boolean))];
       return ufsProds.some(u => ufsVend.includes(u));
     });
   } else if (sessao?.role === 'vendedor') {
     const ufsVend = sessao.ufs || [];
     proms = todosProms.filter(p => {
+      if (p.vendedorResponsavel) return p.vendedorResponsavel === sessao.nome;
+      // fallback legado
       if (p.uf && ufsVend.includes(p.uf)) return true;
       const ufsProds = [...new Set(produtos.filter(pr => pr.promotor === p.nome).map(pr => pr.uf).filter(Boolean))];
       return ufsProds.some(u => ufsVend.includes(u));
@@ -9479,9 +9517,14 @@ function loadRanking() {
   if (role === 'promotor') {
     promotoresBase = [meuNome];
   } else if (role === 'vendedor') {
-    promotoresBase = [...new Set(
-      produtos.filter(p => minhasUFs.includes(p.uf)).map(p => p.promotor).filter(Boolean)
-    )];
+    // Primário: promotores com vendedorResponsavel definido para este vendedor
+    promotoresBase = usuarios.filter(u => u.role === 'promotor' && u.vendedorResponsavel === meuNome).map(u => u.nome);
+    // Fallback legado: promotores sem vendedorResponsavel que atuam nas UFs deste vendedor
+    const fromProds = [...new Set(produtos.filter(p => minhasUFs.includes(p.uf)).map(p => p.promotor).filter(Boolean))];
+    fromProds.forEach(n => {
+      const usr = usuarios.find(u => u.nome === n && u.role === 'promotor');
+      if (!usr || !usr.vendedorResponsavel) { if (!promotoresBase.includes(n)) promotoresBase.push(n); }
+    });
   } else {
     promotoresBase = [...new Set(usuarios.filter(u => u.role === 'promotor').map(u => u.nome))];
     const dosProd = [...new Set(produtos.map(p => p.promotor).filter(Boolean))];
@@ -12473,13 +12516,28 @@ function abrirEditUsuario(id) {
   document.querySelectorAll('#eu_ufs_checkboxes input[type=checkbox]').forEach(cb => {
     cb.checked = u.ufs && u.ufs.includes(cb.value);
   });
+  const euTelEl = document.getElementById('eu_telefone');
+  if (euTelEl) euTelEl.value = u.telefone || '';
   toggleUFFieldEdit();
+  // Preencher vendedor responsável depois de toggleUFFieldEdit (que popula as opções)
+  const euVendResp = document.getElementById('eu_vendresp');
+  if (euVendResp) euVendResp.value = u.vendedorResponsavel || '';
   document.getElementById('editUsuarioModal').classList.remove('hidden');
 }
 function toggleUFFieldEdit() {
   const role = document.getElementById('eu_role').value;
   document.getElementById('eu_uf_container').style.display = role === 'promotor' ? '' : 'none';
   document.getElementById('eu_ufs_vendedor_container').style.display = role === 'vendedor' ? '' : 'none';
+  const vrc = document.getElementById('eu_vendresp_container');
+  if (vrc) {
+    vrc.style.display = role === 'promotor' ? '' : 'none';
+    if (role === 'promotor') {
+      const sel = document.getElementById('eu_vendresp');
+      const cv = sel ? sel.value : '';
+      const vends = usuarios.filter(u => u.role === 'vendedor').sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
+      if (sel) sel.innerHTML = '<option value="">Selecione</option>' + vends.map(v => `<option value="${esc(v.nome)}" ${v.nome===cv?'selected':''}>${esc(v.nome)}</option>`).join('');
+    }
+  }
 }
 
 function salvarEdicaoUsuario() {
@@ -12497,16 +12555,20 @@ function salvarEdicaoUsuario() {
   if (senha && senha.length >= 4) usuarios[idx].senha = senha;
   else if (senha && senha.length > 0) { showToast('⚠️ Senha: mínimo 4 caracteres.','#92400e'); return; }
   usuarios[idx].role = role;
+  usuarios[idx].telefone = (document.getElementById('eu_telefone')?.value || '').trim().replace(/\D/g,'');
   if (role === 'promotor') {
     usuarios[idx].uf = document.getElementById('eu_uf').value;
     usuarios[idx].ufs = [];
+    usuarios[idx].vendedorResponsavel = document.getElementById('eu_vendresp')?.value || '';
   } else if (role === 'vendedor') {
     const ufs = Array.from(document.querySelectorAll('#eu_ufs_checkboxes input[type=checkbox]:checked')).map(cb => cb.value);
     usuarios[idx].ufs = ufs;
     usuarios[idx].uf = '';
+    usuarios[idx].vendedorResponsavel = '';
   } else {
     usuarios[idx].uf = '';
     usuarios[idx].ufs = [];
+    usuarios[idx].vendedorResponsavel = '';
   }
   salvarUsuarios(); renderUsuarios();
   document.getElementById('editUsuarioModal').classList.add('hidden');
@@ -12518,7 +12580,16 @@ function toggleUFField() {
   const role = document.getElementById('u_role').value;
   document.getElementById('u_uf_container').style.display = role === 'promotor' ? '' : 'none';
   document.getElementById('u_ufs_vendedor_container').style.display = role === 'vendedor' ? '' : 'none';
-  // Diretor não precisa de UF
+  const vrc = document.getElementById('u_vendresp_container');
+  if (vrc) {
+    vrc.style.display = role === 'promotor' ? '' : 'none';
+    if (role === 'promotor') {
+      const sel = document.getElementById('u_vendresp');
+      const cv = sel ? sel.value : '';
+      const vends = usuarios.filter(u => u.role === 'vendedor').sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
+      if (sel) sel.innerHTML = '<option value="">Selecione</option>' + vends.map(v => `<option value="${esc(v.nome)}" ${v.nome===cv?'selected':''}>${esc(v.nome)}</option>`).join('');
+    }
+  }
 }
 
 // ── Alerta de vencimento ──────────────────────
