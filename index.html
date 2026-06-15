@@ -2014,7 +2014,7 @@
         <div id="rotProgressWrap" style="display:none;margin-bottom:12px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <span style="font-size:12px;font-weight:600;color:#475569">Lojas vinculadas: <span id="rotProgressLabel" style="color:#1e40af">0 / 0</span></span>
-            <button onclick="salvarRoteirizacao()" style="display:inline-flex;align-items:center;gap:6px;background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 8px rgba(30,58,95,.35)">
+            <button id="rotBtnSalvar" onclick="salvarRoteirizacao()" style="display:inline-flex;align-items:center;gap:6px;background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 8px rgba(30,58,95,.35)">
               <i class="ti ti-device-floppy" style="font-size:13px"></i> Salvar
             </button>
           </div>
@@ -9210,6 +9210,7 @@ function _rotRenderLojas(lojasDisp) {
           <span style="font-size:13px;font-weight:600;color:#1e293b">${esc(l.nome||l.id)}</span>
           ${l.rede ? `<span style="font-size:11px;color:#64748b;background:#f1f5f9;padding:2px 7px;border-radius:99px">${esc(l.rede)}</span>` : ''}
         </label>
+        <span id="rotSalvo_${lid}" style="display:none;font-size:11px;font-weight:700;color:#16a34a;padding:2px 9px;background:#dcfce7;border-radius:99px;border:1px solid #bbf7d0">✓ Salvo</span>
         <div style="display:flex;gap:4px;flex-wrap:wrap" id="rotDias_${lid}">${diasHTML}</div>
       </div>
     </div>`;
@@ -9365,8 +9366,8 @@ async function salvarRoteirizacao() {
   const promotorNome = selProm?.value;
   if (!promotorNome) { alert('Selecione um promotor antes de salvar.'); return; }
 
-  const btnSalvar = document.querySelector('#rotListaLojas button');
-  if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.textContent = 'Salvando…'; }
+  const btnSalvar = document.getElementById('rotBtnSalvar');
+  if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.innerHTML = '<i class="ti ti-loader" style="font-size:13px"></i> Salvando…'; }
 
   try {
     const batch = db.batch();
@@ -9401,6 +9402,11 @@ async function salvarRoteirizacao() {
     }
 
     if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ti ti-check" style="font-size:14px"></i> Salvo!'; }
+    // Mostrar badge verde "✓ Salvo" em cada linha vinculada
+    for (const [lojaId, st] of Object.entries(_rotState)) {
+      const badge = document.getElementById('rotSalvo_' + lojaId);
+      if (badge) badge.style.display = st.vinculada ? '' : 'none';
+    }
     renderRotRelatorio();
     setTimeout(() => {
       if (btnSalvar) btnSalvar.innerHTML = '<i class="ti ti-device-floppy" style="font-size:14px"></i> Salvar';
