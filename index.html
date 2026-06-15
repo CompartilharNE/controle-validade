@@ -9081,8 +9081,11 @@ function _rotPopularSelMes() {
 }
 
 function rotOnMesChange() {
+  _rotRelCache = {}; // limpa cache ao trocar mês
+  _rotRelDrillIdx = -1;
   const promotorNome = document.getElementById('rotSelPromotor')?.value || '';
   if (promotorNome) _rotCarregarLojas(promotorNome);
+  renderRotRelatorio();
 }
 
 async function rotCopiarMesAnterior() {
@@ -9227,9 +9230,11 @@ function _rotAplicarFiltros() {
   const infoEl   = document.getElementById('rotBuscaInfo');
   const vinculadas = _rotLojasTodas.filter(l => _rotState[String(l.id)]?.vinculada);
 
-  if (!busca && !rede) {
+  // Só mostra resultados quando há texto digitado; rede é filtro secundário
+  if (!busca) {
     if (listDiv)   listDiv.style.display  = 'none';
     if (dicaBusca) dicaBusca.style.display = vinculadas.length ? 'none' : '';
+    if (infoEl)    infoEl.textContent = '';
     return;
   }
 
@@ -9270,6 +9275,14 @@ async function _rotCarregarLojas(promotorNome) {
     if (doc.exists) { roteiroLojas = doc.data().lojas || []; roteiroExiste = true; }
   } catch(e) { console.error('Erro ao carregar roteiro:', e); }
 
+  // Fallback: se não há roteiro no mês, usar loja.promotorResponsavel (sistema antigo)
+  if (!roteiroExiste) {
+    const lojasAntigas = lojas.filter(l => (l.promotorResponsavel || '') === promotorNome);
+    if (lojasAntigas.length) {
+      roteiroLojas = lojasAntigas.map(l => ({ lojaId: String(l.id), dias: l.diasVisita || [] }));
+    }
+  }
+
   const idsVinculadas = new Set(roteiroLojas.map(r => String(r.lojaId)));
 
   let lojasDisp;
@@ -9278,6 +9291,13 @@ async function _rotCarregarLojas(promotorNome) {
   } else {
     lojasDisp = [...lojas];
   }
+  // Garantir que lojas vinculadas apareçam mesmo fora da UF do promotor
+  idsVinculadas.forEach(id => {
+    if (!lojasDisp.find(l => String(l.id) === id)) {
+      const loja = lojas.find(l => String(l.id) === id);
+      if (loja) lojasDisp.push(loja);
+    }
+  });
   lojasDisp = [...lojasDisp].sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
 
   // Montar _rotState a partir do roteiro do mês
@@ -9461,33 +9481,26 @@ function renderRotRelatorio() {
   const body   = document.getElementById('rotRelatorioBody');
   if (!painel || !body) return;
 
-  // Montar lista de promotores acessíveis ao usuário atual
-  const isAdmin = sessao?.role === 'admin';
-  const isVend  = sessao?.role === 'vendedor';
-  let promsNomes = [];
-  if (isAdmin) {
-    promsNomes = [...new Set([
-      ...usuarios.filter(u => u.role === 'promotor').map(u => u.nome),
-      ...produtos.map(p => p.promotor).filter(Boolean)
-    ])];
-  } else if (isVend) {
-    const ufsVend = sessao.ufs || [];
-    promsNomes = [...new Set([
-      ...usuarios.filter(u => u.role === 'promotor' && ufsVend.includes(u.uf)).map(u => u.nome),
-      ...produtos.filter(p => ufsVend.includes(p.uf)).map(p => p.promotor).filter(Boolean)
-    ])];
-  }
-  promsNomes = promsNomes.sort((a,b) => a.localeCompare(b,'pt-BR'));
-
+  const promsNomes = _rotRelGetProms();
   if (!promsNomes.length) { painel.style.display = 'none'; return; }
   painel.style.display = '';
 
   body.innerHTML = promsNomes.map((nome, idx) => {
-    // Lojas vinculadas a este promotor
-    const lojasVinc = lojas.filter(l => (l.promotorResponsavel || '') === nome);
-    const ufsStr = [...new Set(lojasVinc.map(l => l.uf).filter(Boolean))].sort().join(', ');
-    const totalVinc = lojasVinc.length;
     const isOpen = _rotRelDrillIdx === idx;
+
+    // Contar lojas vinculadas: preferir cache do FS_ROTEIROS, fallback para lojas array
+    const cached = _rotRelCache[nome];
+    const lojasRoteiro = cached?.lojas || [];
+    const lojasVincFallback = lojas.filter(l => (l.promotorResponsavel || '') === nome);
+    const totalVinc = lojasRoteiro.length || lojasVincFallback.length;
+
+    // UFs para exibição no subtítulo
+    const lojasIds = lojasRoteiro.length
+      ? lojasRoteiro.map(r => String(r.lojaId))
+      : lojasVincFallback.map(l => String(l.id));
+    const ufsStr = [...new Set(
+      lojasIds.map(id => lojas.find(l => String(l.id) === id)?.uf).filter(Boolean)
+    )].sort().join(', ');
 
     // Iniciais
     const partes = nome.trim().split(' ');
@@ -9497,27 +9510,37 @@ function renderRotRelatorio() {
 
     let drillHTML = '';
     if (isOpen) {
-      if (!totalVinc) {
+      if (!cached) {
+        // Ainda carregando
+        drillHTML = `<div style="padding:12px 14px;border-top:1px solid #f1f5f9;color:#94a3b8;font-size:12px;text-align:center">
+          <i class="ti ti-loader" style="font-size:14px"></i> Carregando...
+        </div>`;
+      } else if (!totalVinc) {
         drillHTML = `<div style="padding:12px 14px;border-top:1px solid #f1f5f9;color:#94a3b8;font-size:12px;text-align:center">Nenhuma loja vinculada ainda</div>`;
       } else {
-        // Grade semanal: para cada dia, quais lojas visitam nesse dia
+        // Montar grade usando dados do cache ou fallback
+        const getLojaNome = id => lojas.find(l => String(l.id) === id)?.nome || id;
+        const entries = lojasRoteiro.length
+          ? lojasRoteiro.map(r => ({ nome: getLojaNome(String(r.lojaId)), dias: r.dias || [] }))
+          : lojasVincFallback.map(l => ({ nome: l.nome || l.id, dias: l.diasVisita || [] }));
+
         const grade = _DIAS_ORD.map(dia => ({
           dia,
-          lojas: lojasVinc.filter(l => (l.diasVisita || []).includes(dia))
+          nomes: entries.filter(e => e.dias.includes(dia)).map(e => e.nome)
         }));
-        const semDia = lojasVinc.filter(l => !l.diasVisita || !l.diasVisita.length);
+        const semDia = entries.filter(e => !e.dias.length).map(e => e.nome);
 
         drillHTML = `<div style="padding:10px 14px 14px;border-top:1px solid #f1f5f9">
           <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:6px">
             ${grade.map(g => `<div>
               <div style="font-size:11px;font-weight:700;color:#475569;text-align:center;margin-bottom:4px">${g.dia}</div>
-              ${g.lojas.length
-                ? g.lojas.map(l => `<div style="font-size:10px;background:#dbeafe;color:#1e40af;border-radius:5px;padding:3px 5px;margin-bottom:3px;text-align:center;line-height:1.3">${esc(l.nome||'')}</div>`).join('')
+              ${g.nomes.length
+                ? g.nomes.map(n => `<div style="font-size:10px;background:#dbeafe;color:#1e40af;border-radius:5px;padding:3px 5px;margin-bottom:3px;text-align:center;line-height:1.3">${esc(n)}</div>`).join('')
                 : `<div style="font-size:10px;color:#cbd5e1;text-align:center;padding:3px 0">—</div>`
               }
             </div>`).join('')}
           </div>
-          ${semDia.length ? `<p style="font-size:11px;color:#94a3b8;margin:6px 0 0">${semDia.map(l=>esc(l.nome)).join(', ')} — sem dia definido</p>` : ''}
+          ${semDia.length ? `<p style="font-size:11px;color:#94a3b8;margin:6px 0 0">${semDia.map(n=>esc(n)).join(', ')} — sem dia definido</p>` : ''}
         </div>`;
       }
     }
@@ -9539,9 +9562,60 @@ function renderRotRelatorio() {
   }).join('');
 }
 
-function _rotRelToggle(idx) {
-  _rotRelDrillIdx = (_rotRelDrillIdx === idx) ? -1 : idx;
+let _rotRelCache = {}; // cache: promotorNome → {lojas:[{lojaId,dias}]}
+
+async function _rotRelToggle(idx) {
+  if (_rotRelDrillIdx === idx) {
+    _rotRelDrillIdx = -1;
+    renderRotRelatorio();
+    return;
+  }
+  _rotRelDrillIdx = idx;
+  renderRotRelatorio(); // renderiza abrindo (pode mostrar loading)
+
+  // Buscar dados do FS_ROTEIROS para o promotor
+  const promsNomes = _rotRelGetProms();
+  const nome = promsNomes[idx];
+  if (!nome || _rotRelCache[nome]) { renderRotRelatorio(); return; }
+
+  const mes = _rotGetMesAtual();
+  const docKey = _rotDocKey(nome, mes);
+  try {
+    const doc = await FS_ROTEIROS.doc(docKey).get();
+    if (doc.exists) {
+      _rotRelCache[nome] = { lojas: doc.data().lojas || [], fonte: 'roteiros' };
+    } else {
+      // Fallback: lojas.promotorResponsavel
+      const lojasAntigas = lojas.filter(l => (l.promotorResponsavel || '') === nome);
+      _rotRelCache[nome] = {
+        lojas: lojasAntigas.map(l => ({ lojaId: String(l.id), dias: l.diasVisita || [] })),
+        fonte: 'lojas'
+      };
+    }
+  } catch(e) {
+    console.error('Erro ao carregar roteiro do relatório:', e);
+    _rotRelCache[nome] = { lojas: [], fonte: 'erro' };
+  }
   renderRotRelatorio();
+}
+
+function _rotRelGetProms() {
+  const isAdmin = sessao?.role === 'admin';
+  const isVend  = sessao?.role === 'vendedor';
+  let promsNomes = [];
+  if (isAdmin) {
+    promsNomes = [...new Set([
+      ...usuarios.filter(u => u.role === 'promotor').map(u => u.nome),
+      ...produtos.map(p => p.promotor).filter(Boolean)
+    ])];
+  } else if (isVend) {
+    const ufsVend = sessao.ufs || [];
+    promsNomes = [...new Set([
+      ...usuarios.filter(u => u.role === 'promotor' && ufsVend.includes(u.uf)).map(u => u.nome),
+      ...produtos.filter(p => ufsVend.includes(p.uf)).map(p => p.promotor).filter(Boolean)
+    ])];
+  }
+  return promsNomes.sort((a,b) => a.localeCompare(b,'pt-BR'));
 }
 
 async function salvarRoteirizacao() {
