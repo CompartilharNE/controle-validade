@@ -924,6 +924,11 @@
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
         <i class="ti ti-tag-starred" style="font-size:14px" aria-hidden="true"></i> SellOut
       </button>
+      <button id="btnViewComunicados" onclick="setView('comunicados')"
+        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px;position:relative">
+        <i class="ti ti-speakerphone" style="font-size:14px" aria-hidden="true"></i> Comunicados
+        <span id="badgeComunicados" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;min-width:14px;text-align:center"></span>
+      </button>
       <button id="btnViewHistorico" onclick="setView('historico')"
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
         <i class="ti ti-history" style="font-size:14px" aria-hidden="true"></i> Histórico
@@ -1955,6 +1960,66 @@
         <button id="gTab-conc" onclick="setGraficoTab('conc')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;color:#64748b;font-weight:600;transition:all .2s">Concorrência</button>
       </div>
     </div>
+
+    <!-- ══════════════════════════════════════════════ -->
+    <!-- ── ABA: COMUNICADOS ─────────────────────────── -->
+    <!-- ══════════════════════════════════════════════ -->
+    <div id="viewComunicados" style="display:none;margin-bottom:24px">
+
+      <!-- Cabeçalho -->
+      <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+        <div style="display:flex;align-items:center;gap:10px">
+          <i class="ti ti-speakerphone" style="font-size:22px;color:#1e3a5f" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#1e293b">Comunicados</div>
+            <div style="font-size:12px;color:#64748b">Avisos e informações para a equipe</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulário de publicação (admin/vendedor/diretor) -->
+      <div id="comunFormWrap" class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe;display:none">
+        <p style="font-size:13px;font-weight:700;color:#1e293b;margin:0 0 12px">Novo comunicado</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input id="comunTitulo" type="text" placeholder="Título do comunicado"
+            class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="font-size:13px" />
+          <textarea id="comunMensagem" rows="3" placeholder="Mensagem..."
+            class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="font-size:12px;resize:none;line-height:1.5"></textarea>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <select id="comunCategoria" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+              <option value="Geral">Geral</option>
+              <option value="Ação Comercial">Ação Comercial</option>
+              <option value="Alerta">Alerta</option>
+              <option value="Urgente">Urgente</option>
+            </select>
+            <select id="comunDestinatarios" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+              <option value="todos">Todos os promotores</option>
+              <option value="regiao">Somente minha região</option>
+            </select>
+            <button onclick="publicarComunicado()" id="comunBtnPublicar"
+              style="margin-left:auto;background:#1e3a5f;color:white;border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+              <i class="ti ti-send" style="font-size:13px" aria-hidden="true"></i> Publicar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de comunicados -->
+      <div class="bg-white rounded-2xl shadow overflow-hidden" style="border:1px solid #e2e8f0">
+        <div style="background:#1e293b;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:600;color:#f1f5f9">Comunicados</span>
+          <span id="comunContadorNaoLidos" style="display:none;font-size:11px;background:#ef4444;color:white;padding:2px 9px;border-radius:99px;font-weight:600"></span>
+        </div>
+        <div id="comunLista">
+          <div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">
+            <i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:8px" aria-hidden="true"></i>
+            Carregando comunicados...
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- ══ FIM ABA COMUNICADOS ══ -->
 
     <!-- Aba: Histórico de movimentações (só Admin) -->
     <div id="viewHistorico" style="display:none;margin-bottom:24px">
@@ -3588,6 +3653,7 @@ const FS_CFG_REDES       = db.collection('config').doc('redes');
 const FS_SELLOUT_HIST    = db.collection('sellout_historico');
 const FS_CONCORRENTES_DB = db.collection('concorrentes_db');
 const FS_ROTEIROS        = db.collection('roteiros');
+const FS_COMUNICADOS     = db.collection('comunicados');
 
 // ── Logos das fábricas na tela de login ─────
 (function _carregarLogosLogin() {
@@ -3878,6 +3944,11 @@ function entrarNoApp(user) {
   if (btnHist2) btnHist2.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
   const btnSO2 = document.getElementById('btnViewSellOut');
   if (btnSO2) btnSO2.style.display = (['admin','vendedor','diretor'].includes(user.role)) ? 'inline-flex' : 'none';
+  // Botão Comunicados: visível para todos os perfis
+  const btnComun = document.getElementById('btnViewComunicados');
+  if (btnComun) btnComun.style.display = 'inline-flex';
+  // Carregar badge de não lidos
+  setTimeout(atualizarBadgeComunicados, 600);
   // Resetar view ao entrar
   _viewAtual = 'produtos';
   setView('produtos');
@@ -8821,6 +8892,167 @@ function toggleFiltrosExcel() {
 // ── View: Lojas sem lançamento ───────────────
 let _viewAtual = 'produtos'; // 'produtos' | 'lojas'
 
+// ══════════════════════════════════════════════
+// ── COMUNICADOS ───────────────────────────────
+// ══════════════════════════════════════════════
+
+const _CATEG_CORES = {
+  'Geral':          { bg:'#f1f5f9', cor:'#475569' },
+  'Ação Comercial': { bg:'#dbeafe', cor:'#1e40af' },
+  'Alerta':         { bg:'#fef3c7', cor:'#92400e' },
+  'Urgente':        { bg:'#fee2e2', cor:'#991b1b' },
+};
+
+function _comunPodePubilcar() {
+  return ['admin','vendedor','diretor'].includes(sessao?.role);
+}
+
+function initComunicados() {
+  // Mostrar/ocultar formulário de publicação
+  const formWrap = document.getElementById('comunFormWrap');
+  if (formWrap) formWrap.style.display = _comunPodePubilcar() ? '' : 'none';
+  loadComunicados();
+}
+
+async function loadComunicados() {
+  const lista = document.getElementById('comunLista');
+  if (!lista) return;
+  lista.innerHTML = `<div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">
+    <i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:8px"></i>Carregando...</div>`;
+
+  try {
+    const snap = await FS_COMUNICADOS.orderBy('criadoEm','desc').limit(50).get();
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    _renderComunicados(docs);
+  } catch(e) {
+    lista.innerHTML = `<div style="padding:24px;text-align:center;color:#ef4444;font-size:12px">Erro ao carregar: ${e.message}</div>`;
+  }
+}
+
+function _renderComunicados(docs) {
+  const lista = document.getElementById('comunLista');
+  const contEl = document.getElementById('comunContadorNaoLidos');
+  if (!lista) return;
+
+  if (!docs.length) {
+    lista.innerHTML = `<div style="padding:40px;text-align:center;color:#94a3b8;font-size:13px">
+      <i class="ti ti-speakerphone" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>
+      Nenhum comunicado ainda</div>`;
+    if (contEl) contEl.style.display = 'none';
+    return;
+  }
+
+  const meuId = sessao?.id || sessao?.usuario || sessao?.nome || '';
+  let naoLidos = 0;
+
+  lista.innerHTML = docs.map(c => {
+    const lidos = c.lidos || [];
+    const jaLeu = lidos.includes(meuId);
+    if (!jaLeu) naoLidos++;
+
+    const catCor = _CATEG_CORES[c.categoria] || _CATEG_CORES['Geral'];
+    const dt = c.criadoEm ? new Date(c.criadoEm) : null;
+    const dtStr = dt ? dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+    const podeApagar = _comunPodePubilcar() && (c.autorNome === sessao?.nome || sessao?.role === 'admin');
+
+    return `<div id="comunCard_${c.id}" style="border-bottom:0.5px solid #f1f5f9;padding:14px 16px;background:${jaLeu?'white':'#f8faff'}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:11px;background:${catCor.bg};color:${catCor.cor};padding:2px 8px;border-radius:99px;font-weight:600">${esc(c.categoria||'Geral')}</span>
+          <span style="font-size:10px;color:#94a3b8">${esc(c.autorNome||'')}${dtStr?' · '+dtStr:''}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${!jaLeu ? `<span style="font-size:10px;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:99px;font-weight:600">● Novo</span>` : `<span style="font-size:10px;color:#94a3b8">✓ Lido</span>`}
+          ${podeApagar ? `<button onclick="apagarComunicado('${c.id}')" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 2px" title="Apagar"><i class="ti ti-trash"></i></button>` : ''}
+        </div>
+      </div>
+      <p style="font-size:13px;font-weight:600;color:#1e293b;margin:0 0 4px">${esc(c.titulo||'')}</p>
+      <p style="font-size:12px;color:#475569;margin:0;line-height:1.6">${esc(c.mensagem||'').replace(/\n/g,'<br>')}</p>
+      ${!jaLeu ? `<button onclick="marcarLidoComunicado('${c.id}',this)" style="margin-top:10px;font-size:11px;padding:4px 12px;border-radius:99px;border:0.5px solid #93c5fd;background:white;color:#1e40af;cursor:pointer">✓ Marcar como lido</button>` : ''}
+    </div>`;
+  }).join('');
+
+  if (contEl) {
+    if (naoLidos > 0) { contEl.textContent = naoLidos + ' não lido' + (naoLidos>1?'s':''); contEl.style.display = ''; }
+    else contEl.style.display = 'none';
+  }
+  atualizarBadgeComunicados();
+}
+
+async function publicarComunicado() {
+  const titulo    = (document.getElementById('comunTitulo')?.value || '').trim();
+  const mensagem  = (document.getElementById('comunMensagem')?.value || '').trim();
+  const categoria = document.getElementById('comunCategoria')?.value || 'Geral';
+  const dest      = document.getElementById('comunDestinatarios')?.value || 'todos';
+  if (!titulo || !mensagem) { alert('Preencha o título e a mensagem.'); return; }
+
+  const btn = document.getElementById('comunBtnPublicar');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="font-size:13px"></i> Publicando…'; }
+
+  try {
+    await FS_COMUNICADOS.add({
+      titulo, mensagem, categoria,
+      destinatarios: dest,
+      autorNome: sessao?.nome || '',
+      autorRole: sessao?.role || '',
+      criadoEm: new Date().toISOString(),
+      lidos: []
+    });
+    document.getElementById('comunTitulo').value   = '';
+    document.getElementById('comunMensagem').value = '';
+    loadComunicados();
+  } catch(e) {
+    alert('Erro ao publicar: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-send" style="font-size:13px"></i> Publicar'; }
+  }
+}
+
+async function marcarLidoComunicado(docId, btnEl) {
+  const meuId = sessao?.id || sessao?.usuario || sessao?.nome || '';
+  try {
+    await FS_COMUNICADOS.doc(docId).update({
+      lidos: firebase.firestore.FieldValue.arrayUnion(meuId)
+    });
+    // Atualizar visual sem recarregar tudo
+    const card = document.getElementById('comunCard_' + docId);
+    if (card) {
+      card.style.background = 'white';
+      if (btnEl) btnEl.remove();
+      const badgeNovo = card.querySelector('span[style*="dcfce7"]');
+      if (badgeNovo) { badgeNovo.textContent = '✓ Lido'; badgeNovo.style.background = 'transparent'; badgeNovo.style.color = '#94a3b8'; }
+    }
+    atualizarBadgeComunicados();
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+async function apagarComunicado(docId) {
+  if (!confirm('Apagar este comunicado?')) return;
+  try {
+    await FS_COMUNICADOS.doc(docId).delete();
+    const card = document.getElementById('comunCard_' + docId);
+    if (card) card.remove();
+    atualizarBadgeComunicados();
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+async function atualizarBadgeComunicados() {
+  const badge = document.getElementById('badgeComunicados');
+  if (!badge) return;
+  const meuId = sessao?.id || sessao?.usuario || sessao?.nome || '';
+  try {
+    const snap = await FS_COMUNICADOS.orderBy('criadoEm','desc').limit(50).get();
+    const naoLidos = snap.docs.filter(d => {
+      const lidos = d.data().lidos || [];
+      return !lidos.includes(meuId);
+    }).length;
+    if (naoLidos > 0) { badge.textContent = naoLidos; badge.style.display = ''; }
+    else badge.style.display = 'none';
+  } catch(e) { badge.style.display = 'none'; }
+}
+
+// ══════════════════════════════════════════════
+
 function setView(v) {
   _viewAtual = v;
   const tabelaDiv    = document.querySelector('#corpoTabela').closest('.bg-white.rounded-2xl');
@@ -8844,6 +9076,8 @@ function setView(v) {
   if (selloutDiv)       selloutDiv.style.display       = 'none';
   if (rankingDiv)       rankingDiv.style.display       = 'none';
   if (roteirizacaoDiv)  roteirizacaoDiv.style.display  = 'none';
+  const comunDiv0 = document.getElementById('viewComunicados');
+  if (comunDiv0) comunDiv0.style.display = 'none';
   // Barra Excel contextual: visível apenas em Produtos e Lojas
   const barExcelV = document.getElementById('barExcelContextual');
   const mostrarExcelV = (v === 'produtos' || v === 'lojas') &&
@@ -8857,6 +9091,8 @@ function setView(v) {
   if (btnSO)     { btnSO.style.background    =_offStyle; btnSO.style.color    ='#64748b'; btnSO.style.border    ='0.5px solid #cbd5e1'; btnSO.style.borderBottom=''; btnSO.style.boxShadow='none'; }
   if (btnRank)   { btnRank.style.background  =_offStyle; btnRank.style.color  ='#64748b'; btnRank.style.border  ='0.5px solid #cbd5e1'; btnRank.style.borderBottom=''; btnRank.style.boxShadow='none'; }
   if (btnRoteir) { btnRoteir.style.background=_offStyle; btnRoteir.style.color='#64748b'; btnRoteir.style.border='0.5px solid #cbd5e1'; btnRoteir.style.borderBottom=''; btnRoteir.style.boxShadow='none'; }
+  const btnComun0 = document.getElementById('btnViewComunicados');
+  if (btnComun0) { btnComun0.style.background=_offStyle; btnComun0.style.color='#64748b'; btnComun0.style.border='0.5px solid #cbd5e1'; btnComun0.style.borderBottom=''; btnComun0.style.boxShadow='none'; }
   // Ocultar formulário de adicionar produto quando não está na aba Produtos
   const formWrap = document.getElementById('formAdicionarWrap');
   if (formWrap) {
@@ -9006,6 +9242,22 @@ function setView(v) {
       } else {
         renderAcompSellOutVD();
       }
+      return;
+    }
+    if (v === 'comunicados') {
+      if (tabelaDiv)        tabelaDiv.style.display      = 'none';
+      if (lojasDiv)         lojasDiv.classList.add('hidden');
+      const comunDiv = document.getElementById('viewComunicados');
+      if (comunDiv) comunDiv.style.display = 'block';
+      if (cardFiltroProd)   cardFiltroProd.style.display = 'none';
+      const _fdbC = document.getElementById('filtroDataBadge'); if (_fdbC) _fdbC.style.display = 'none';
+      btnProd.style.background = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
+      if (btnLojas) { btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none'; }
+      const btnComun2 = document.getElementById('btnViewComunicados');
+      if (btnComun2) { btnComun2.style.background = '#1e3a5f'; btnComun2.style.color = 'white'; btnComun2.style.border = 'none'; btnComun2.style.borderBottom = '3px solid #0c1f35'; btnComun2.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)'; }
+      const btnXLC = document.getElementById('btnExportCSV');
+      if (btnXLC) { btnXLC.style.display = 'none'; btnXLC.classList.add('hidden'); }
+      initComunicados();
       return;
     }
     if (v === 'roteirizacao') {
