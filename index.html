@@ -908,13 +908,13 @@
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
         <i class="ti ti-route" style="font-size:14px" aria-hidden="true"></i> Roteirização
       </button>
+      <button id="btnViewLojas" onclick="setView('lojas')"
+        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+        <i class="ti ti-map-pin" style="font-size:14px" aria-hidden="true"></i> Visita
+      </button>
       <button id="btnViewRanking" onclick="setView('ranking')"
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
         <i class="ti ti-trophy" style="font-size:14px" aria-hidden="true"></i> Ranking
-      </button>
-      <button id="btnViewLojas" onclick="setView('lojas')"
-        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-        <i class="ti ti-clock-exclamation" style="font-size:14px" aria-hidden="true"></i> Lojas
       </button>
       <button id="btnViewGraficos" onclick="setView('graficos')"
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
@@ -1240,6 +1240,57 @@
         </select>
       </div>
       </div><!-- fim filtrosPrincipalBody -->
+    </div>
+
+    <!-- Painel: Cobertura de Visitas -->
+    <div id="cardCobertura" class="hidden bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <i class="ti ti-map-2" style="font-size:18px;color:#1e3a5f" aria-hidden="true"></i>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#1e293b">Cobertura de Visitas</div>
+          <div style="font-size:11px;color:#64748b">Verifique se o promotor visitou as lojas do roteiro</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end">
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:11px;color:#64748b;margin-bottom:4px">Promotor</div>
+          <select id="coberturaSelPromotor" onchange="renderCobertura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="width:100%">
+            <option value="">Selecione um promotor</option>
+          </select>
+        </div>
+        <div style="min-width:150px">
+          <div style="font-size:11px;color:#64748b;margin-bottom:4px">Período</div>
+          <select id="coberturaPeriodo" onchange="renderCobertura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+            <option value="7">Esta semana (7d)</option>
+            <option value="14">Últimos 14 dias</option>
+            <option value="30">Últimos 30 dias</option>
+          </select>
+        </div>
+        <div id="coberturaContadores" style="display:none;gap:6px;flex-wrap:wrap">
+          <div style="background:#dcfce7;border:0.5px solid #bbf7d0;border-radius:8px;padding:6px 12px;text-align:center">
+            <div id="cobNVisitou" style="font-size:18px;font-weight:700;color:#16a34a;line-height:1.1">0</div>
+            <div style="font-size:10px;color:#16a34a">visitadas</div>
+          </div>
+          <div style="background:#fef9c3;border:0.5px solid #fde68a;border-radius:8px;padding:6px 12px;text-align:center">
+            <div id="cobNAtrasado" style="font-size:18px;font-weight:700;color:#b45309;line-height:1.1">0</div>
+            <div style="font-size:10px;color:#b45309">atrasadas</div>
+          </div>
+          <div style="background:#fee2e2;border:0.5px solid #fecaca;border-radius:8px;padding:6px 12px;text-align:center">
+            <div id="cobNNaoVisitou" style="font-size:18px;font-weight:700;color:#dc2626;line-height:1.1">0</div>
+            <div style="font-size:10px;color:#dc2626">não visitou</div>
+          </div>
+        </div>
+      </div>
+      <div id="coberturaTabela" style="display:none;background:#fff;border-radius:10px;border:1px solid #e2e8f0;overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 88px 130px 112px;padding:8px 14px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
+          <span style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.04em">LOJA</span>
+          <span style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.04em">DIAS</span>
+          <span style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.04em">ÚLTIMA VISITA</span>
+          <span style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.04em">STATUS</span>
+        </div>
+        <div id="coberturaBody"></div>
+      </div>
+      <div id="coberturaSemDados" style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">Selecione um promotor para ver as lojas do roteiro.</div>
     </div>
 
     <!-- Card de filtros da view Lojas -->
@@ -8796,6 +8847,9 @@ function setView(v) {
     const legendaL = document.getElementById('legendaLojas');
     if (legendaL) legendaL.classList.remove('hidden');
     if (filtrosLojas) filtrosLojas.classList.remove('hidden');
+    const cardCob = document.getElementById('cardCobertura');
+    if (cardCob && ['vendedor','admin','diretor'].includes(sessao?.role)) { cardCob.classList.remove('hidden'); initCobertura(); }
+    else if (cardCob) cardCob.classList.add('hidden');
     if (cardFiltroProd) cardFiltroProd.style.display = 'none';
     document.getElementById('filtroDataBadge').style.display = 'none';
     btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
@@ -8856,6 +8910,8 @@ function setView(v) {
     const legendaL2 = document.getElementById('legendaLojas');
     if (legendaL2) legendaL2.classList.add('hidden');
     if (filtrosLojas) filtrosLojas.classList.add('hidden');
+    const cardCob2 = document.getElementById('cardCobertura');
+    if (cardCob2) cardCob2.classList.add('hidden');
     if (cardFiltroProd) cardFiltroProd.style.display = '';
     _atualizarFiltroData(); // restaura badge corretamente com base nas datas preenchidas
     if (v === 'graficos') {
@@ -10583,6 +10639,120 @@ async function _acompDeletar(id, idx) {
     renderAcompSellOut();
     showToast('✅ Registro excluído.','#166534');
   } catch(e) { showToast('Erro ao excluir.','#92400e'); }
+}
+
+// ── Cobertura de Visitas ─────────────────────────────────────
+function initCobertura() {
+  const sel = document.getElementById('coberturaSelPromotor');
+  if (!sel) return;
+  const role = sessao?.role;
+  let proms = [];
+  if (role === 'admin' || role === 'diretor') {
+    proms = usuarios.filter(u => u.role === 'promotor');
+  } else if (role === 'vendedor') {
+    proms = usuarios.filter(u => u.role === 'promotor' && u.vendedorResponsavel === sessao.nome);
+    if (!proms.length) {
+      // fallback legado: UF
+      const ufsV = sessao.ufs || [];
+      proms = usuarios.filter(u => u.role === 'promotor' && ufsV.includes(u.uf));
+    }
+  }
+  proms.sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  const cv = sel.value;
+  sel.innerHTML = '<option value="">Selecione um promotor</option>' +
+    proms.map(p => `<option value="${esc(p.nome)}" ${p.nome===cv?'selected':''}>${esc(p.nome)}</option>`).join('');
+  renderCobertura();
+}
+
+function renderCobertura() {
+  const promotorNome = document.getElementById('coberturaSelPromotor')?.value || '';
+  const periodo = parseInt(document.getElementById('coberturaPeriodo')?.value || '7');
+  const contadores = document.getElementById('coberturaContadores');
+  const tabela     = document.getElementById('coberturaTabela');
+  const semDados   = document.getElementById('coberturaSemDados');
+  const body       = document.getElementById('coberturaBody');
+  if (!promotorNome) {
+    if (contadores) contadores.style.display = 'none';
+    if (tabela) tabela.style.display = 'none';
+    if (semDados) { semDados.style.display = ''; semDados.textContent = 'Selecione um promotor para ver as lojas do roteiro.'; }
+    return;
+  }
+  const lojasRoteiro = lojas.filter(l => (l.promotorResponsavel||'') === promotorNome && (l.diasVisita||[]).length > 0);
+  if (!lojasRoteiro.length) {
+    if (contadores) contadores.style.display = 'none';
+    if (tabela) tabela.style.display = 'none';
+    if (semDados) { semDados.style.display = ''; semDados.textContent = 'Este promotor não tem lojas no roteiro ainda. Configure na aba Roteirização.'; }
+    return;
+  }
+  const hoje = new Date(); hoje.setHours(23,59,59,999);
+  const limite = new Date(); limite.setDate(limite.getDate() - periodo); limite.setHours(0,0,0,0);
+
+  const linhas = lojasRoteiro.map(loja => {
+    const prods = produtos.filter(p => normTxt(p.promotor) === normTxt(promotorNome) && normTxt(p.loja) === normTxt(loja.nome||''));
+    let ultData = null;
+    prods.forEach(p => {
+      const dReg = p.dataRegistro    ? new Date(p.dataRegistro+'T00:00:00')    : null;
+      const dAtu = p.dataAtualizacao ? new Date(p.dataAtualizacao+'T00:00:00') : null;
+      const d = (dReg && dAtu) ? (dAtu > dReg ? dAtu : dReg) : (dReg || dAtu);
+      if (d && (!ultData || d > ultData)) ultData = d;
+    });
+    const status = !ultData ? 'nunca' : ultData >= limite ? 'ok' : 'atrasado';
+    const diasSem = ultData ? Math.round((hoje - ultData) / 86400000) : null;
+    return { loja, ultData, diasSem, status };
+  });
+
+  const ord = { nunca:0, atrasado:1, ok:2 };
+  linhas.sort((a,b) => {
+    const d = ord[a.status] - ord[b.status];
+    return d !== 0 ? d : ((b.diasSem||9999) - (a.diasSem||9999));
+  });
+
+  const nOk = linhas.filter(l=>l.status==='ok').length;
+  const nAt = linhas.filter(l=>l.status==='atrasado').length;
+  const nNu = linhas.filter(l=>l.status==='nunca').length;
+  document.getElementById('cobNVisitou').textContent    = nOk;
+  document.getElementById('cobNAtrasado').textContent   = nAt;
+  document.getElementById('cobNNaoVisitou').textContent = nNu;
+  if (contadores) contadores.style.display = 'flex';
+  if (tabela)     tabela.style.display = '';
+  if (semDados)   semDados.style.display = 'none';
+
+  const sCfg = {
+    ok:       { bg:'#dcfce7', color:'#16a34a', icon:'ti-circle-check',       label:'Visitou' },
+    atrasado: { bg:'#fef9c3', color:'#b45309', icon:'ti-clock-exclamation',   label:'Atrasado' },
+    nunca:    { bg:'#fee2e2', color:'#dc2626', icon:'ti-circle-x',            label:'Não visitou' },
+  };
+  const rowBg = { ok:'', atrasado:'#fffbeb', nunca:'#fff5f5' };
+
+  body.innerHTML = linhas.map((item, i) => {
+    const { loja, ultData, diasSem, status } = item;
+    const s = sCfg[status];
+    const diasHtml = (loja.diasVisita||[]).map(d =>
+      `<span style="font-size:10px;padding:2px 6px;border-radius:99px;background:#f1f5f9;border:0.5px solid #cbd5e1;color:#475569">${esc(d)}</span>`
+    ).join(' ');
+    let ultStr;
+    if (!ultData) {
+      ultStr = '<span style="color:#dc2626">—</span>';
+    } else {
+      const dd   = String(ultData.getDate()).padStart(2,'0');
+      const mm   = String(ultData.getMonth()+1).padStart(2,'0');
+      const aaaa = ultData.getFullYear();
+      const lag  = diasSem === 0 ? 'hoje' : diasSem === 1 ? 'ontem' : `${diasSem}d atrás`;
+      const lagColor = status==='ok' ? '#16a34a' : status==='atrasado' ? '#b45309' : '#dc2626';
+      ultStr = `${dd}/${mm}/${aaaa} · <span style="font-weight:600;color:${lagColor}">${lag}</span>`;
+    }
+    return `<div style="display:grid;grid-template-columns:1fr 88px 130px 112px;padding:11px 14px;align-items:center;border-top:${i===0?'none':'0.5px solid #e2e8f0'};background:${rowBg[status]||''}">
+      <div>
+        <span style="font-size:13px;font-weight:600;color:#1e293b">${esc(loja.nome||String(loja.id))}</span>
+        ${loja.rede ? `<span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:99px;margin-left:6px">${esc(loja.rede)}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap">${diasHtml}</div>
+      <div style="font-size:12px;color:#475569">${ultStr}</div>
+      <div><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:${s.bg};color:${s.color}">
+        <i class="ti ${s.icon}" style="font-size:12px" aria-hidden="true"></i>${s.label}
+      </span></div>
+    </div>`;
+  }).join('');
 }
 
 function renderLojasSemLanc() {
