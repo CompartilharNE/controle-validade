@@ -1975,12 +1975,20 @@
           </select>
         </div>
 
-        <!-- Filtro Promotor -->
-        <div style="margin-bottom:16px">
-          <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Promotor</label>
-          <select id="rotSelPromotor" onchange="rotOnPromotorChange()" style="width:100%;max-width:320px;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white">
-            <option value="">Selecione um promotor…</option>
-          </select>
+        <!-- Filtros Promotor + Rede em linha -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end">
+          <div style="flex:1;min-width:180px;max-width:320px">
+            <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Promotor</label>
+            <select id="rotSelPromotor" onchange="rotOnPromotorChange()" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white">
+              <option value="">Selecione um promotor…</option>
+            </select>
+          </div>
+          <div id="rotFiltroRede" style="display:none;flex:1;min-width:150px;max-width:260px">
+            <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Rede</label>
+            <select id="rotSelRede" onchange="rotOnRedeChange()" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white">
+              <option value="">Todas as Redes</option>
+            </select>
+          </div>
         </div>
 
         <!-- Barra de progresso -->
@@ -1996,13 +2004,8 @@
 
         <!-- Lista de lojas -->
         <div id="rotListaLojas" style="display:none">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <span style="font-size:13px;font-weight:600;color:#1e3a5f">Lojas disponíveis</span>
-              <select id="rotSelRede" onchange="rotOnRedeChange()" style="border:1px solid #cbd5e1;border-radius:8px;padding:5px 10px;font-size:12px;color:#1e293b;background:white">
-                <option value="">Todas as Redes</option>
-              </select>
-            </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:13px;font-weight:600;color:#1e3a5f">Lojas disponíveis</span>
             <button onclick="salvarRoteirizacao()" style="display:inline-flex;align-items:center;gap:6px;background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 8px rgba(30,58,95,.35)">
               <i class="ti ti-device-floppy" style="font-size:14px"></i> Salvar
             </button>
@@ -8940,6 +8943,8 @@ function initRoteirizacao() {
       _rotPopularPromotores(selVend.value);
     } else {
       if (selProm) selProm.innerHTML = '<option value="">Selecione um promotor…</option>';
+      const filtRede2 = document.getElementById('rotFiltroRede');
+      if (filtRede2) filtRede2.style.display = 'none';
       _rotMostrarListaLojas(null);
     }
   } else if (isVend) {
@@ -8985,16 +8990,24 @@ function _rotPopularPromotores(vendedorNome) {
 }
 
 function rotOnVendedorChange() {
-  const selVend = document.getElementById('rotSelVendedor');
+  const selVend  = document.getElementById('rotSelVendedor');
+  const filtRede = document.getElementById('rotFiltroRede');
+  const selRede  = document.getElementById('rotSelRede');
   _rotState = {};
   _rotLojasTodas = [];
+  if (filtRede) filtRede.style.display = 'none';
+  if (selRede)  selRede.innerHTML = '<option value="">Todas as Redes</option>';
   _rotPopularPromotores(selVend.value || null);
 }
 
 function rotOnPromotorChange() {
-  const selProm = document.getElementById('rotSelPromotor');
+  const selProm  = document.getElementById('rotSelPromotor');
+  const filtRede = document.getElementById('rotFiltroRede');
+  const selRede  = document.getElementById('rotSelRede');
   _rotState = {};
   _rotLojasTodas = [];
+  if (filtRede) filtRede.style.display = 'none';
+  if (selRede)  selRede.innerHTML = '<option value="">Todas as Redes</option>';
   _rotCarregarLojas(selProm.value || null);
 }
 
@@ -9041,35 +9054,34 @@ function _rotCarregarLojas(promotorNome) {
 }
 
 function _rotMostrarListaLojas(lojasDisp) {
-  const listDiv     = document.getElementById('rotListaLojas');
-  const emptyDiv    = document.getElementById('rotEmpty');
-  const progressWrap= document.getElementById('rotProgressWrap');
-  const selRede     = document.getElementById('rotSelRede');
+  const listDiv      = document.getElementById('rotListaLojas');
+  const emptyDiv     = document.getElementById('rotEmpty');
+  const progressWrap = document.getElementById('rotProgressWrap');
+  const filtroRede   = document.getElementById('rotFiltroRede');
+  const selRede      = document.getElementById('rotSelRede');
 
   if (!lojasDisp || !lojasDisp.length) {
-    if (listDiv)      listDiv.style.display    = 'none';
-    if (emptyDiv)     emptyDiv.style.display   = '';
+    if (listDiv)      listDiv.style.display      = 'none';
+    if (emptyDiv)     emptyDiv.style.display     = '';
     if (progressWrap) progressWrap.style.display = 'none';
+    if (filtroRede)   filtroRede.style.display   = 'none';
     if (selRede)      selRede.innerHTML = '<option value="">Todas as Redes</option>';
     return;
   }
 
-  // Popular filtro de rede com as redes das lojas disponíveis
+  // Popular e mostrar filtro de rede
   if (selRede) {
     const redes = [...new Set(lojasDisp.map(l => l.rede).filter(Boolean))].sort();
-    const cv = selRede.value;
     selRede.innerHTML = '<option value="">Todas as Redes</option>' +
-      redes.map(r => `<option value="${esc(r)}" ${r===cv?'selected':''}>${esc(r)}</option>`).join('');
+      redes.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
   }
+  if (filtroRede) filtroRede.style.display = '';
 
   if (emptyDiv)     emptyDiv.style.display   = 'none';
   if (listDiv)      listDiv.style.display    = '';
   if (progressWrap) progressWrap.style.display = '';
 
-  // Aplicar filtro de rede se já selecionado
-  const redeSel = selRede?.value || '';
-  const lojasVisiveis = redeSel ? lojasDisp.filter(l => l.rede === redeSel) : lojasDisp;
-  _rotRenderLojas(lojasVisiveis);
+  _rotRenderLojas(lojasDisp); // mostra todas (sem filtro de rede ao carregar)
   _rotAtualizarProgress();
 }
 
