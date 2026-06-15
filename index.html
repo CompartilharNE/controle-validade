@@ -2377,7 +2377,7 @@
       <h3 class="font-semibold text-red-700 text-base">⚠️ Produtos a Vencer em Breve!</h3>
       <button onclick="document.getElementById('alertaVencimentoModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
     </div>
-    <p class="text-xs text-slate-500 mb-3">Os seguintes produtos vencem em até <strong>10 dias</strong>:</p>
+    <p id="alertaVencTexto" class="text-xs text-slate-500 mb-3">Os seguintes produtos vencem em até <strong>15 dias</strong>:</p>
     <div id="listaAlertaVencimento" class="flex-1 overflow-y-auto flex flex-col gap-2 mb-4"></div>
     <button onclick="document.getElementById('alertaVencimentoModal').classList.add('hidden')"
       class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm transition">
@@ -6730,14 +6730,21 @@ function renderTabela() {
     const acoes   = `<div style="display:inline-flex;gap:6px;align-items:center"><button onclick="abrirEditModal(${p.id})" style="background:none;border:none;padding:2px 4px;font-size:15px;cursor:pointer;opacity:0.75;line-height:1" title="Editar">✏️</button><button onclick="deletar(${p.id})" style="background:none;border:none;padding:2px 4px;font-size:15px;cursor:pointer;line-height:1;color:#94a3b8" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" title="Excluir">🗑️</button></div>`;
     const badge   = `<td><span class="${badgeCls} text-xs font-bold rounded-full px-2 py-0.5">${badgeTxt}</span></td>`;
 
+    // SellOut solicitado pelo promotor
+    const soSolicitado = p.selloutSolicitado;
+    const rowStyle     = soSolicitado ? ' style="border-left:3px solid #f87171;"' : '';
+    const soBadge      = soSolicitado
+      ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;background:#fee2e2;color:#991b1b;border-radius:5px;padding:2px 6px;font-weight:600;margin-left:4px;vertical-align:middle" title="Solicitado por ${esc(p.selloutSolicitadoPor||'')} em ${fmtData(p.selloutSolicitadoEm||'')}"><i class="ti ti-alert-triangle" style="font-size:11px" aria-hidden="true"></i> SellOut</span>`
+      : '';
+
     const lojaUF = p.uf ? `<strong>${esc(p.uf)}</strong> · ${esc(p.loja)}` : esc(p.loja);
 
     if (isDiretor) {
       // Diretor: Status / Fábrica / Loja(UF·Nome) / Produto / Qtd / Vencimento / Dias / Preço
-      return `<tr class="${rowCls}">${badge}
+      return `<tr class="${rowCls}"${rowStyle}>${badge}
         <td class="text-slate-500 text-xs">${esc(p.fabrica)}</td>
         <td class="font-medium">${lojaUF}</td>
-        <td class="font-medium">${esc(p.produto)}</td>
+        <td class="font-medium">${esc(p.produto)}${soBadge}</td>
         <td class="text-center">${qtdTxt}</td>
         <td class="font-medium">${fmtData(p.validade)}</td>
         <td class="font-semibold text-center">${diasTxt}</td>
@@ -6747,10 +6754,10 @@ function renderTabela() {
 
     if (isVendedor) {
       // Vendedor: Status / Fábrica / Loja(UF·Nome) / Produto / Qtd / Vencimento / Dias / Preço / Promotor
-      return `<tr class="${rowCls}">${badge}
+      return `<tr class="${rowCls}"${rowStyle}>${badge}
         <td class="text-slate-500 text-xs">${esc(p.fabrica)}</td>
         <td class="font-medium">${lojaUF}</td>
-        <td class="font-medium">${esc(p.produto)}</td>
+        <td class="font-medium">${esc(p.produto)}${soBadge}</td>
         <td class="text-center">${qtdTxt}</td>
         <td class="font-medium">${fmtData(p.validade)}</td>
         <td class="font-semibold text-center">${diasTxt}</td>
@@ -6761,10 +6768,10 @@ function renderTabela() {
 
     if (isPromotor) {
       // Promotor: Status / Fábrica / Loja / Produto / Qtd / Vencimento / Dias / Preço / Ação
-      return `<tr class="${rowCls}">${badge}
+      return `<tr class="${rowCls}"${rowStyle}>${badge}
         <td class="text-slate-500 text-xs">${esc(p.fabrica)}</td>
         <td class="font-medium">${esc(p.loja)}</td>
-        <td class="font-medium">${esc(p.produto)}</td>
+        <td class="font-medium">${esc(p.produto)}${soBadge}</td>
         <td class="text-center">${qtdTxt}</td>
         <td class="font-medium">${fmtData(p.validade)}</td>
         <td class="font-semibold text-center">${diasTxt}</td>
@@ -6774,10 +6781,10 @@ function renderTabela() {
     }
 
     // Admin — layout completo: Status / Fábrica / Loja(UF·Nome) / Produto / Qtd / Vencimento / Dias / Promotor / Preço / Ações
-    return `<tr class="${rowCls}">${badge}
+    return `<tr class="${rowCls}"${rowStyle}>${badge}
       <td class="text-slate-500 text-xs">${esc(p.fabrica)}</td>
       <td class="font-medium">${lojaUF}</td>
-      <td class="font-medium">${esc(p.produto)}</td>
+      <td class="font-medium">${esc(p.produto)}${soBadge}</td>
       <td class="text-center">${qtdTxt}</td>
       <td class="font-medium">${fmtData(p.validade)}</td>
       <td class="font-semibold text-center">${diasTxt}</td>
@@ -8675,7 +8682,8 @@ function _calcScorePromotor(nomeProm) {
   const total = prods.length;
   const emDia = prods.filter(p => {
     if (!p.validade) return false;
-    if (p.emSellout) return true;           // ← protegido: foi para sellout
+    if (p.emSellout) return true;           // ← protegido: foi para sellout (admin)
+    if (p.selloutSolicitado) return true;   // ← protegido: promotor solicitou sellout
     const d = new Date(p.validade + 'T00:00:00');
     return d >= hoje;
   }).length;
@@ -8691,21 +8699,22 @@ function _calcScorePromotor(nomeProm) {
   const comDados = prods.filter(p => p.preco && (p.concorrente || p.concorrencia?.semConcorrente || (p.concorrencia && Object.keys(p.concorrencia).some(k => p.concorrencia[k]?.nome)))).length;
   const comp = total > 0 ? Math.round(comDados / total * 100) : 0;
 
-  // 4. Regularidade (10%) — % semanas dos últimos 30 dias com lançamento
+  // 4. Regularidade (40%) — % semanas dos últimos 30 dias com atividade
+  // Conta tanto lançamentos (dataRegistro) quanto atualizações de quantidade (dataAtualizacao)
   const semanasAtivas = new Set();
   const ha30 = new Date(); ha30.setDate(ha30.getDate() - 30);
   prods.forEach(p => {
-    if (!p.dataLanc && !p.id) return;
-    // Usa o campo dataLanc se existir, senão estima pela validade
-    const ref = p.dataLanc ? new Date(p.dataLanc) : null;
-    if (ref && ref >= ha30) {
-      const semana = Math.floor((ref - ha30) / (7 * 24 * 3600 * 1000));
-      semanasAtivas.add(Math.min(semana, 3));
-    }
+    [p.dataRegistro, p.dataAtualizacao].forEach(ds => {
+      if (!ds) return;
+      const ref = new Date(ds + (ds.includes('T') ? '' : 'T00:00:00'));
+      if (ref >= ha30) {
+        const semana = Math.floor((ref - ha30) / (7 * 24 * 3600 * 1000));
+        semanasAtivas.add(Math.min(semana, 3));
+      }
+    });
   });
-  // Se não tiver dataLanc, regularidade = 50% base para quem tem produtos
   const reg = prods.length > 0
-    ? (semanasAtivas.size > 0 ? Math.round(semanasAtivas.size / 4 * 100) : 50)
+    ? (semanasAtivas.size > 0 ? Math.round(semanasAtivas.size / 4 * 100) : 0)
     : 0;
 
   // Score ponderado — Regularidade 40%, Completude 30%, Cobertura 20%, Produtos em dia 10%
@@ -11798,29 +11807,78 @@ function verificarAlertaVencimento() {
   let lista = produtos;
   if (sessao.role === 'promotor') lista = produtos.filter(p => p.promotor === sessao.nome);
   if (sessao.role === 'vendedor') lista = produtos.filter(p => sessao.ufs && sessao.ufs.includes(p.uf));
-  // diretor vê todos os UFs — sem filtro adicional
   const alerta = lista.filter(p => {
     const d = diasRestantes(p.validade);
-    return d >= 0 && d <= 10;
+    return d >= 0 && d <= 15;
   }).sort((a,b) => diasRestantes(a.validade) - diasRestantes(b.validade));
   if (!alerta.length) return;
+  const isPromotor = sessao.role === 'promotor';
+  const sub = document.getElementById('alertaVencTexto');
+  if (sub) sub.innerHTML = isPromotor
+    ? 'Os seguintes produtos vencem em até <strong>15 dias</strong>. Solicite SellOut para itens críticos.'
+    : 'Os seguintes produtos vencem em até <strong>15 dias</strong>:';
   document.getElementById('listaAlertaVencimento').innerHTML = alerta.map(p => {
     const d = diasRestantes(p.validade);
-    const cor = d <= 3 ? '#fee2e2' : '#fef9c3';
+    const cor    = d <= 3 ? '#fee2e2' : '#fef9c3';
     const txtCor = d <= 3 ? '#991b1b' : '#854d0e';
-    return `<div style="background:${cor};border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <p style="font-size:13px;font-weight:600;color:#1e293b">${esc(p.produto)}</p>
-        <p style="font-size:11px;color:#64748b">${esc(p.loja)} · ${esc(p.uf)}</p>
-        <p style="font-size:11px;color:#64748b">${esc(p.fabrica||'—')} · ${p.quantidade||0}${p.und ? ' ' + p.und.charAt(0).toUpperCase() + p.und.slice(1).toLowerCase() : ''}</p>
+    const jaSOL  = p.selloutSolicitado;
+    const bordaSO = jaSOL ? 'border:2px solid #fca5a5;' : '';
+    const badgeSO = jaSOL
+      ? `<div style="margin-top:6px"><span style="font-size:11px;background:#fee2e2;color:#991b1b;border-radius:6px;padding:3px 8px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-circle-check" style="font-size:12px" aria-hidden="true"></i> SellOut solicitado</span></div>`
+      : '';
+    const btnSO = isPromotor
+      ? (jaSOL
+          ? `<button disabled style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid #3B6D11;background:#EAF3DE;color:#27500A;cursor:default"><i class="ti ti-circle-check" style="font-size:13px" aria-hidden="true"></i> Solicitado</button>`
+          : `<button onclick="_solicitarSellOutAlerta(${p.id})" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid #E24B4A;background:#FCEBEB;color:#A32D2D;cursor:pointer"><i class="ti ti-alert-triangle" style="font-size:13px" aria-hidden="true"></i> Solicitar SellOut</button>`)
+      : '';
+    const btnRow = btnSO ? `<div style="display:flex;justify-content:flex-end;margin-top:6px">${btnSO}</div>` : '';
+    return `<div id="alertaItem_${p.id}" style="background:${cor};border-radius:8px;padding:10px 12px;${bordaSO}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <p style="font-size:13px;font-weight:600;color:#1e293b;margin:0">${esc(p.produto)}</p>
+          <p style="font-size:11px;color:#64748b;margin:2px 0 0">${esc(p.loja)} · ${esc(p.uf)}</p>
+          <p style="font-size:11px;color:#64748b;margin:1px 0 0">${esc(p.fabrica||'—')} · ${p.quantidade||0}${p.und ? ' ' + p.und.charAt(0).toUpperCase() + p.und.slice(1).toLowerCase() : ''}</p>
+          ${badgeSO}
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:10px">
+          <p style="font-size:12px;font-weight:700;color:${txtCor};margin:0">${d === 0 ? 'Hoje!' : d + 'd'}</p>
+          <p style="font-size:10px;color:#94a3b8;margin:2px 0 0">${fmtData(p.validade)}</p>
+        </div>
       </div>
-      <div style="text-align:right">
-        <p style="font-size:12px;font-weight:700;color:${txtCor}">${d === 0 ? 'Hoje!' : d + 'd'}</p>
-        <p style="font-size:10px;color:#94a3b8">${fmtData(p.validade)}</p>
-      </div>
+      ${btnRow}
     </div>`;
   }).join('');
   document.getElementById('alertaVencimentoModal').classList.remove('hidden');
+}
+
+function _solicitarSellOutAlerta(prodId) {
+  const idx = produtos.findIndex(p => p.id === prodId);
+  if (idx < 0) return;
+  const hoje = new Date().toISOString().slice(0,10);
+  produtos[idx].selloutSolicitado   = true;
+  produtos[idx].selloutSolicitadoEm  = hoje;
+  produtos[idx].selloutSolicitadoPor = sessao.nome || '';
+  FS_PRODUTOS.doc(String(prodId)).update({
+    selloutSolicitado:   true,
+    selloutSolicitadoEm:  hoje,
+    selloutSolicitadoPor: sessao.nome || ''
+  }).catch(e => console.warn('Erro ao solicitar SellOut:', e));
+  // Atualiza o card no popup sem fechar o modal
+  const el = document.getElementById('alertaItem_' + prodId);
+  if (el) {
+    el.style.border = '2px solid #fca5a5';
+    const btnWrap = el.querySelector('div:last-child');
+    if (btnWrap) btnWrap.innerHTML = `<div style="display:flex;justify-content:flex-end;margin-top:6px"><button disabled style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid #3B6D11;background:#EAF3DE;color:#27500A;cursor:default"><i class="ti ti-circle-check" style="font-size:13px" aria-hidden="true"></i> Solicitado</button></div>`;
+    const info = el.querySelector('div > div:first-child');
+    if (info) {
+      const badge = document.createElement('div');
+      badge.style.marginTop = '6px';
+      badge.innerHTML = `<span style="font-size:11px;background:#fee2e2;color:#991b1b;border-radius:6px;padding:3px 8px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-circle-check" style="font-size:12px" aria-hidden="true"></i> SellOut solicitado</span>`;
+      info.appendChild(badge);
+    }
+  }
+  renderTabela();
+  showToast('✅ SellOut solicitado com sucesso!', '#166534');
 }
 
 
