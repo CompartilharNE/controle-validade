@@ -2029,6 +2029,18 @@
           </div>
         </div>
 
+        <!-- Seletor de Mês -->
+        <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap">
+          <div style="min-width:160px">
+            <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Mês</label>
+            <select id="rotSelMes" onchange="rotOnMesChange()" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white">
+            </select>
+          </div>
+          <button id="rotBtnCopiar" onclick="rotCopiarMesAnterior()" style="display:none;align-items:center;gap:6px;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer">
+            <i class="ti ti-copy" style="font-size:13px"></i> Copiar mês anterior
+          </button>
+        </div>
+
         <!-- Filtro Vendedor (somente admin) -->
         <div id="rotFiltroVendedor" style="display:none;margin-bottom:12px">
           <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Vendedor</label>
@@ -2074,9 +2086,20 @@
           </div>
         </div>
 
-        <!-- Lista de lojas (aparece só ao buscar) -->
+        <!-- Lojas já vinculadas neste mês (sempre visível após selecionar promotor+mês) -->
+        <div id="rotVinculadasSection" style="display:none;margin-bottom:8px">
+          <div style="font-size:10px;font-weight:700;color:#475569;letter-spacing:.05em;padding:7px 12px;background:#f0fdf4;border-radius:8px 8px 0 0;border:1px solid #bbf7d0;border-bottom:none;display:flex;align-items:center;gap:6px">
+            <i class="ti ti-circle-check" style="font-size:13px;color:#16a34a"></i> LOJAS VINCULADAS NESTE MÊS
+          </div>
+          <div id="rotVinculadasBody" style="border:1px solid #bbf7d0;border-radius:0 0 8px 8px;overflow:hidden"></div>
+        </div>
+
+        <!-- Lista de lojas (resultado da busca) -->
         <div id="rotListaLojas" style="display:none">
-          <div id="rotLojaBody"></div>
+          <div id="rotListaHeader" style="font-size:10px;font-weight:700;color:#475569;letter-spacing:.05em;padding:7px 12px;background:#f8fafc;border-radius:8px 8px 0 0;border:1px solid #e2e8f0;border-bottom:none;display:flex;align-items:center;gap:6px">
+            <i class="ti ti-search" style="font-size:13px;color:#64748b"></i> RESULTADO DA BUSCA
+          </div>
+          <div id="rotLojaBody" style="border:1px solid #e2e8f0;border-radius:0 0 8px 8px;overflow:hidden"></div>
           <p id="rotBuscaInfo" style="font-size:12px;color:#94a3b8;text-align:center;margin:6px 0 0"></p>
         </div>
 
@@ -3558,6 +3581,7 @@ const FS_CFG_CONSOLIDADO = db.collection('config').doc('consolidado');
 const FS_CFG_REDES       = db.collection('config').doc('redes');
 const FS_SELLOUT_HIST    = db.collection('sellout_historico');
 const FS_CONCORRENTES_DB = db.collection('concorrentes_db');
+const FS_ROTEIROS        = db.collection('roteiros');
 
 // ── Logos das fábricas na tela de login ─────
 (function _carregarLogosLogin() {
@@ -9026,10 +9050,66 @@ function setView(v) {
 // ══════════════════════════════════════════════
 
 // Estado local da roteirização (alterações não salvas)
-let _rotState    = {}; // { lojaId: { vinculada: bool, dias: ['Seg','Ter',...] } }
+let _rotState      = {}; // { lojaId: { vinculada: bool, dias: ['Seg','Ter',...] } }
 let _rotLojasTodas = []; // lista completa antes do filtro de rede
+let _rotRelDrillIdx = -1;
+const _DIAS_SEMANA = ['Seg','Ter','Qua','Qui','Sex','Sáb'];
+const _MESES_PT    = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function _rotGetMesAtual() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function _rotMesLabel(mes) {
+  const [ano, m] = mes.split('-');
+  return `${_MESES_PT[parseInt(m)-1]} ${ano}`;
+}
+function _rotDocKey(promotorNome, mes) {
+  return promotorNome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '_' + mes;
+}
+function _rotPopularSelMes() {
+  const sel = document.getElementById('rotSelMes');
+  if (!sel) return;
+  const hoje = new Date();
+  const opts = [];
+  for (let i = -3; i <= 2; i++) {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    opts.push(`<option value="${val}" ${i===0?'selected':''}>${_rotMesLabel(val)}</option>`);
+  }
+  sel.innerHTML = opts.join('');
+}
+
+function rotOnMesChange() {
+  const promotorNome = document.getElementById('rotSelPromotor')?.value || '';
+  if (promotorNome) _rotCarregarLojas(promotorNome);
+}
+
+async function rotCopiarMesAnterior() {
+  const promotorNome = document.getElementById('rotSelPromotor')?.value;
+  const mes = document.getElementById('rotSelMes')?.value || _rotGetMesAtual();
+  if (!promotorNome) return;
+  const [ano, m] = mes.split('-').map(Number);
+  const prevMes = m === 1 ? `${ano-1}-12` : `${ano}-${String(m-1).padStart(2,'0')}`;
+  const prevKey = _rotDocKey(promotorNome, prevMes);
+  try {
+    const doc = await FS_ROTEIROS.doc(prevKey).get();
+    if (!doc.exists) { showToast(`⚠️ Nenhum roteiro encontrado em ${_rotMesLabel(prevMes)}.`,'#92400e'); return; }
+    const prevLojas = doc.data().lojas || [];
+    let copiadas = 0;
+    prevLojas.forEach(item => {
+      const lid = String(item.lojaId);
+      if (_rotState[lid]) { _rotState[lid].vinculada = true; _rotState[lid].dias = [...(item.dias||[])]; copiadas++; }
+    });
+    _rotAtualizarProgress();
+    _rotRenderVinculadas();
+    _rotAplicarFiltros();
+    showToast(`✅ ${copiadas} lojas copiadas de ${_rotMesLabel(prevMes)}. Salve para confirmar.`,'#166534');
+  } catch(e) { showToast('❌ Erro ao copiar: ' + e.message,'#7f1d1d'); }
+}
 
 function initRoteirizacao() {
+  _rotPopularSelMes();
   const isAdmin  = sessao?.role === 'admin';
   const isVend   = sessao?.role === 'vendedor';
   const filtroVend = document.getElementById('rotFiltroVendedor');
@@ -9139,66 +9219,81 @@ function rotOnPromotorChange() {
 
 function _rotAplicarFiltros() {
   if (!_rotLojasTodas.length) return;
+  _rotRenderVinculadas();
   const rede     = document.getElementById('rotSelRede')?.value || '';
   const busca    = (document.getElementById('rotBuscaLoja')?.value || '').trim().toLowerCase();
   const listDiv  = document.getElementById('rotListaLojas');
   const dicaBusca= document.getElementById('rotDicaBusca');
   const infoEl   = document.getElementById('rotBuscaInfo');
+  const vinculadas = _rotLojasTodas.filter(l => _rotState[String(l.id)]?.vinculada);
 
-  // Só mostra lista se houver texto na busca OU rede selecionada
   if (!busca && !rede) {
     if (listDiv)   listDiv.style.display  = 'none';
-    if (dicaBusca) dicaBusca.style.display = '';
+    if (dicaBusca) dicaBusca.style.display = vinculadas.length ? 'none' : '';
     return;
   }
 
-  let filtradas = _rotLojasTodas;
+  // Filtrar excluindo já vinculadas (aparecem na seção acima)
+  let filtradas = _rotLojasTodas.filter(l => !_rotState[String(l.id)]?.vinculada);
   if (rede)  filtradas = filtradas.filter(l => l.rede === rede);
   if (busca) filtradas = filtradas.filter(l => (l.nome || '').toLowerCase().includes(busca));
 
   if (dicaBusca) dicaBusca.style.display = 'none';
-  if (listDiv)   listDiv.style.display   = '';
-  _rotRenderLojas(filtradas);
+  if (listDiv)   listDiv.style.display   = filtradas.length ? '' : 'none';
+  _rotRenderLojas(filtradas.length ? filtradas : []);
   if (infoEl) infoEl.textContent = filtradas.length
-    ? `${filtradas.length} loja${filtradas.length > 1 ? 's' : ''} encontrada${filtradas.length > 1 ? 's' : ''}`
-    : 'Nenhuma loja encontrada';
+    ? `${filtradas.length} loja${filtradas.length > 1 ? 's' : ''} disponível${filtradas.length > 1 ? 'is' : ''}`
+    : 'Nenhuma loja encontrada (sem o que já está vinculado)';
 }
 
 function rotOnRedeChange() { _rotAplicarFiltros(); }
 function rotOnBuscaChange() { _rotAplicarFiltros(); }
 
-function _rotCarregarLojas(promotorNome) {
+async function _rotCarregarLojas(promotorNome) {
   if (!promotorNome) { _rotMostrarListaLojas(null); return; }
 
-  // Determinar UFs do promotor — campo uf do cadastro OU UFs dos produtos dele
+  const mes = document.getElementById('rotSelMes')?.value || _rotGetMesAtual();
+
+  // Determinar UFs do promotor
   const prom = usuarios.find(u => u.nome === promotorNome && u.role === 'promotor');
   let ufsPromotor = prom?.uf ? [prom.uf] : [];
   if (!ufsPromotor.length) {
-    // fallback: UFs onde o promotor já registrou produtos
     ufsPromotor = [...new Set(produtos.filter(p => p.promotor === promotorNome).map(p => p.uf).filter(Boolean))];
   }
-  // Também incluir lojas já vinculadas a ele (podem ser de outras UFs)
-  const lojasVinculadas = lojas.filter(l => (l.promotorResponsavel || '') === promotorNome);
-  const idsVinculadas = new Set(lojasVinculadas.map(l => String(l.id)));
+
+  // Carregar roteiro do mês do Firestore
+  const docKey = _rotDocKey(promotorNome, mes);
+  let roteiroLojas = [];
+  let roteiroExiste = false;
+  try {
+    const doc = await FS_ROTEIROS.doc(docKey).get();
+    if (doc.exists) { roteiroLojas = doc.data().lojas || []; roteiroExiste = true; }
+  } catch(e) { console.error('Erro ao carregar roteiro:', e); }
+
+  const idsVinculadas = new Set(roteiroLojas.map(r => String(r.lojaId)));
 
   let lojasDisp;
   if (ufsPromotor.length) {
-    // Lojas da UF do promotor + lojas já vinculadas (para não perder vínculos de outra UF)
     lojasDisp = lojas.filter(l => ufsPromotor.includes(l.uf) || idsVinculadas.has(String(l.id)));
   } else {
     lojasDisp = [...lojas];
   }
   lojasDisp = [...lojasDisp].sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
 
-  // Montar estado inicial: vinculada se promotorResponsavel === promotorNome
+  // Montar _rotState a partir do roteiro do mês
   _rotState = {};
   lojasDisp.forEach(l => {
-    const vinculada = (l.promotorResponsavel || '') === promotorNome;
-    const dias = vinculada ? (l.diasVisita || []) : [];
-    _rotState[String(l.id)] = { vinculada, dias: [...dias] };
+    const lid = String(l.id);
+    const rotItem = roteiroLojas.find(r => String(r.lojaId) === lid);
+    _rotState[lid] = { vinculada: !!rotItem, dias: rotItem ? [...(rotItem.dias||[])] : [] };
   });
 
   _rotLojasTodas = lojasDisp;
+
+  // Mostrar/ocultar botão "Copiar mês anterior"
+  const btnCopiar = document.getElementById('rotBtnCopiar');
+  if (btnCopiar) btnCopiar.style.display = !roteiroExiste ? 'inline-flex' : 'none';
+
   _rotMostrarListaLojas(lojasDisp);
 }
 
@@ -9215,6 +9310,8 @@ function _rotMostrarListaLojas(lojasDisp) {
     if (progressWrap) progressWrap.style.display = 'none';
     if (filtroRede)   filtroRede.style.display   = 'none';
     if (selRede)      selRede.innerHTML = '<option value="">Todas as Redes</option>';
+    const vinc = document.getElementById('rotVinculadasSection');
+    if (vinc) vinc.style.display = 'none';
     return;
   }
 
@@ -9232,45 +9329,77 @@ function _rotMostrarListaLojas(lojasDisp) {
   if (buscaInput)  buscaInput.value = '';
 
   if (emptyDiv)     emptyDiv.style.display   = 'none';
-  if (listDiv)      listDiv.style.display    = 'none'; // oculta até digitar
-  if (dicaBusca)    dicaBusca.style.display  = '';     // mostra dica
+  if (listDiv)      listDiv.style.display    = 'none';
+  if (dicaBusca)    dicaBusca.style.display  = '';
   if (progressWrap) progressWrap.style.display = '';
 
+  _rotRenderVinculadas();
   _rotAtualizarProgress();
 }
 
-const _DIAS_SEMANA = ['Seg','Ter','Qua','Qui','Sex','Sáb'];
+function _rotRenderVinculadas() {
+  const section = document.getElementById('rotVinculadasSection');
+  const body    = document.getElementById('rotVinculadasBody');
+  if (!section || !body) return;
+  const vinculadas = _rotLojasTodas.filter(l => _rotState[String(l.id)]?.vinculada);
+  if (!vinculadas.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  body.innerHTML = vinculadas.map(l => _rotRowHtml(l, true)).join('');
+}
+
+
+function _rotRowHtml(l, isVinculada) {
+  const lid = String(l.id);
+  const st  = _rotState[lid] || { vinculada: false, dias: [] };
+  const diasHTML = _DIAS_SEMANA.map(d => {
+    const ativo    = st.dias.includes(d);
+    const disabled = !st.vinculada;
+    return `<button onclick="_rotToggleDia('${lid}',this,'${d}')" data-dia="${d}" ${disabled?'disabled':''}
+      style="padding:4px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid ${ativo&&!disabled?'#3b82f6':'#cbd5e1'};background:${ativo&&!disabled?'#dbeafe':'white'};color:${ativo&&!disabled?'#1e40af':'#94a3b8'};cursor:${disabled?'not-allowed':'pointer'};opacity:${disabled?'.45':'1'};transition:all .15s">${d}</button>`;
+  }).join('');
+  const newBadge = !isVinculada ? `<span style="font-size:10px;font-weight:700;color:#1e40af;padding:2px 7px;background:#dbeafe;border-radius:99px;border:1px solid #93c5fd">+ Nova</span>` : '';
+  return `<div id="rotRow_${lid}" style="background:white;padding:11px 14px;${isVinculada?'':'border-top:0.5px solid #e2e8f0'}">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;min-width:160px">
+        <input type="checkbox" id="rotChk_${lid}" onchange="_rotToggleLoja('${lid}',this)"
+          ${st.vinculada?'checked':''} style="width:16px;height:16px;accent-color:#1e40af;cursor:pointer">
+        <span style="font-size:13px;font-weight:600;color:#1e293b">${esc(l.nome||l.id)}</span>
+        ${l.rede?`<span style="font-size:11px;color:#64748b;background:#f1f5f9;padding:2px 7px;border-radius:99px">${esc(l.rede)}</span>`:''}
+        ${newBadge}
+      </label>
+      <span id="rotSalvo_${lid}" style="display:none;font-size:11px;font-weight:700;color:#16a34a;padding:2px 9px;background:#dcfce7;border-radius:99px;border:1px solid #bbf7d0">✓ Salvo</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap" id="rotDias_${lid}">${diasHTML}</div>
+    </div>
+  </div>`;
+}
 
 function _rotRenderLojas(lojasDisp) {
   const body = document.getElementById('rotLojaBody');
   if (!body) return;
-  body.innerHTML = lojasDisp.map(l => {
-    const lid = String(l.id);
-    const st = _rotState[lid] || { vinculada: false, dias: [] };
-    const diasHTML = _DIAS_SEMANA.map(d => {
+  // Excluir da busca as lojas já vinculadas (aparecem na seção acima)
+  const naoVinculadas = lojasDisp.filter(l => !_rotState[String(l.id)]?.vinculada);
+  body.innerHTML = naoVinculadas.map(l => _rotRowHtml(l, false)).join('');
+}
+
+function _rotToggleLoja(lojaId, chkEl) {
+  const lid = String(lojaId);
+  if (!_rotState[lid]) _rotState[lid] = { vinculada: false, dias: [] };
+  _rotState[lid].vinculada = chkEl.checked;
+  if (!chkEl.checked) _rotState[lid].dias = [];
+  // Re-render botões de dias desta loja
+  const diasDiv = document.getElementById('rotDias_' + lid);
+  if (diasDiv) {
+    const st = _rotState[lid];
+    diasDiv.innerHTML = _DIAS_SEMANA.map(d => {
       const ativo = st.dias.includes(d);
-      const disabled = !st.vinculada;
-      return `<button
-        onclick="_rotToggleDia('${lid}',this,'${d}')"
-        data-dia="${d}"
-        ${disabled ? 'disabled' : ''}
-        style="padding:4px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid ${ativo && !disabled ? '#3b82f6' : '#cbd5e1'};background:${ativo && !disabled ? '#dbeafe' : 'white'};color:${ativo && !disabled ? '#1e40af' : '#94a3b8'};cursor:${disabled ? 'not-allowed' : 'pointer'};opacity:${disabled ? '.45' : '1'};transition:all .15s"
-      >${d}</button>`;
+      return `<button onclick="_rotToggleDia('${lojaId}',this,'${d}')" data-dia="${d}" ${!st.vinculada?'disabled':''}
+        style="padding:4px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid ${ativo?'#3b82f6':'#cbd5e1'};background:${ativo?'#dbeafe':'white'};color:${ativo?'#1e40af':'#94a3b8'};cursor:${!st.vinculada?'not-allowed':'pointer'};opacity:${!st.vinculada?'.45':'1'};transition:all .15s">${d}</button>`;
     }).join('');
-    return `<div id="rotRow_${lid}" style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;margin-bottom:8px">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;min-width:160px">
-          <input type="checkbox" id="rotChk_${lid}" onchange="_rotToggleLoja('${lid}',this)"
-            ${st.vinculada ? 'checked' : ''}
-            style="width:16px;height:16px;accent-color:#1e40af;cursor:pointer">
-          <span style="font-size:13px;font-weight:600;color:#1e293b">${esc(l.nome||l.id)}</span>
-          ${l.rede ? `<span style="font-size:11px;color:#64748b;background:#f1f5f9;padding:2px 7px;border-radius:99px">${esc(l.rede)}</span>` : ''}
-        </label>
-        <span id="rotSalvo_${lid}" style="display:none;font-size:11px;font-weight:700;color:#16a34a;padding:2px 9px;background:#dcfce7;border-radius:99px;border:1px solid #bbf7d0">✓ Salvo</span>
-        <div style="display:flex;gap:4px;flex-wrap:wrap" id="rotDias_${lid}">${diasHTML}</div>
-      </div>
-    </div>`;
-  }).join('');
+  }
+  _rotAtualizarProgress();
+  // Se desmarcou uma loja vinculada, atualizar seção vinculadas + busca
+  _rotRenderVinculadas();
+  _rotAplicarFiltros();
 }
 
 function _rotToggleLoja(lojaId, chkEl) {
@@ -9326,8 +9455,6 @@ function _rotAtualizarProgress() {
 }
 
 // ── Painel relatório de roteiros cadastrados ─
-const _DIAS_ORD = ['Seg','Ter','Qua','Qui','Sex','Sáb'];
-let _rotRelDrillIdx = -1; // índice do promotor expandido
 
 function renderRotRelatorio() {
   const painel = document.getElementById('rotRelatorio');
@@ -9426,36 +9553,59 @@ async function salvarRoteirizacao() {
   if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.innerHTML = '<i class="ti ti-loader" style="font-size:13px"></i> Salvando…'; }
 
   try {
-    const batch = db.batch();
+    const mes = document.getElementById('rotSelMes')?.value || _rotGetMesAtual();
+    const docKey = _rotDocKey(promotorNome, mes);
+    const mesSelecionado = mes;
+    const mesAtual = _rotGetMesAtual();
 
-    for (const [lojaId, st] of Object.entries(_rotState)) {
-      const ref = FS_LOJAS.doc(String(lojaId));
-      if (st.vinculada) {
-        batch.update(ref, { promotorResponsavel: promotorNome, diasVisita: st.dias });
-      } else {
-        // Se essa loja estava com esse promotor, limpar
-        const lojaLocal = lojas.find(l => String(l.id) === String(lojaId));
-        if (lojaLocal && (lojaLocal.promotorResponsavel || '') === promotorNome) {
-          batch.update(ref, { promotorResponsavel: '', diasVisita: [] });
-        }
-      }
-    }
+    // Montar lista de lojas vinculadas para o mês
+    const lojasData = Object.entries(_rotState)
+      .filter(([_, st]) => st.vinculada)
+      .map(([lojaId, st]) => ({ lojaId, dias: [...(st.dias || [])] }));
 
-    await batch.commit();
+    // Salvar no FS_ROTEIROS (histórico mensal)
+    await FS_ROTEIROS.doc(docKey).set({
+      promotor: promotorNome,
+      mes: mesSelecionado,
+      lojas: lojasData,
+      updatedAt: new Date().toISOString()
+    });
 
-    // Atualizar array local
-    for (const [lojaId, st] of Object.entries(_rotState)) {
-      const lojaLocal = lojas.find(l => String(l.id) === String(lojaId));
-      if (lojaLocal) {
+    // Se for o mês atual, também atualizar loja.promotorResponsavel e diasVisita
+    // para compatibilidade com o painel Cobertura de Visitas
+    if (mesSelecionado === mesAtual) {
+      const batch = db.batch();
+      for (const [lojaId, st] of Object.entries(_rotState)) {
+        const ref = FS_LOJAS.doc(String(lojaId));
         if (st.vinculada) {
-          lojaLocal.promotorResponsavel = promotorNome;
-          lojaLocal.diasVisita = [...st.dias];
-        } else if ((lojaLocal.promotorResponsavel || '') === promotorNome) {
-          lojaLocal.promotorResponsavel = '';
-          lojaLocal.diasVisita = [];
+          batch.update(ref, { promotorResponsavel: promotorNome, diasVisita: st.dias });
+        } else {
+          const lojaLocal = lojas.find(l => String(l.id) === String(lojaId));
+          if (lojaLocal && (lojaLocal.promotorResponsavel || '') === promotorNome) {
+            batch.update(ref, { promotorResponsavel: '', diasVisita: [] });
+          }
+        }
+      }
+      await batch.commit();
+
+      // Atualizar array local
+      for (const [lojaId, st] of Object.entries(_rotState)) {
+        const lojaLocal = lojas.find(l => String(l.id) === String(lojaId));
+        if (lojaLocal) {
+          if (st.vinculada) {
+            lojaLocal.promotorResponsavel = promotorNome;
+            lojaLocal.diasVisita = [...st.dias];
+          } else if ((lojaLocal.promotorResponsavel || '') === promotorNome) {
+            lojaLocal.promotorResponsavel = '';
+            lojaLocal.diasVisita = [];
+          }
         }
       }
     }
+
+    // Ocultar botão "Copiar mês anterior" (já existe roteiro para este mês)
+    const btnCopiar = document.getElementById('rotBtnCopiar');
+    if (btnCopiar) btnCopiar.style.display = 'none';
 
     if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ti ti-check" style="font-size:14px"></i> Salvo!'; }
     // Mostrar badge verde "✓ Salvo" em cada linha vinculada
