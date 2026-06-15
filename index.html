@@ -1999,33 +1999,45 @@
           </div>
         </div>
 
-        <!-- Barra de progresso -->
-        <div id="rotProgressWrap" style="display:none;margin-bottom:16px">
+        <!-- Barra de progresso + Salvar -->
+        <div id="rotProgressWrap" style="display:none;margin-bottom:12px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span style="font-size:12px;font-weight:600;color:#475569">Lojas vinculadas</span>
-            <span id="rotProgressLabel" style="font-size:12px;font-weight:700;color:#1e40af">0 / 0</span>
-          </div>
-          <div style="background:#e2e8f0;border-radius:99px;height:8px;overflow:hidden">
-            <div id="rotProgressBar" style="height:8px;background:#3b82f6;border-radius:99px;width:0%;transition:width .4s"></div>
-          </div>
-        </div>
-
-        <!-- Lista de lojas -->
-        <div id="rotListaLojas" style="display:none">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <span style="font-size:13px;font-weight:600;color:#1e3a5f">Lojas disponíveis</span>
-            <button onclick="salvarRoteirizacao()" style="display:inline-flex;align-items:center;gap:6px;background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 8px rgba(30,58,95,.35)">
-              <i class="ti ti-device-floppy" style="font-size:14px"></i> Salvar
+            <span style="font-size:12px;font-weight:600;color:#475569">Lojas vinculadas: <span id="rotProgressLabel" style="color:#1e40af">0 / 0</span></span>
+            <button onclick="salvarRoteirizacao()" style="display:inline-flex;align-items:center;gap:6px;background:#1e3a5f;color:white;border:none;border-bottom:3px solid #0c1f35;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 8px rgba(30,58,95,.35)">
+              <i class="ti ti-device-floppy" style="font-size:13px"></i> Salvar
             </button>
           </div>
-          <div id="rotLojaBody"></div>
+          <div style="background:#e2e8f0;border-radius:99px;height:6px;overflow:hidden">
+            <div id="rotProgressBar" style="height:6px;background:#3b82f6;border-radius:99px;width:0%;transition:width .4s"></div>
+          </div>
         </div>
 
-        <!-- Estado vazio -->
+        <!-- Lista de lojas (aparece só ao buscar) -->
+        <div id="rotListaLojas" style="display:none">
+          <div id="rotLojaBody"></div>
+          <p id="rotBuscaInfo" style="font-size:12px;color:#94a3b8;text-align:center;margin:6px 0 0"></p>
+        </div>
+
+        <!-- Dica de busca (aparece após promotor selecionado, antes de digitar) -->
+        <div id="rotDicaBusca" style="display:none;text-align:center;padding:20px 16px;color:#94a3b8">
+          <i class="ti ti-search" style="font-size:28px;display:block;margin-bottom:6px"></i>
+          <p style="font-size:13px;margin:0">Digite o nome da loja para buscar</p>
+        </div>
+
+        <!-- Estado vazio (sem promotor) -->
         <div id="rotEmpty" style="text-align:center;padding:32px 16px;color:#94a3b8">
           <i class="ti ti-route-off" style="font-size:36px;display:block;margin-bottom:8px"></i>
           <p style="font-size:13px;margin:0">Selecione um promotor para ver as lojas</p>
         </div>
+      </div>
+
+      <!-- Painel: Roteiros cadastrados -->
+      <div id="rotRelatorio" style="display:none;background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:16px;border:1px solid #e2e8f0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <i class="ti ti-clipboard-list" style="font-size:18px;color:#1e3a5f"></i>
+          <span style="font-size:14px;font-weight:700;color:#1e3a5f">Roteiros cadastrados</span>
+        </div>
+        <div id="rotRelatorioBody"></div>
       </div>
     </div>
 
@@ -8959,6 +8971,8 @@ function initRoteirizacao() {
     _rotPopularPromotores(null);
     if (selProm && selProm.value) _rotCarregarLojas(selProm.value);
   }
+  _rotRelDrillIdx = -1;
+  renderRotRelatorio();
 }
 
 function _rotPopularPromotores(vendedorNome) {
@@ -9020,8 +9034,10 @@ function rotOnPromotorChange() {
   const buscaInput  = document.getElementById('rotBuscaLoja');
   _rotState = {};
   _rotLojasTodas = [];
+  const dicaBusca2 = document.getElementById('rotDicaBusca');
   if (filtRede)    filtRede.style.display    = 'none';
   if (filtroBusca) filtroBusca.style.display = 'none';
+  if (dicaBusca2)  dicaBusca2.style.display  = 'none';
   if (selRede)     selRede.innerHTML = '<option value="">Todas as Redes</option>';
   if (buscaInput)  buscaInput.value = '';
   _rotCarregarLojas(selProm.value || null);
@@ -9029,12 +9045,29 @@ function rotOnPromotorChange() {
 
 function _rotAplicarFiltros() {
   if (!_rotLojasTodas.length) return;
-  const rede  = document.getElementById('rotSelRede')?.value || '';
-  const busca = (document.getElementById('rotBuscaLoja')?.value || '').trim().toLowerCase();
+  const rede     = document.getElementById('rotSelRede')?.value || '';
+  const busca    = (document.getElementById('rotBuscaLoja')?.value || '').trim().toLowerCase();
+  const listDiv  = document.getElementById('rotListaLojas');
+  const dicaBusca= document.getElementById('rotDicaBusca');
+  const infoEl   = document.getElementById('rotBuscaInfo');
+
+  // Só mostra lista se houver texto na busca OU rede selecionada
+  if (!busca && !rede) {
+    if (listDiv)   listDiv.style.display  = 'none';
+    if (dicaBusca) dicaBusca.style.display = '';
+    return;
+  }
+
   let filtradas = _rotLojasTodas;
   if (rede)  filtradas = filtradas.filter(l => l.rede === rede);
   if (busca) filtradas = filtradas.filter(l => (l.nome || '').toLowerCase().includes(busca));
+
+  if (dicaBusca) dicaBusca.style.display = 'none';
+  if (listDiv)   listDiv.style.display   = '';
   _rotRenderLojas(filtradas);
+  if (infoEl) infoEl.textContent = filtradas.length
+    ? `${filtradas.length} loja${filtradas.length > 1 ? 's' : ''} encontrada${filtradas.length > 1 ? 's' : ''}`
+    : 'Nenhuma loja encontrada';
 }
 
 function rotOnRedeChange() { _rotAplicarFiltros(); }
@@ -9100,14 +9133,15 @@ function _rotMostrarListaLojas(lojasDisp) {
   if (filtroRede) filtroRede.style.display = '';
   const filtroBusca = document.getElementById('rotFiltroBusca');
   const buscaInput  = document.getElementById('rotBuscaLoja');
+  const dicaBusca   = document.getElementById('rotDicaBusca');
   if (filtroBusca) filtroBusca.style.display = '';
   if (buscaInput)  buscaInput.value = '';
 
   if (emptyDiv)     emptyDiv.style.display   = 'none';
-  if (listDiv)      listDiv.style.display    = '';
+  if (listDiv)      listDiv.style.display    = 'none'; // oculta até digitar
+  if (dicaBusca)    dicaBusca.style.display  = '';     // mostra dica
   if (progressWrap) progressWrap.style.display = '';
 
-  _rotRenderLojas(lojasDisp);
   _rotAtualizarProgress();
 }
 
@@ -9196,6 +9230,98 @@ function _rotAtualizarProgress() {
   if (bar) bar.style.width = pct + '%';
 }
 
+// ── Painel relatório de roteiros cadastrados ─
+const _DIAS_ORD = ['Seg','Ter','Qua','Qui','Sex','Sáb'];
+let _rotRelDrillIdx = -1; // índice do promotor expandido
+
+function renderRotRelatorio() {
+  const painel = document.getElementById('rotRelatorio');
+  const body   = document.getElementById('rotRelatorioBody');
+  if (!painel || !body) return;
+
+  // Montar lista de promotores acessíveis ao usuário atual
+  const isAdmin = sessao?.role === 'admin';
+  const isVend  = sessao?.role === 'vendedor';
+  let promsNomes = [];
+  if (isAdmin) {
+    promsNomes = [...new Set([
+      ...usuarios.filter(u => u.role === 'promotor').map(u => u.nome),
+      ...produtos.map(p => p.promotor).filter(Boolean)
+    ])];
+  } else if (isVend) {
+    const ufsVend = sessao.ufs || [];
+    promsNomes = [...new Set([
+      ...usuarios.filter(u => u.role === 'promotor' && ufsVend.includes(u.uf)).map(u => u.nome),
+      ...produtos.filter(p => ufsVend.includes(p.uf)).map(p => p.promotor).filter(Boolean)
+    ])];
+  }
+  promsNomes = promsNomes.sort((a,b) => a.localeCompare(b,'pt-BR'));
+
+  if (!promsNomes.length) { painel.style.display = 'none'; return; }
+  painel.style.display = '';
+
+  body.innerHTML = promsNomes.map((nome, idx) => {
+    // Lojas vinculadas a este promotor
+    const lojasVinc = lojas.filter(l => (l.promotorResponsavel || '') === nome);
+    const ufsStr = [...new Set(lojasVinc.map(l => l.uf).filter(Boolean))].sort().join(', ');
+    const totalVinc = lojasVinc.length;
+    const isOpen = _rotRelDrillIdx === idx;
+
+    // Iniciais
+    const partes = nome.trim().split(' ');
+    const iniciais = (partes[0][0] + (partes[1]?.[0] || '')).toUpperCase();
+    const cores = ['#dbeafe:#1e40af','#dcfce7:#166534','#fef3c7:#92400e','#fce7f3:#9d174d','#ede9fe:#5b21b6'];
+    const [bg, cor] = cores[idx % cores.length].split(':');
+
+    let drillHTML = '';
+    if (isOpen) {
+      if (!totalVinc) {
+        drillHTML = `<div style="padding:12px 14px;border-top:1px solid #f1f5f9;color:#94a3b8;font-size:12px;text-align:center">Nenhuma loja vinculada ainda</div>`;
+      } else {
+        // Grade semanal: para cada dia, quais lojas visitam nesse dia
+        const grade = _DIAS_ORD.map(dia => ({
+          dia,
+          lojas: lojasVinc.filter(l => (l.diasVisita || []).includes(dia))
+        }));
+        const semDia = lojasVinc.filter(l => !l.diasVisita || !l.diasVisita.length);
+
+        drillHTML = `<div style="padding:10px 14px 14px;border-top:1px solid #f1f5f9">
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:6px">
+            ${grade.map(g => `<div>
+              <div style="font-size:11px;font-weight:700;color:#475569;text-align:center;margin-bottom:4px">${g.dia}</div>
+              ${g.lojas.length
+                ? g.lojas.map(l => `<div style="font-size:10px;background:#dbeafe;color:#1e40af;border-radius:5px;padding:3px 5px;margin-bottom:3px;text-align:center;line-height:1.3">${esc(l.nome||'')}</div>`).join('')
+                : `<div style="font-size:10px;color:#cbd5e1;text-align:center;padding:3px 0">—</div>`
+              }
+            </div>`).join('')}
+          </div>
+          ${semDia.length ? `<p style="font-size:11px;color:#94a3b8;margin:6px 0 0">${semDia.map(l=>esc(l.nome)).join(', ')} — sem dia definido</p>` : ''}
+        </div>`;
+      }
+    }
+
+    return `<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:8px">
+      <div onclick="_rotRelToggle(${idx})" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;background:${isOpen?'#f8fafc':'white'}">
+        <div style="width:30px;height:30px;background:${bg};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${cor};flex-shrink:0">${iniciais}</div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:13px;font-weight:600;color:#1e293b;margin:0">${esc(nome)}</p>
+          <p style="font-size:11px;color:#64748b;margin:0">${totalVinc ? `${totalVinc} loja${totalVinc>1?'s':''} vinculada${totalVinc>1?'s':''}${ufsStr?' · '+ufsStr:''}` : 'Nenhuma loja vinculada'}</p>
+        </div>
+        ${!totalVinc
+          ? `<span style="font-size:11px;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:99px;font-weight:600">Pendente</span>`
+          : `<i class="ti ti-chevron-down" style="font-size:15px;color:#94a3b8;transform:rotate(${isOpen?'180':'0'}deg);transition:transform .2s"></i>`
+        }
+      </div>
+      ${drillHTML}
+    </div>`;
+  }).join('');
+}
+
+function _rotRelToggle(idx) {
+  _rotRelDrillIdx = (_rotRelDrillIdx === idx) ? -1 : idx;
+  renderRotRelatorio();
+}
+
 async function salvarRoteirizacao() {
   const selProm = document.getElementById('rotSelPromotor');
   const promotorNome = selProm?.value;
@@ -9237,6 +9363,7 @@ async function salvarRoteirizacao() {
     }
 
     if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ti ti-check" style="font-size:14px"></i> Salvo!'; }
+    renderRotRelatorio();
     setTimeout(() => {
       if (btnSalvar) btnSalvar.innerHTML = '<i class="ti ti-device-floppy" style="font-size:14px"></i> Salvar';
     }, 2000);
