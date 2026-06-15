@@ -198,6 +198,13 @@
     body.dark .text-blue-600 { color: #93c5fd !important; }
     body.dark #btnMeAjuda { background: #3f3f46 !important; color: #e4e4e7 !important; border-bottom-color: #18181b !important; box-shadow: 0 4px 12px rgba(0,0,0,.5) !important; }
     body.dark #btnConcorrencia { background: #3f3f46 !important; color: #e4e4e7 !important; border-bottom-color: #18181b !important; box-shadow: 0 4px 12px rgba(0,0,0,.5) !important; }
+    /* ── Ranking de lojas — dark mode ── */
+    body.dark .rank-nome { color: #e4e4e7 !important; }
+    body.dark .rank-row  { border-bottom-color: #3f3f46 !important; }
+    body.dark #rankInsight { background: #1e3a5f44 !important; color: #93c5fd !important; border-left-color: #3b82f6 !important; }
+    /* ── Insight azul no ranking (rSelectLabel, insight text) ── */
+    body.dark #rSelectLabel { color: #a1a1aa !important; }
+    body.dark #rankInsight b { color: #bfdbfe !important; }
 
     /* ── Logo responsiva (app principal) ── */
     #appLogoWrap svg { height: 60px !important; width: auto !important; }
@@ -1637,6 +1644,8 @@
           <div style="width:0.5px;height:22px;background:#b0bac8;flex-shrink:0"></div>
           <select id="rFab" onchange="onRankChangeFab()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;flex:1;min-width:90px;max-width:140px"></select>
           <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+          <select id="rRede" onchange="onRankChangeRede()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;flex:1;min-width:90px;max-width:140px"></select>
+          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
           <select id="rVend" onchange="onRankChangeVend()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;flex:1;min-width:90px;max-width:140px"></select>
           <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
           <select id="rUF" onchange="onRankChangeUF()" style="font-size:12px;padding:4px 8px;border:0.5px solid #b0bac8;border-radius:8px;background:#fff;color:#1e293b;height:30px;width:80px;flex-shrink:0"></select>
@@ -1691,11 +1700,11 @@
             <!-- Toggle Mensal / Diário -->
             <div style="display:flex;flex-shrink:0">
               <button id="mTogMensal" onclick="setMovMode('mensal')"
-                style="background:#0e2841;color:white;border:0.5px solid #0e2841;border-radius:7px 0 0 7px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer">
+                style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:7px 0 0 7px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer">
                 Mensal
               </button>
               <button id="mTogDiario" onclick="setMovMode('diario')"
-                style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-left:none;border-radius:0 7px 7px 0;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer">
+                style="background:#0e2841;color:white;border:0.5px solid #0e2841;border-left:none;border-radius:0 7px 7px 0;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer">
                 Diário
               </button>
             </div>
@@ -7780,6 +7789,7 @@ function _rankPopSel(id, vals, ph) {
 
 function _rankBase() {
   const fab   = document.getElementById('rFab')?.value  || '';
+  const rede  = document.getElementById('rRede')?.value || '';
   const vend  = document.getElementById('rVend')?.value || '';
   const uf    = document.getElementById('rUF')?.value   || '';
   const dtIni = _parseRankDate(document.getElementById('rDtIni')?.value || '');
@@ -7796,12 +7806,14 @@ function _rankBase() {
   });
   if (sessao?.role === 'vendedor') base = base.filter(p => sessao.ufs?.includes(p.uf));
   if (sessao?.role === 'promotor') base = base.filter(p => normTxt(p.promotor) === normTxt(sessao.nome || ''));
-  const _getFab = p => { const cat = catalogo.find(c => normTxt(c.nome) === normTxt(p.produto||'')); return cat?.fabrica || p.fabrica || ''; };
+  const _getFab  = p => { const cat = catalogo.find(c => normTxt(c.nome) === normTxt(p.produto||'')); return cat?.fabrica || p.fabrica || ''; };
   const _getVend = p => { const u = usuarios.find(u => u.role==='vendedor' && (u.ufs||[]).includes(p.uf)); return u?.nome || ''; };
+  const _getRede = p => { const l = lojas.find(l => normTxt(l.nome) === normTxt(p.loja||'')); return l?.rede || ''; };
   if (fab)  base = base.filter(p => normTxt(_getFab(p)) === normTxt(fab));
+  if (rede) base = base.filter(p => normTxt(_getRede(p)) === normTxt(rede));
   if (vend) base = base.filter(p => normTxt(_getVend(p)) === normTxt(vend));
   if (uf)   base = base.filter(p => (p.uf||'') === uf);
-  return { base, fab, vend, uf, _getFab, _getVend };
+  return { base, fab, rede, vend, uf, _getFab, _getVend, _getRede };
 }
 
 function setRankModo(modo) {
@@ -7826,7 +7838,15 @@ function _rankPopSecundario() {
 }
 
 function onRankChangeFab() {
-  const { base, _getFab, _getVend } = _rankBase();
+  const { base, _getRede, _getVend } = _rankBase();
+  _rankPopSel('rRede', [...new Set(base.map(_getRede).filter(Boolean))].sort(), 'Todas as redes');
+  _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos os vendedores');
+  _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas as UFs');
+  _rankPopSecundario();
+  renderRankingLojas();
+}
+function onRankChangeRede() {
+  const { base, _getVend } = _rankBase();
   _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos os vendedores');
   _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas as UFs');
   _rankPopSecundario();
@@ -7844,13 +7864,14 @@ function onRankChangeUF() {
 }
 
 function limparRankFiltros() {
-  ['rFab','rVend','rUF','rDtIni','rDtFim','rSecundario'].forEach(id => { const s = document.getElementById(id); if (s) s.value = ''; });
+  ['rFab','rRede','rVend','rUF','rDtIni','rDtFim','rSecundario'].forEach(id => { const s = document.getElementById(id); if (s) s.value = ''; });
   initRankingLojas();
 }
 
 function initRankingLojas() {
-  const { base, _getFab, _getVend } = _rankBase();
+  const { base, _getFab, _getVend, _getRede } = _rankBase();
   _rankPopSel('rFab',  [...new Set(base.map(_getFab).filter(Boolean))].sort(), 'Todas as fábricas');
+  _rankPopSel('rRede', [...new Set(base.map(_getRede).filter(Boolean))].sort(), 'Todas as redes');
   _rankPopSel('rVend', [...new Set(base.map(_getVend).filter(Boolean))].sort(), 'Todos os vendedores');
   _rankPopSel('rUF',   [...new Set(base.map(p=>p.uf).filter(Boolean))].sort(), 'Todas as UFs');
   _rankPopSecundario();
@@ -7892,12 +7913,12 @@ function renderRankingLojas() {
     }
     if (!porLoja.length) { bodyEl.innerHTML='<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Nenhuma ocorrência encontrada para os filtros selecionados.</div>'; return; }
     bodyEl.innerHTML = porLoja.map((r,i)=>`
-      <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid #f1f5f9${i===porLoja.length-1?';border-bottom:none':''}">
+      <div class="rank-row" style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid #f1f5f9${i===porLoja.length-1?';border-bottom:none':''}">
         <div style="width:28px;text-align:center;font-size:13px;font-weight:600;color:#94a3b8;flex-shrink:0">${i+1}º</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.loja}</div>
+          <div class="rank-nome" style="font-size:13px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.loja}</div>
           <div style="font-size:11px;color:#94a3b8">${r.total} ocorrência${r.total!==1?'s':''}</div>
-        </div>${_badge(r.temV)}
+        </div>
       </div>`).join('');
 
   } else {
@@ -7916,12 +7937,12 @@ function renderRankingLojas() {
     }
     if (!porProd.length) { bodyEl.innerHTML='<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Nenhuma ocorrência encontrada para os filtros selecionados.</div>'; return; }
     bodyEl.innerHTML = porProd.map((r,i)=>`
-      <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid #f1f5f9${i===porProd.length-1?';border-bottom:none':''}">
+      <div class="rank-row" style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid #f1f5f9${i===porProd.length-1?';border-bottom:none':''}">
         <div style="width:28px;text-align:center;font-size:13px;font-weight:600;color:#94a3b8;flex-shrink:0">${i+1}º</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.prod}</div>
+          <div class="rank-nome" style="font-size:13px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.prod}</div>
           <div style="font-size:11px;color:#94a3b8">${r.fab?r.fab+' · ':''}${r.total} ocorrência${r.total!==1?'s':''}</div>
-        </div>${_badge(r.temV)}
+        </div>
       </div>`).join('');
   }
 }
@@ -10292,7 +10313,7 @@ function _filtrarHistorico(prefixo) {
 
 let _movChart = null;
 let _movLegState = {entrada:true, saida:true, vencido:true, linha:true};
-let _movMode = 'mensal'; // 'mensal' | 'diario'
+let _movMode = 'diario'; // 'mensal' | 'diario'
 
 function setMovMode(modo) {
   _movMode = modo;
