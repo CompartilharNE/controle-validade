@@ -1983,11 +1983,19 @@
               <option value="">Selecione um promotor…</option>
             </select>
           </div>
-          <div id="rotFiltroRede" style="display:none;flex:1;min-width:150px;max-width:260px">
+          <div id="rotFiltroRede" style="display:none;flex:1;min-width:150px;max-width:220px">
             <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Rede</label>
             <select id="rotSelRede" onchange="rotOnRedeChange()" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white">
               <option value="">Todas as Redes</option>
             </select>
+          </div>
+          <div id="rotFiltroBusca" style="display:none;flex:1;min-width:160px;max-width:280px">
+            <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Buscar loja</label>
+            <div style="position:relative">
+              <i class="ti ti-search" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:14px;color:#94a3b8;pointer-events:none"></i>
+              <input id="rotBuscaLoja" type="text" placeholder="Nome da loja…" oninput="rotOnBuscaChange()"
+                style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px 7px 30px;font-size:13px;color:#1e293b;background:white;box-sizing:border-box">
+            </div>
           </div>
         </div>
 
@@ -8990,33 +8998,47 @@ function _rotPopularPromotores(vendedorNome) {
 }
 
 function rotOnVendedorChange() {
-  const selVend  = document.getElementById('rotSelVendedor');
-  const filtRede = document.getElementById('rotFiltroRede');
-  const selRede  = document.getElementById('rotSelRede');
+  const selVend     = document.getElementById('rotSelVendedor');
+  const filtRede    = document.getElementById('rotFiltroRede');
+  const selRede     = document.getElementById('rotSelRede');
+  const filtroBusca = document.getElementById('rotFiltroBusca');
+  const buscaInput  = document.getElementById('rotBuscaLoja');
   _rotState = {};
   _rotLojasTodas = [];
-  if (filtRede) filtRede.style.display = 'none';
-  if (selRede)  selRede.innerHTML = '<option value="">Todas as Redes</option>';
+  if (filtRede)    filtRede.style.display    = 'none';
+  if (filtroBusca) filtroBusca.style.display = 'none';
+  if (selRede)     selRede.innerHTML = '<option value="">Todas as Redes</option>';
+  if (buscaInput)  buscaInput.value = '';
   _rotPopularPromotores(selVend.value || null);
 }
 
 function rotOnPromotorChange() {
-  const selProm  = document.getElementById('rotSelPromotor');
-  const filtRede = document.getElementById('rotFiltroRede');
-  const selRede  = document.getElementById('rotSelRede');
+  const selProm     = document.getElementById('rotSelPromotor');
+  const filtRede    = document.getElementById('rotFiltroRede');
+  const selRede     = document.getElementById('rotSelRede');
+  const filtroBusca = document.getElementById('rotFiltroBusca');
+  const buscaInput  = document.getElementById('rotBuscaLoja');
   _rotState = {};
   _rotLojasTodas = [];
-  if (filtRede) filtRede.style.display = 'none';
-  if (selRede)  selRede.innerHTML = '<option value="">Todas as Redes</option>';
+  if (filtRede)    filtRede.style.display    = 'none';
+  if (filtroBusca) filtroBusca.style.display = 'none';
+  if (selRede)     selRede.innerHTML = '<option value="">Todas as Redes</option>';
+  if (buscaInput)  buscaInput.value = '';
   _rotCarregarLojas(selProm.value || null);
 }
 
-function rotOnRedeChange() {
+function _rotAplicarFiltros() {
   if (!_rotLojasTodas.length) return;
-  const rede = document.getElementById('rotSelRede')?.value || '';
-  const filtradas = rede ? _rotLojasTodas.filter(l => l.rede === rede) : _rotLojasTodas;
+  const rede  = document.getElementById('rotSelRede')?.value || '';
+  const busca = (document.getElementById('rotBuscaLoja')?.value || '').trim().toLowerCase();
+  let filtradas = _rotLojasTodas;
+  if (rede)  filtradas = filtradas.filter(l => l.rede === rede);
+  if (busca) filtradas = filtradas.filter(l => (l.nome || '').toLowerCase().includes(busca));
   _rotRenderLojas(filtradas);
 }
+
+function rotOnRedeChange() { _rotAplicarFiltros(); }
+function rotOnBuscaChange() { _rotAplicarFiltros(); }
 
 function _rotCarregarLojas(promotorNome) {
   if (!promotorNome) { _rotMostrarListaLojas(null); return; }
@@ -9076,12 +9098,16 @@ function _rotMostrarListaLojas(lojasDisp) {
       redes.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
   }
   if (filtroRede) filtroRede.style.display = '';
+  const filtroBusca = document.getElementById('rotFiltroBusca');
+  const buscaInput  = document.getElementById('rotBuscaLoja');
+  if (filtroBusca) filtroBusca.style.display = '';
+  if (buscaInput)  buscaInput.value = '';
 
   if (emptyDiv)     emptyDiv.style.display   = 'none';
   if (listDiv)      listDiv.style.display    = '';
   if (progressWrap) progressWrap.style.display = '';
 
-  _rotRenderLojas(lojasDisp); // mostra todas (sem filtro de rede ao carregar)
+  _rotRenderLojas(lojasDisp);
   _rotAtualizarProgress();
 }
 
