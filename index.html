@@ -2133,11 +2133,17 @@
 
   <!-- ── Cabeçalho ── -->
   <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
-    <div style="display:flex;align-items:center;gap:10px">
-      <i class="ti ti-trophy" style="font-size:22px;color:#1e3a5f" aria-hidden="true"></i>
-      <div>
-        <div style="font-size:16px;font-weight:700;color:#1e293b" id="rankTitulo">Ranking de Promotores</div>
-        <div style="font-size:12px;color:#64748b" id="rankSubtitulo">Mês atual</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px">
+        <i class="ti ti-trophy" style="font-size:22px;color:#1e3a5f" aria-hidden="true"></i>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#1e293b" id="rankTitulo">Ranking de Promotores</div>
+          <div style="font-size:12px;color:#64748b" id="rankSubtitulo">Mês atual</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <i class="ti ti-calendar" style="font-size:14px;color:#64748b" aria-hidden="true"></i>
+        <select id="rankSelMes" onchange="loadRanking()" style="font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid #cbd5e1;background:white;color:#1e293b;cursor:pointer"></select>
       </div>
     </div>
   </div>
@@ -9488,19 +9494,10 @@ function renderRotRelatorio() {
   body.innerHTML = promsNomes.map((nome, idx) => {
     const isOpen = _rotRelDrillIdx === idx;
 
-    // Contar lojas vinculadas: preferir cache do FS_ROTEIROS, fallback para lojas array
-    const cached = _rotRelCache[nome];
-    const lojasRoteiro = cached?.lojas || [];
-    const lojasVincFallback = lojas.filter(l => (l.promotorResponsavel || '') === nome);
-    const totalVinc = lojasRoteiro.length || lojasVincFallback.length;
-
-    // UFs para exibição no subtítulo
-    const lojasIds = lojasRoteiro.length
-      ? lojasRoteiro.map(r => String(r.lojaId))
-      : lojasVincFallback.map(l => String(l.id));
-    const ufsStr = [...new Set(
-      lojasIds.map(id => lojas.find(l => String(l.id) === id)?.uf).filter(Boolean)
-    )].sort().join(', ');
+    // Lojas vinculadas ao promotor (campo promotorResponsavel)
+    const lojasVinc = lojas.filter(l => (l.promotorResponsavel || '') === nome);
+    const totalVinc = lojasVinc.length;
+    const ufsStr = [...new Set(lojasVinc.map(l => l.uf).filter(Boolean))].sort().join(', ');
 
     // Iniciais
     const partes = nome.trim().split(' ');
@@ -9510,37 +9507,26 @@ function renderRotRelatorio() {
 
     let drillHTML = '';
     if (isOpen) {
-      if (!cached) {
-        // Ainda carregando
-        drillHTML = `<div style="padding:12px 14px;border-top:1px solid #f1f5f9;color:#94a3b8;font-size:12px;text-align:center">
-          <i class="ti ti-loader" style="font-size:14px"></i> Carregando...
-        </div>`;
-      } else if (!totalVinc) {
+      if (!totalVinc) {
         drillHTML = `<div style="padding:12px 14px;border-top:1px solid #f1f5f9;color:#94a3b8;font-size:12px;text-align:center">Nenhuma loja vinculada ainda</div>`;
       } else {
-        // Montar grade usando dados do cache ou fallback
-        const getLojaNome = id => lojas.find(l => String(l.id) === id)?.nome || id;
-        const entries = lojasRoteiro.length
-          ? lojasRoteiro.map(r => ({ nome: getLojaNome(String(r.lojaId)), dias: r.dias || [] }))
-          : lojasVincFallback.map(l => ({ nome: l.nome || l.id, dias: l.diasVisita || [] }));
-
         const grade = _DIAS_ORD.map(dia => ({
           dia,
-          nomes: entries.filter(e => e.dias.includes(dia)).map(e => e.nome)
+          lojas: lojasVinc.filter(l => (l.diasVisita || []).includes(dia))
         }));
-        const semDia = entries.filter(e => !e.dias.length).map(e => e.nome);
+        const semDia = lojasVinc.filter(l => !l.diasVisita || !l.diasVisita.length);
 
         drillHTML = `<div style="padding:10px 14px 14px;border-top:1px solid #f1f5f9">
           <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:6px">
             ${grade.map(g => `<div>
               <div style="font-size:11px;font-weight:700;color:#475569;text-align:center;margin-bottom:4px">${g.dia}</div>
-              ${g.nomes.length
-                ? g.nomes.map(n => `<div style="font-size:10px;background:#dbeafe;color:#1e40af;border-radius:5px;padding:3px 5px;margin-bottom:3px;text-align:center;line-height:1.3">${esc(n)}</div>`).join('')
+              ${g.lojas.length
+                ? g.lojas.map(l => `<div style="font-size:10px;background:#dbeafe;color:#1e40af;border-radius:5px;padding:3px 5px;margin-bottom:3px;text-align:center;line-height:1.3">${esc(l.nome||'')}</div>`).join('')
                 : `<div style="font-size:10px;color:#cbd5e1;text-align:center;padding:3px 0">—</div>`
               }
             </div>`).join('')}
           </div>
-          ${semDia.length ? `<p style="font-size:11px;color:#94a3b8;margin:6px 0 0">${semDia.map(n=>esc(n)).join(', ')} — sem dia definido</p>` : ''}
+          ${semDia.length ? `<p style="font-size:11px;color:#94a3b8;margin:6px 0 0">${semDia.map(l=>esc(l.nome)).join(', ')} — sem dia definido</p>` : ''}
         </div>`;
       }
     }
@@ -9562,40 +9548,8 @@ function renderRotRelatorio() {
   }).join('');
 }
 
-let _rotRelCache = {}; // cache: promotorNome → {lojas:[{lojaId,dias}]}
-
-async function _rotRelToggle(idx) {
-  if (_rotRelDrillIdx === idx) {
-    _rotRelDrillIdx = -1;
-    renderRotRelatorio();
-    return;
-  }
-  _rotRelDrillIdx = idx;
-  renderRotRelatorio(); // renderiza abrindo (pode mostrar loading)
-
-  // Buscar dados do FS_ROTEIROS para o promotor
-  const promsNomes = _rotRelGetProms();
-  const nome = promsNomes[idx];
-  if (!nome || _rotRelCache[nome]) { renderRotRelatorio(); return; }
-
-  const mes = _rotGetMesAtual();
-  const docKey = _rotDocKey(nome, mes);
-  try {
-    const doc = await FS_ROTEIROS.doc(docKey).get();
-    if (doc.exists) {
-      _rotRelCache[nome] = { lojas: doc.data().lojas || [], fonte: 'roteiros' };
-    } else {
-      // Fallback: lojas.promotorResponsavel
-      const lojasAntigas = lojas.filter(l => (l.promotorResponsavel || '') === nome);
-      _rotRelCache[nome] = {
-        lojas: lojasAntigas.map(l => ({ lojaId: String(l.id), dias: l.diasVisita || [] })),
-        fonte: 'lojas'
-      };
-    }
-  } catch(e) {
-    console.error('Erro ao carregar roteiro do relatório:', e);
-    _rotRelCache[nome] = { lojas: [], fonte: 'erro' };
-  }
+function _rotRelToggle(idx) {
+  _rotRelDrillIdx = (_rotRelDrillIdx === idx) ? -1 : idx;
   renderRotRelatorio();
 }
 
@@ -9789,7 +9743,35 @@ function limparRankFiltroProm() {
   loadRanking();
 }
 
+function _rankPopularSelMes() {
+  const sel = document.getElementById('rankSelMes');
+  if (!sel) return;
+  const hoje = new Date();
+  const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const mesesPT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const opcoes = [];
+  for (let i = -5; i <= 2; i++) {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = `${mesesPT[d.getMonth()]} ${d.getFullYear()}`;
+    opcoes.push(`<option value="${val}"${val===mesAtual?' selected':''}>${label}</option>`);
+  }
+  sel.innerHTML = opcoes.join('');
+}
+
+function _rankGetMesLabel() {
+  const sel = document.getElementById('rankSelMes');
+  if (!sel || !sel.value) return 'Mês atual';
+  const [ano, mes] = sel.value.split('-').map(Number);
+  const mesesPT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  return `${mesesPT[mes-1]} ${ano}`;
+}
+
 function loadRanking() {
+  // Popular seletor de mês na primeira chamada
+  const sel = document.getElementById('rankSelMes');
+  if (sel && !sel.options.length) _rankPopularSelMes();
+
   const role      = sessao?.role;
   const meuNome   = sessao?.nome || '';
   const minhasUFs = sessao?.ufs || (sessao?.uf ? [sessao.uf] : []);
@@ -9861,15 +9843,16 @@ function loadRanking() {
   // — Título e subtítulo
   const tituloEl = document.getElementById('rankTitulo');
   const subEl    = document.getElementById('rankSubtitulo');
+  const mesLabel = _rankGetMesLabel();
   if (role === 'promotor') {
     if (tituloEl) tituloEl.textContent = 'Meu Desempenho';
-    if (subEl)    subEl.textContent    = 'Mês atual · Sua UF: ' + (sessao?.uf || '—');
+    if (subEl)    subEl.textContent    = mesLabel;
   } else if (role === 'vendedor') {
     if (tituloEl) tituloEl.textContent = 'Ranking — Minha Região';
-    if (subEl)    subEl.textContent    = 'UFs: ' + minhasUFs.join(', ') + ' · Mês atual';
+    if (subEl)    subEl.textContent    = mesLabel;
   } else {
     if (tituloEl) tituloEl.textContent = 'Ranking Geral de Promotores';
-    if (subEl)    subEl.textContent    = 'Todas as regiões · Mês atual';
+    if (subEl)    subEl.textContent    = mesLabel;
   }
 
   // — KPIs (admin/diretor)
