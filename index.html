@@ -9494,8 +9494,8 @@ function renderRotRelatorio() {
   body.innerHTML = promsNomes.map((nome, idx) => {
     const isOpen = _rotRelDrillIdx === idx;
 
-    // Lojas vinculadas ao promotor (campo promotorResponsavel)
-    const lojasVinc = lojas.filter(l => (l.promotorResponsavel || '') === nome);
+    // Lojas vinculadas ao promotor (campo promotorResponsavel) — normTxt para evitar mismatch
+    const lojasVinc = lojas.filter(l => normTxt(l.promotorResponsavel || '') === normTxt(nome));
     const totalVinc = lojasVinc.length;
     const ufsStr = [...new Set(lojasVinc.map(l => l.uf).filter(Boolean))].sort().join(', ');
 
@@ -9510,23 +9510,27 @@ function renderRotRelatorio() {
       if (!totalVinc) {
         drillHTML = `<div style="padding:12px 14px;border-top:1px solid #f1f5f9;color:#94a3b8;font-size:12px;text-align:center">Nenhuma loja vinculada ainda</div>`;
       } else {
-        const grade = _DIAS_ORD.map(dia => ({
+        // Dia atual da semana para destacar
+        const _diaSemanaHoje = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date().getDay()];
+
+        const grade = _DIAS_SEMANA.map(dia => ({
           dia,
-          lojas: lojasVinc.filter(l => (l.diasVisita || []).includes(dia))
+          lojas: lojasVinc.filter(l => (l.diasVisita || []).includes(dia)),
+          hoje: dia === _diaSemanaHoje
         }));
-        const semDia = lojasVinc.filter(l => !l.diasVisita || !l.diasVisita.length);
 
         drillHTML = `<div style="padding:10px 14px 14px;border-top:1px solid #f1f5f9">
-          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:6px">
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
             ${grade.map(g => `<div>
-              <div style="font-size:11px;font-weight:700;color:#475569;text-align:center;margin-bottom:4px">${g.dia}</div>
+              <div style="font-size:11px;font-weight:${g.hoje?'700':'500'};color:${g.hoje?'#1e40af':'#475569'};text-align:center;margin-bottom:5px;padding:3px 2px;border-radius:6px;background:${g.hoje?'#dbeafe':'transparent'}">
+                ${g.dia}${g.hoje?' ●':''}
+              </div>
               ${g.lojas.length
                 ? g.lojas.map(l => `<div style="font-size:10px;background:#dbeafe;color:#1e40af;border-radius:5px;padding:3px 5px;margin-bottom:3px;text-align:center;line-height:1.3">${esc(l.nome||'')}</div>`).join('')
                 : `<div style="font-size:10px;color:#cbd5e1;text-align:center;padding:3px 0">—</div>`
               }
             </div>`).join('')}
           </div>
-          ${semDia.length ? `<p style="font-size:11px;color:#94a3b8;margin:6px 0 0">${semDia.map(l=>esc(l.nome)).join(', ')} — sem dia definido</p>` : ''}
         </div>`;
       }
     }
