@@ -12092,6 +12092,13 @@ function verificarAlertaDataEntrega() {
 
 function irParaHistoricoEntrega() {
   document.getElementById('modalAlertaEntrega').classList.add('hidden');
+  // Se o admin estiver no painel de configurações, voltar ao app principal primeiro
+  const adminPanel = document.getElementById('adminPanel');
+  const mainApp = document.getElementById('mainApp');
+  if (adminPanel && !adminPanel.classList.contains('hidden')) {
+    adminPanel.classList.add('hidden');
+    if (mainApp) mainApp.classList.remove('hidden');
+  }
   setView('historico');
   renderHistorico();
 }
