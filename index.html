@@ -4127,6 +4127,7 @@ function mostrarTabAdmin(tab) {
   document.getElementById('tabRedes').classList.toggle('hidden', tab!=='redes');
   document.getElementById('tabLojas').classList.toggle('hidden', tab!=='lojas');
   document.getElementById('tabUsuarios').classList.toggle('hidden', tab!=='usuarios');
+  if (tab === 'usuarios') toggleUFField();
   document.getElementById('tabRelatorio').classList.toggle('hidden', tab!=='relatorio');
   document.getElementById('tabCatalogBtn').className  = 'tab-btn '+(tab==='catalogo'?'active':'inactive');
   document.getElementById('tabFabricasBtn').className = 'tab-btn '+(tab==='fabricas'?'active':'inactive');
@@ -5146,6 +5147,7 @@ function limparFormUsuario() {
   if (vendrespContainer) vendrespContainer.style.display='';
   const telEl = document.getElementById('u_telefone');
   if (telEl) telEl.value='';
+  toggleUFField();
 }
 function salvarUsuarios() { FS_CFG_USUARIOS.set({ lista: usuarios }); }
 function renderUsuarios() {
