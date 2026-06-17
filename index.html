@@ -2000,8 +2000,26 @@
             </select>
             <button onclick="publicarComunicado()" id="comunBtnPublicar"
               style="margin-left:auto;background:#1e3a5f;color:white;border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-              <i class="ti ti-send" style="font-size:13px" aria-hidden="true"></i> Publicar
+              <i class="ti ti-send" style="font-size:13px" aria-hidden="true"></i> <span id="comunBtnLabel">Publicar</span>
             </button>
+          </div>
+          <!-- Agendamento -->
+          <div style="border:0.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;background:#f8faff;margin-top:2px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b;user-select:none">
+              <input type="checkbox" id="comunAgendarCheck" onchange="toggleComunAgendar()" />
+              <i class="ti ti-calendar-event" style="font-size:14px" aria-hidden="true"></i>
+              Agendar para uma data específica
+            </label>
+            <div id="comunAgendarCampos" style="display:none;margin-top:10px;display:none;flex-wrap:wrap;gap:10px;align-items:flex-end">
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:11px;color:#64748b">Data de publicação</label>
+                <input type="date" id="comunAgendarData" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="font-size:13px" />
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:11px;color:#64748b">Hora</label>
+                <input type="time" id="comunAgendarHora" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="font-size:13px;width:110px" value="08:00" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2069,7 +2087,7 @@
           </div>
         </div>
         <div class="overflow-x-auto">
-          <table><thead><tr id="hTableHead"><th>Data</th><th>Ação</th><th>Tipo</th><th>Qtde</th><th>Estoque</th><th>Produto</th><th>Fabricação</th><th>Vencimento</th><th>ShelfLife</th><th>Vida Útil</th><th>Data de Entrega</th><th>Loja</th><th>UF</th><th>Promotor</th><th></th></tr></thead><tbody id="hTableBody"></tbody></table>
+          <table><thead><tr id="hTableHead"><th>Data</th><th>Ação</th><th>Tipo</th><th>Qtde</th><th>Estoque</th><th>Produto</th><th>Fabricação</th><th>Vencimento</th><th>ShelfLife</th><th>Vida Útil</th><th>Data de Entrega</th><th>Loja</th><th>UF</th><th>Promotor</th><th>Presença</th><th></th></tr></thead><tbody id="hTableBody"></tbody></table>
         </div>
         <div id="hSemDados" class="hidden text-center py-10 text-slate-400 text-sm">Nenhuma movimentação registrada ainda.</div>
       </div>
@@ -5791,6 +5809,7 @@ function _usarGPSLoja() {
     pos => {
       if (btn) { btn.disabled=false; btn.innerHTML='<i class="ti ti-map-pin" style="font-size:17px;color:#3b82f6" aria-hidden="true"></i>'; }
       const { latitude: lat, longitude: lng } = pos.coords;
+      _sessaoGeoCache = { lat, lng }; // reutilizar nos lançamentos
       const ufProm = (sessao && sessao.role==='promotor') ? (sessao.uf||'') : '';
       let lista = lojas.filter(l => l.localizacao && l.localizacao.includes(','));
       if (ufProm) lista = lista.filter(l => !l.uf || l.uf===ufProm);
@@ -5969,7 +5988,7 @@ const esc = (s) => String(s??'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&
 function salvar() { /* substituído por operações diretas no Firestore */ }
 
 // ── Formulário principal ─────────────────────
-document.getElementById('prodForm').addEventListener('submit', (e) => {
+document.getElementById('prodForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   // Validação de campos obrigatórios com destaque vermelho
   const camposObrig = [
@@ -6067,7 +6086,11 @@ document.getElementById('prodForm').addEventListener('submit', (e) => {
     FS_PRODUTOS.doc(String(p.id)).set(p);
     renderTabela();
     const _hc = new Date().toISOString().slice(0,10);
-    if (!p.validade || p.validade >= _hc) _registrarMovimento('entrada', p.quantidade, p, 'novo');
+    if (!p.validade || p.validade >= _hc) {
+      const _lojaObjMa = lojas.find(l => normTxt(l.nome) === normTxt(p.loja));
+      const _geoMa = sessao?.role === 'promotor' ? await _capturarPresencaLoja(_lojaObjMa) : null;
+      _registrarMovimento('entrada', p.quantidade, p, 'novo', null, _geoMa);
+    }
     limparForm();
     if (helperInfo.addMore && helperInfo.lojaObj) {
       window._maRestart(helperInfo.lojaObj);
@@ -6176,6 +6199,7 @@ function confirmarNovaLoja() {
 
 // ── Popup "Mesma Loja" ────────────────────────
 let _lojaSnapshot = null;
+let _sessaoGeoCache = null; // cache de GPS por sessão
 
 function _abrirPopupMesmaLoja() {
   const nome = document.getElementById('f_loja').value || '';
@@ -6240,7 +6264,7 @@ function _abrirConfirmacaoLancamento(p) {
   document.getElementById('modalConfirmarLancamento').classList.remove('hidden');
 }
 
-function _confirmarLancamentoSIM() {
+async function _confirmarLancamentoSIM() {
   if (!_pendingConfirmacao) return;
   const p = _pendingConfirmacao;
   produtos.push(p);
@@ -6248,7 +6272,11 @@ function _confirmarLancamentoSIM() {
   renderTabela();
   // Produto já vencido no lançamento: não registra no histórico
   const _hojeConf = new Date().toISOString().slice(0,10);
-  if (!p.validade || p.validade >= _hojeConf) _registrarMovimento('entrada', p.quantidade, p, 'novo');
+  if (!p.validade || p.validade >= _hojeConf) {
+    const lojaObj = lojas.find(l => normTxt(l.nome) === normTxt(p.loja));
+    const geoInfo = sessao?.role === 'promotor' ? await _capturarPresencaLoja(lojaObj) : null;
+    _registrarMovimento('entrada', p.quantidade, p, 'novo', null, geoInfo);
+  }
   document.getElementById('modalConfirmarLancamento').classList.add('hidden');
   limparForm();
   if (_lojaSnapshot && _lojaSnapshot.nome) {
@@ -8940,6 +8968,12 @@ function _comunPodePubilcar() {
 // Filtro unificado de visibilidade de comunicados por perfil
 function _comunVisivel(c) {
   const role = sessao?.role || '';
+  // Mensagens agendadas para o futuro: só admin/diretor veem antes da hora
+  if (c.agendadoPara) {
+    const agendado = new Date(c.agendadoPara);
+    const agora = new Date();
+    if (agendado > agora && role !== 'admin' && role !== 'diretor') return false;
+  }
   if (role === 'admin' || role === 'diretor') return true;
 
   let dest = c.destinatarios || 'todos_promotores';
@@ -9080,12 +9114,21 @@ function _renderComunicados(docs) {
     const dtStr = dt ? dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
     const podeApagar = _comunPodePubilcar() && (c.autorNome === sessao?.nome || sessao?.role === 'admin');
 
-    return `<div id="comunCard_${c.id}" style="border-bottom:0.5px solid #f1f5f9;padding:14px 16px;background:${jaLeu?'white':'#f8faff'}">
+    // Badge de agendado (para admin/diretor ver antes da hora)
+    const agendado = c.agendadoPara ? new Date(c.agendadoPara) : null;
+    const agendadoFuturo = agendado && agendado > new Date();
+    const agendadoStr = agendado ? agendado.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+    const badgeAgendado = agendadoFuturo
+      ? `<span style="font-size:10px;background:#EEF2FF;color:#3730a3;padding:2px 8px;border-radius:99px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-calendar-event" style="font-size:11px"></i> Agendado · ${agendadoStr}</span>`
+      : '';
+
+    return `<div id="comunCard_${c.id}" style="border-bottom:0.5px solid #f1f5f9;padding:14px 16px;background:${agendadoFuturo?'#f5f3ff':jaLeu?'white':'#f8faff'}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;flex-wrap:wrap">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-size:11px;background:${catCor.bg};color:${catCor.cor};padding:2px 8px;border-radius:99px;font-weight:600">${esc(c.categoria||'Geral')}</span>
           <span style="font-size:10px;color:#94a3b8">${esc(c.autorNome||'')}${dtStr?' · '+dtStr:''}</span>
           ${_comunDestLabel(c)}
+          ${badgeAgendado}
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           ${!jaLeu ? `<span style="font-size:10px;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:99px;font-weight:600">● Novo</span>` : `<span style="font-size:10px;color:#94a3b8">✓ Lido</span>`}
@@ -9105,6 +9148,20 @@ function _renderComunicados(docs) {
   atualizarBadgeComunicados();
 }
 
+function toggleComunAgendar() {
+  const cb = document.getElementById('comunAgendarCheck');
+  const campos = document.getElementById('comunAgendarCampos');
+  const label = document.getElementById('comunBtnLabel');
+  if (!cb || !campos || !label) return;
+  if (cb.checked) {
+    campos.style.display = 'flex';
+    label.textContent = 'Agendar';
+  } else {
+    campos.style.display = 'none';
+    label.textContent = 'Publicar';
+  }
+}
+
 async function publicarComunicado() {
   const titulo    = (document.getElementById('comunTitulo')?.value || '').trim();
   const mensagem  = (document.getElementById('comunMensagem')?.value || '').trim();
@@ -9118,8 +9175,18 @@ async function publicarComunicado() {
     alert('Selecione o destinatário específico.'); return;
   }
 
+  // Agendamento
+  const agendarAtivo = document.getElementById('comunAgendarCheck')?.checked;
+  let agendadoPara = null;
+  if (agendarAtivo) {
+    const data = document.getElementById('comunAgendarData')?.value;
+    const hora = document.getElementById('comunAgendarHora')?.value || '08:00';
+    if (!data) { alert('Selecione a data de publicação.'); return; }
+    agendadoPara = new Date(data + 'T' + hora).toISOString();
+  }
+
   const btn = document.getElementById('comunBtnPublicar');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="font-size:13px"></i> Publicando…'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="font-size:13px"></i> Salvando…'; }
 
   try {
     await FS_COMUNICADOS.add({
@@ -9129,15 +9196,20 @@ async function publicarComunicado() {
       autorNome: sessao?.nome || '',
       autorRole: sessao?.role || '',
       criadoEm: new Date().toISOString(),
+      agendadoPara: agendadoPara,
       lidos: []
     });
     document.getElementById('comunTitulo').value   = '';
     document.getElementById('comunMensagem').value = '';
+    if (document.getElementById('comunAgendarCheck')) document.getElementById('comunAgendarCheck').checked = false;
+    if (document.getElementById('comunAgendarCampos')) document.getElementById('comunAgendarCampos').style.display = 'none';
+    if (document.getElementById('comunBtnLabel')) document.getElementById('comunBtnLabel').textContent = 'Publicar';
     loadComunicados();
+    showToast(agendadoPara ? '📅 Comunicado agendado!' : '✅ Comunicado publicado!', '#166534');
   } catch(e) {
     alert('Erro ao publicar: ' + e.message);
   } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-send" style="font-size:13px"></i> Publicar'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-send" style="font-size:13px"></i> <span id="comunBtnLabel">Publicar</span>'; }
   }
 }
 
@@ -12039,6 +12111,15 @@ function renderHistorico() {
       <td>${esc(m.loja)}</td>
       <td style="text-align:center">${esc(m.uf)}</td>
       <td>${esc(m.promotor)}</td>
+      <td style="text-align:center;white-space:nowrap">${(() => {
+        const p = m.presencaLoja;
+        const dist = m.distanciaLoja;
+        if (!p || p === null) return `<span style="color:#94a3b8;font-size:10px">—</span>`;
+        if (p === 'na_loja') return `<span style="background:#dcfce7;color:#14532d;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-map-pin-check" style="font-size:10px"></i> Na loja${dist!=null?' · '+dist+'m':''}</span>`;
+        if (p === 'fora_da_loja') return `<span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-map-pin-off" style="font-size:10px"></i> Fora${dist!=null?' · '+dist+'m':''}</span>`;
+        if (p === 'sem_coords_loja') return `<span style="background:#fef9c3;color:#713f12;font-size:10px;font-weight:600;border-radius:5px;padding:2px 7px">Loja s/ local</span>`;
+        return `<span style="color:#94a3b8;font-size:10px">Sem GPS</span>`;
+      })()}</td>
       <td style="text-align:center"><button onclick="excluirMovHistorico(${m.id})" title="Excluir este registro" style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:2px 4px;border-radius:4px;font-size:15px;line-height:1;transition:color .15s" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">🗑️</button></td>
     </tr>`;
   }).join('');
@@ -12160,8 +12241,50 @@ function verificarSaidasPorVencimento() {
   });
 }
 
+// ── Geolocalização: presença na loja ─────────
+function _calcDistanciaMetros(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+function _capturarPresencaLoja(lojaObj) {
+  const loc = lojaObj?.localizacao || '';
+  const parts = loc.includes(',') ? loc.split(',') : [];
+  const lojaLat = parts.length === 2 ? parseFloat(parts[0].trim()) : null;
+  const lojaLng = parts.length === 2 ? parseFloat(parts[1].trim()) : null;
+  if (!lojaLat || !lojaLng || isNaN(lojaLat) || isNaN(lojaLng)) {
+    return Promise.resolve({ presencaLoja: 'sem_coords_loja', distanciaLoja: null, lat: null, lng: null });
+  }
+  // Usar cache de sessão se disponível
+  if (_sessaoGeoCache) {
+    const { lat, lng } = _sessaoGeoCache;
+    const dist = _calcDistanciaMetros(lat, lng, lojaLat, lojaLng);
+    return Promise.resolve({ presencaLoja: dist < 200 ? 'na_loja' : 'fora_da_loja', distanciaLoja: dist, lat, lng });
+  }
+  if (!navigator.geolocation) {
+    return Promise.resolve({ presencaLoja: 'sem_gps', distanciaLoja: null, lat: null, lng: null });
+  }
+  return new Promise(resolve => {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        _sessaoGeoCache = { lat, lng }; // armazena para o resto da sessão
+        const dist = _calcDistanciaMetros(lat, lng, lojaLat, lojaLng);
+        resolve({ presencaLoja: dist < 200 ? 'na_loja' : 'fora_da_loja', distanciaLoja: dist, lat, lng });
+      },
+      () => resolve({ presencaLoja: 'sem_gps', distanciaLoja: null, lat: null, lng: null }),
+      { timeout: 6000, maximumAge: 30000, enableHighAccuracy: true }
+    );
+  });
+}
+
 // ── Registro de movimentações ────────────────
-function _registrarMovimento(tipo, qtde, produto, acao, atualizadoPor) {
+function _registrarMovimento(tipo, qtde, produto, acao, atualizadoPor, geoInfo) {
   if (!produto || !qtde) return;
   const lojaObj  = lojas.find(l => normTxt(l.nome) === normTxt(produto.loja));
   const catItem  = catalogo.find(c => normTxt(c.nome) === normTxt(produto.produto));
@@ -12190,6 +12313,9 @@ function _registrarMovimento(tipo, qtde, produto, acao, atualizadoPor) {
     und:            produto.und      || '',
     promotor:       atualizadoPor || produto.promotor || '',
     estoqueApos:    Number(produto.quantidade) || 0,
+    presencaLoja:   geoInfo?.presencaLoja   || null,
+    distanciaLoja:  geoInfo?.distanciaLoja  ?? null,
+    coordsPromotor: (geoInfo?.lat != null) ? { lat: geoInfo.lat, lng: geoInfo.lng } : null,
   };
   historico.push(mov);
   FS_HISTORICO.doc(fsId).set(mov);
