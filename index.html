@@ -2058,6 +2058,7 @@
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Vendedor</label><select id="hVendedor" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">UF</label><select id="hUF" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Loja</label><select id="hLoja" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+          <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Promotor</label><select id="hPromotor" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Produto</label><select id="hProduto" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data inicial</label><input id="hDataIni" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data final</label><input id="hDataFim" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
@@ -11814,6 +11815,8 @@ function _popularMovSelects(prefixo, callback) {
   if (ufSel) { const cur=ufSel.value; const opts=[...new Set(base.map(m=>m.uf).filter(Boolean))].sort(); ufSel.innerHTML='<option value="">Todas</option>'+opts.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join(''); }
   const lojaSel = document.getElementById(p+'Loja');
   if (lojaSel) { const cur=lojaSel.value; const opts=[...new Set(base.map(m=>m.loja).filter(Boolean))].sort(); lojaSel.innerHTML='<option value="">Todas</option>'+opts.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join(''); }
+  const promSel = document.getElementById(p+'Promotor');
+  if (promSel) { const cur=promSel.value; const opts=[...new Set(base.map(m=>m.promotor).filter(v=>v&&v!=='— automático'))].sort((a,b)=>a.localeCompare(b,'pt-BR')); promSel.innerHTML='<option value="">Todos</option>'+opts.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join(''); }
   const prodSel = document.getElementById(p+'Produto');
   if (prodSel) { const cur=prodSel.value; const opts=[...new Set(base.map(m=>m.produto).filter(Boolean))].sort(); prodSel.innerHTML='<option value="">Todos</option>'+opts.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join(''); }
 }
@@ -11827,6 +11830,7 @@ function _filtrarHistorico(prefixo) {
   const fUF   = document.getElementById(p+'UF')?.value       || '';
   const fLoja = document.getElementById(p+'Loja')?.value     || '';
   const fProd = document.getElementById(p+'Produto')?.value  || '';
+  const fProm = document.getElementById(p+'Promotor')?.value || '';
   // Para prefixo 'm' usar _parseMovData; para 'h' usar dataParaISO normal
   const parseFn = p==='m' ? _parseMovData : dataParaISO;
   const fDtI  = parseFn(document.getElementById(p+'DataIni')?.value||'');
@@ -11849,6 +11853,7 @@ function _filtrarHistorico(prefixo) {
     if (ufsVendSession.length && !ufsVendSession.includes(m.uf)) return false;
     if (fUF   && m.uf!==fUF)         return false;
     if (fLoja && m.loja!==fLoja)       return false;
+    if (fProm && m.promotor!==fProm)   return false;
     if (fProd && m.produto!==fProd)    return false;
     const dataChk = (p==='m' && _movMode==='mensal') ? m.data.slice(0,7) : m.data;
     if (cmpI && dataChk < cmpI) return false;
