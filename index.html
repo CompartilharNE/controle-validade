@@ -6719,7 +6719,12 @@ function abrirModalStatus(status) {
   let base = [...produtos];
   if (sessao?.role === 'vendedor') base = base.filter(p => sessao.ufs?.includes(p.uf));
   if (sessao?.role === 'promotor') base = base.filter(p => normTxt(p.promotor) === normTxt(sessao.nome||''));
-  const lista = base.filter(p => statusDe(diasRestantes(p.validade)) === status)
+  const lista = base.filter(p => {
+                      const d = diasRestantes(p.validade);
+                      if (statusDe(d) !== status) return false;
+                      if (status === 'expired' && d < -5) return false; // mesmo corte da tabela principal
+                      return true;
+                    })
                     .sort((a,b) => diasRestantes(a.validade) - diasRestantes(b.validade));
 
   // cabeçalho
