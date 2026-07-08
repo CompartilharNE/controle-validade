@@ -1243,6 +1243,9 @@
         <select id="filtroProduto" onchange="renderTabela()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
           <option value="">Todos os Produtos</option>
         </select>
+        <button onclick="limparFiltrosProdutos()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
+          <i class="ti ti-x" style="font-size:13px" aria-hidden="true"></i> Limpar filtro
+        </button>
       </div>
       </div><!-- fim filtrosPrincipalBody -->
     </div>
@@ -1326,6 +1329,9 @@
         <select id="filtroLojaRede" onchange="renderLojasSemLanc()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
           <option value="">Todas as Redes</option>
         </select>
+        <button onclick="limparFiltrosLojas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
+          <i class="ti ti-x" style="font-size:13px" aria-hidden="true"></i> Limpar filtro
+        </button>
       </div>
     </div>
 
@@ -1419,6 +1425,11 @@
           <div>
             <label class="text-xs font-medium text-slate-600" style="display:block;margin-bottom:6px">UF — clique para selecionar (vazio = todas)</label>
             <div id="soUFChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          </div>
+          <div class="mt-3 flex justify-end">
+            <button onclick="limparFiltrosSellOut()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
+              <i class="ti ti-x" style="font-size:13px" aria-hidden="true"></i> Limpar filtro
+            </button>
           </div>
         </div>
       </div>
@@ -2063,6 +2074,17 @@
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data inicial</label><input id="hDataIni" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
           <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data final</label><input id="hDataFim" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
           <div class="flex flex-col gap-1">
+            <label class="text-xs text-slate-500">Ação</label>
+            <select id="hAcao" onchange="renderHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+              <option value="">Todas</option>
+              <option value="novo">Novo</option>
+              <option value="alteracao">Alteração</option>
+              <option value="atualizacao_promotor">Atualização</option>
+              <option value="exclusao">Exclusão</option>
+              <option value="vencimento">Vencido</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
             <label class="text-xs font-medium" style="color:#dc2626">Data de Entrega</label>
             <select id="hEntregaAlerta" onchange="renderHistorico()" class="border rounded-lg px-3 py-2 text-sm" style="border-color:#fca5a5;background:#fff5f5;color:#991b1b;font-weight:500">
               <option value="">Todas</option>
@@ -2070,6 +2092,11 @@
               <option value="ok">Entrega dentro do prazo</option>
               <option value="sem">Sem data de entrega</option>
             </select>
+          </div>
+          <div class="flex flex-col gap-1" style="justify-content:flex-end">
+            <button onclick="limparFiltrosHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px">
+              <i class="ti ti-x" style="font-size:13px" aria-hidden="true"></i> Limpar filtro
+            </button>
           </div>
         </div>
       </div>
@@ -8804,10 +8831,10 @@ function renderConcChart() {
   wrap.innerHTML = labels.map(produto => {
     const e = mapa.get(produto);
     const linhas = [
-      { nome: 'Nosso Preço', valor: avg(e.nosso),      cor: '#185FA5', txt: '#E6F1FB' },
-      { nome: e.c1.nome||'Concorrente 1', valor: avg(e.c1.precos), cor: '#EA580C', txt: '#fff' },
-      { nome: e.c2.nome||'Concorrente 2', valor: avg(e.c2.precos), cor: '#F59E0B', txt: '#412402' },
-      { nome: e.c3.nome||'Concorrente 3', valor: avg(e.c3.precos), cor: '#D97706', txt: '#412402' },
+      { nome: 'Nosso Preço', valor: avg(e.nosso),      cor: '#1e3a5f', txt: '#E6F1FB' },
+      { nome: e.c1.nome||'Concorrente 1', valor: avg(e.c1.precos), cor: '#2563EB', txt: '#fff' },
+      { nome: e.c2.nome||'Concorrente 2', valor: avg(e.c2.precos), cor: '#60A5FA', txt: '#1e3a5f' },
+      { nome: e.c3.nome||'Concorrente 3', valor: avg(e.c3.precos), cor: '#93C5FD', txt: '#1e3a5f' },
     ].filter(l => l.valor !== null && l.valor > 0);
 
     if (!linhas.length) return '';
@@ -11837,6 +11864,7 @@ function _filtrarHistorico(prefixo) {
   const fLoja = document.getElementById(p+'Loja')?.value     || '';
   const fProd = document.getElementById(p+'Produto')?.value  || '';
   const fProm = document.getElementById(p+'Promotor')?.value || '';
+  const fAcao = p==='h' ? (document.getElementById('hAcao')?.value || '') : '';
   // Para prefixo 'm' usar _parseMovData; para 'h' usar dataParaISO normal
   const parseFn = p==='m' ? _parseMovData : dataParaISO;
   const fDtI  = parseFn(document.getElementById(p+'DataIni')?.value||'');
@@ -11861,6 +11889,7 @@ function _filtrarHistorico(prefixo) {
     if (fLoja && m.loja!==fLoja)       return false;
     if (fProm && m.promotor!==fProm)   return false;
     if (fProd && m.produto!==fProd)    return false;
+    if (fAcao) { const a = m.acao || (m.tipo==='saida_vencimento'?'vencimento':'alteracao'); if (a!==fAcao) return false; }
     const dataChk = (p==='m' && _movMode==='mensal') ? m.data.slice(0,7) : m.data;
     if (cmpI && dataChk < cmpI) return false;
     if (cmpF && dataChk > cmpF) return false;
@@ -12168,6 +12197,41 @@ function _renderHRodape(visivel, total) {
 function _setHLimite(n) {
   _hLimite = n;
   renderHistorico(false);
+}
+
+function limparFiltrosHistorico() {
+  ['hFabrica','hRede','hVendedor','hUF','hLoja','hPromotor','hProduto','hAcao','hEntregaAlerta'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['hDataIni','hDataFim'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  renderHistorico();
+}
+
+function limparFiltrosProdutos() {
+  const el = id => document.getElementById(id);
+  ['busca','filtroStatus','filtroFabrica','filtroPromotorVend','filtroVendedor','filtroUF','filtroRede','filtroLoja','filtroProduto'].forEach(id => {
+    const e = el(id); if (e) e.value = '';
+  });
+  _limparFiltroData();
+}
+
+function limparFiltrosLojas() {
+  ['filtroLojaSit','filtroLojaVendedor','filtroLojaPromotor','filtroLojaUF','filtroLojaRede'].forEach(id => {
+    const e = document.getElementById(id); if (e) e.value = '';
+  });
+  renderLojasSemLanc();
+}
+
+function limparFiltrosSellOut() {
+  ['soFabrica','soRede','soVendedor'].forEach(id => {
+    const e = document.getElementById(id); if (e) e.value = '';
+  });
+  _soUFs = new Set(_ALL_UFS_SO);
+  renderSellOut();
 }
 
 function excluirMovHistorico(movId) {
