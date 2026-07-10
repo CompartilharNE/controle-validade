@@ -421,6 +421,7 @@
       <button id="tabRedesBtn"    class="tab-btn inactive" onclick="mostrarTabAdmin('redes')">🔗 Redes</button>
       <button id="tabLojasBtn"   class="tab-btn inactive" onclick="mostrarTabAdmin('lojas')">🏪 Loja</button>
       <button id="tabUsuariosBtn" class="tab-btn inactive" onclick="mostrarTabAdmin('usuarios')">👥 Usuários</button>
+      <button id="tabSistemaBtn"  class="tab-btn inactive" onclick="mostrarTabAdmin('sistema')">⚙️ Sistema</button>
     </div>
 
     <!-- Tab Catálogo -->
@@ -780,6 +781,45 @@
             <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>UF(s)</th><th>Telefone</th><th>Ação</th></tr></thead>
             <tbody id="corpoUsuarios"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Sistema -->
+    <div id="tabSistema" class="hidden">
+      <div class="bg-white rounded-2xl shadow p-4 mb-4">
+        <h3 class="text-sm font-semibold text-slate-700 mb-1">⚙️ Sistema</h3>
+        <p class="text-xs text-slate-400 mb-4">Operações globais do sistema. Ações irreversíveis exigem confirmação dupla.</p>
+
+        <!-- Zona de perigo -->
+        <div class="border border-red-200 rounded-xl p-4" style="background:#fff5f5">
+          <p class="text-xs font-bold text-red-700 uppercase tracking-wide mb-3">⚠️ Zona de Perigo</p>
+
+          <div class="flex flex-col gap-3">
+
+            <!-- Limpar histórico -->
+            <div class="flex items-center justify-between gap-3 bg-white rounded-lg p-3 border border-red-100">
+              <div>
+                <p class="text-sm font-semibold text-slate-700">🗑 Limpar Histórico</p>
+                <p class="text-xs text-slate-400 mt-0.5">Apaga todos os registros de movimentação (histórico). Catálogo, lojas e usuários ficam intactos.</p>
+              </div>
+              <button onclick="limparTodoHistorico()" class="text-xs font-semibold rounded-lg px-4 py-2 transition whitespace-nowrap" style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5">
+                Limpar histórico
+              </button>
+            </div>
+
+            <!-- Recomeçar do zero -->
+            <div class="flex items-center justify-between gap-3 bg-white rounded-lg p-3 border border-red-100">
+              <div>
+                <p class="text-sm font-semibold text-slate-700">🔄 Recomeçar do Zero</p>
+                <p class="text-xs text-slate-400 mt-0.5">Apaga <strong>lançamentos ativos</strong>, histórico e sell-out. <strong>Mantém</strong> catálogo de produtos, lojas, fábricas, redes e usuários.</p>
+              </div>
+              <button onclick="recomecarDoZero()" class="text-xs font-semibold rounded-lg px-4 py-2 transition whitespace-nowrap" style="background:#dc2626;color:#fff;border:1px solid #b91c1c">
+                Recomeçar
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
@@ -4304,11 +4344,13 @@ function mostrarTabAdmin(tab) {
   document.getElementById('tabUsuarios').classList.toggle('hidden', tab!=='usuarios');
   if (tab === 'usuarios') toggleUFField();
   document.getElementById('tabRelatorio').classList.toggle('hidden', tab!=='relatorio');
+  document.getElementById('tabSistema').classList.toggle('hidden', tab!=='sistema');
   document.getElementById('tabCatalogBtn').className  = 'tab-btn '+(tab==='catalogo'?'active':'inactive');
   document.getElementById('tabFabricasBtn').className = 'tab-btn '+(tab==='fabricas'?'active':'inactive');
   document.getElementById('tabRedesBtn').className    = 'tab-btn '+(tab==='redes'?'active':'inactive');
   document.getElementById('tabLojasBtn').className    = 'tab-btn '+(tab==='lojas'?'active':'inactive');
   document.getElementById('tabUsuariosBtn').className = 'tab-btn '+(tab==='usuarios'?'active':'inactive');
+  document.getElementById('tabSistemaBtn').className  = 'tab-btn '+(tab==='sistema'?'active':'inactive');
   const btnRel = document.getElementById('tabRelatorioBtn');
   if (btnRel) btnRel.className = 'tab-btn '+(tab==='relatorio'?'active':'inactive');
 }
@@ -4572,6 +4614,44 @@ function renderLojas() {
   }
 }
 function _lojasIrPag(p) { _lojasPage = p; renderLojas(); }
+
+async function recomecarDoZero() {
+  if (sessao?.role !== 'admin') return;
+  const total = produtos.length + historico.length;
+  if (!confirm(`⚠️ ATENÇÃO: isso vai apagar PERMANENTEMENTE:\n\n• ${produtos.length} lançamentos ativos\n• ${historico.length} registros de histórico\n• Histórico de sell-out\n\nCatálogo, lojas, fábricas, redes e usuários NÃO serão apagados.\n\nConfirmar?`)) return;
+  if (!confirm('Tem certeza absoluta? Esta ação NÃO pode ser desfeita.')) return;
+  showToast('⏳ Apagando dados...', '#1e3a5f');
+  const LOTE = 400;
+  // Apagar produtos
+  const prodIds = produtos.map(p => String(p.id)).filter(Boolean);
+  for (let i = 0; i < prodIds.length; i += LOTE) {
+    const batch = db.batch();
+    prodIds.slice(i, i + LOTE).forEach(id => batch.delete(FS_PRODUTOS.doc(id)));
+    await batch.commit();
+  }
+  // Apagar histórico
+  const histIds = historico.map(m => m.firestoreId).filter(Boolean);
+  for (let i = 0; i < histIds.length; i += LOTE) {
+    const batch = db.batch();
+    histIds.slice(i, i + LOTE).forEach(id => batch.delete(FS_HISTORICO.doc(id)));
+    await batch.commit();
+  }
+  // Apagar sell-out historico
+  const soSnap = await FS_SELLOUT_HIST.get();
+  const soDocs = soSnap.docs;
+  for (let i = 0; i < soDocs.length; i += LOTE) {
+    const batch = db.batch();
+    soDocs.slice(i, i + LOTE).forEach(d => batch.delete(d.ref));
+    await batch.commit();
+  }
+  // Limpar em memória
+  produtos = [];
+  historico = [];
+  selloutHist = [];
+  renderTabela();
+  renderHistorico();
+  showToast('✅ Sistema reiniciado com sucesso!', '#166534');
+}
 
 // ── Admin: Redes ──────────────────────────────
 
