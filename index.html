@@ -5282,6 +5282,94 @@ function deletarUsuario(id) {
   salvarUsuarios(); renderUsuarios();
   showToast('🗑 Usuário removido.','#7f1d1d');
 }
+function abrirEditUsuario(id) {
+  const u = usuarios.find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('eu_id').value = id;
+  document.getElementById('eu_nome').value = u.nome || '';
+  document.getElementById('eu_usuario').value = u.usuario || '';
+  document.getElementById('eu_senha').value = u.senha || '';
+  document.getElementById('eu_role').value = u.role || 'promotor';
+  document.getElementById('eu_telefone').value = u.telefone || '';
+  document.getElementById('eu_uf').value = u.uf || '';
+  // UFs do vendedor
+  document.querySelectorAll('#eu_ufs_checkboxes input[type=checkbox]').forEach(cb => {
+    cb.checked = (u.ufs || []).includes(cb.value);
+  });
+  // Chamar toggleUFFieldEdit para mostrar/ocultar campos e popular vendedores
+  toggleUFFieldEdit();
+  // Definir vendedor responsável após popular o select
+  const vSel = document.getElementById('eu_vendresp');
+  if (vSel) vSel.value = u.vendedorResponsavel || '';
+  document.getElementById('editUsuarioModal').classList.remove('hidden');
+}
+function salvarEdicaoUsuario() {
+  const id     = parseInt(document.getElementById('eu_id').value);
+  const nome   = document.getElementById('eu_nome').value.trim();
+  const usuario= document.getElementById('eu_usuario').value.trim().toLowerCase();
+  const senha  = document.getElementById('eu_senha').value;
+  const role   = document.getElementById('eu_role').value;
+  const telefone = (document.getElementById('eu_telefone')?.value || '').trim().replace(/\D/g,'');
+  if (!nome || !usuario || !senha) { showToast('⚠️ Preencha todos os campos.','#92400e'); return; }
+  if (senha.length < 4) { showToast('⚠️ Senha: mínimo 4 caracteres.','#92400e'); return; }
+  if (usuarios.find(u => u.usuario === usuario && u.id !== id)) { showToast('⚠️ Login já existe.','#92400e'); return; }
+  let uf = '', ufs = [], vendedorResponsavel = '';
+  if (role === 'promotor') {
+    uf = document.getElementById('eu_uf')?.value || '';
+    vendedorResponsavel = document.getElementById('eu_vendresp')?.value || '';
+  } else if (role === 'vendedor') {
+    ufs = Array.from(document.querySelectorAll('#eu_ufs_checkboxes input[type=checkbox]:checked')).map(cb => cb.value);
+  }
+  const idx = usuarios.findIndex(u => u.id === id);
+  if (idx === -1) { showToast('⚠️ Usuário não encontrado.','#92400e'); return; }
+  usuarios[idx] = { ...usuarios[idx], nome, usuario, senha, role, uf, ufs, vendedorResponsavel, telefone };
+  salvarUsuarios(); renderUsuarios();
+  document.getElementById('editUsuarioModal').classList.add('hidden');
+  showToast('✅ Usuário atualizado!','#166534');
+}
+function toggleUFField() {
+  const role = document.getElementById('u_role').value;
+  const isPromotor = role === 'promotor';
+  const isVendedor = role === 'vendedor';
+  // UF única (promotor)
+  const ufC = document.getElementById('u_uf_container');
+  if (ufC) ufC.style.display = isPromotor ? '' : 'none';
+  // UFs múltiplas (vendedor)
+  const ufsVC = document.getElementById('u_ufs_vendedor_container');
+  if (ufsVC) ufsVC.style.display = isVendedor ? '' : 'none';
+  // Vendedor responsável (promotor)
+  const vrC = document.getElementById('u_vendresp_container');
+  if (vrC) vrC.style.display = isPromotor ? '' : 'none';
+  if (isPromotor) {
+    const sel = document.getElementById('u_vendresp');
+    if (sel) {
+      const vendedores = (usuarios || []).filter(u => u.role === 'vendedor').sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">Selecione</option>' + vendedores.map(v => `<option value="${(v.nome||'').replace(/"/g,'&quot;')}">${v.nome||''}</option>`).join('');
+      sel.value = cur;
+    }
+  }
+}
+function toggleUFFieldEdit() {
+  const role = document.getElementById('eu_role').value;
+  const isPromotor = role === 'promotor';
+  const isVendedor = role === 'vendedor';
+  const ufC = document.getElementById('eu_uf_container');
+  if (ufC) ufC.style.display = isPromotor ? '' : 'none';
+  const ufsVC = document.getElementById('eu_ufs_vendedor_container');
+  if (ufsVC) ufsVC.style.display = isVendedor ? '' : 'none';
+  const vrC = document.getElementById('eu_vendresp_container');
+  if (vrC) vrC.style.display = isPromotor ? '' : 'none';
+  if (isPromotor) {
+    const sel = document.getElementById('eu_vendresp');
+    if (sel) {
+      const vendedores = (usuarios || []).filter(u => u.role === 'vendedor').sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">Selecione</option>' + vendedores.map(v => `<option value="${(v.nome||'').replace(/"/g,'&quot;')}">${v.nome||''}</option>`).join('');
+      sel.value = cur;
+    }
+  }
+}
 function limparFormUsuario() {
   document.getElementById('u_nome').value='';
   document.getElementById('u_usuario').value='';
