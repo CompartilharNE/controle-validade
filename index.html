@@ -10864,8 +10864,10 @@ async function renderFreqVisita() {
       </div>`;
 
     if (semAtiva) {
-      // ── Grade de dias da semana selecionada ──
-      const diasSem = semAtiva.dias;
+      // ── Grade de dias da semana selecionada (Seg–Sáb, sem Domingo) ──
+      const diasSem = semAtiva.dias
+        .filter(d => new Date(ano, mesNum - 1, d).getDay() !== 0)   // remove Domingo
+        .sort((a, b) => new Date(ano, mesNum-1, a).getDay() - new Date(ano, mesNum-1, b).getDay()); // Seg(1)→Sáb(6)
       const nCols = diasSem.length;
       const colW = '80px';
       const gridCols = `180px repeat(${nCols}, ${colW}) 90px`;
