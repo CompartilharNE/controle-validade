@@ -10814,10 +10814,12 @@ async function renderFreqVisita() {
         ? (semanas.find(s => s.dias.includes(diaHoje))?.num ?? null)
         : null;
       // Se mudou de mês, resetar para a semana atual (ou nenhuma)
-      const curSem = (mesAnterior === mes ? selSem.value : null) || (semAtualNum ? String(semAtualNum) : '');
+      // Se mudou o mês: auto-selecionar semana atual. Se mesmo mês: respeitar escolha do usuário (inclusive "Todas as semanas").
+      const curSem = (mesAnterior === mes) ? selSem.value : (semAtualNum ? String(semAtualNum) : '');
       selSem.innerHTML = '<option value="">Todas as semanas</option>' +
         semanas.map(s => `<option value="${s.num}" ${String(s.num)===curSem?'selected':''}>${'Semana '+s.num+' ('+s.label+')'}</option>`).join('');
-      if (!selSem.value && semAtualNum) selSem.value = String(semAtualNum);
+      // Forçar valor apenas na primeira carga do mês (não sobrescreve escolha do usuário)
+      if (mesAnterior !== mes && !selSem.value && semAtualNum) selSem.value = String(semAtualNum);
       selSem.dataset.mes = mes; // guardar mês atual para comparar na próxima chamada
     }
     if (semWrap) semWrap.style.display = '';
