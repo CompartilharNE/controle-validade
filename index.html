@@ -2321,6 +2321,13 @@
                 <option value="">Selecione um promotor…</option>
               </select>
             </div>
+            <div style="min-width:140px">
+              <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Visualização</label>
+              <div style="display:flex;background:#e8edf2;border-radius:8px;padding:3px;gap:2px">
+                <button id="freqBtnDia" onclick="freqSetModo('dia')" style="flex:1;padding:5px 8px;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;background:#1e3a5f;color:#fff;transition:all .15s">Por Dia</button>
+                <button id="freqBtnSem" onclick="freqSetModo('semana')" style="flex:1;padding:5px 8px;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;background:transparent;color:#64748b;transition:all .15s">Por Semana</button>
+              </div>
+            </div>
           </div>
 
           <!-- Área de resultado -->
@@ -10410,6 +10417,30 @@ function _freqGetDatasDoMes(mesStr, diasSemana) {
   return datas;
 }
 
+let _freqModo = 'dia'; // 'dia' | 'semana'
+
+function freqSetModo(modo) {
+  _freqModo = modo;
+  const btnDia = document.getElementById('freqBtnDia');
+  const btnSem = document.getElementById('freqBtnSem');
+  if (btnDia) { btnDia.style.background = modo === 'dia' ? '#1e3a5f' : 'transparent'; btnDia.style.color = modo === 'dia' ? '#fff' : '#64748b'; }
+  if (btnSem) { btnSem.style.background = modo === 'semana' ? '#1e3a5f' : 'transparent'; btnSem.style.color = modo === 'semana' ? '#fff' : '#64748b'; }
+  renderFreqVisita();
+}
+
+function _freqSemanas(ano, mesNum, ultimo) {
+  const sems = [];
+  let n = 1;
+  for (let d = 1; d <= ultimo; d += 7) {
+    const dias = [];
+    for (let dd = d; dd <= Math.min(d + 6, ultimo); dd++) dias.push(dd);
+    const ini = dias[0], fim = dias[dias.length - 1];
+    const label = ini === fim ? `${String(ini).padStart(2,'0')}/${String(mesNum).padStart(2,'0')}` : `${String(ini).padStart(2,'0')} – ${String(fim).padStart(2,'0')}/${String(mesNum).padStart(2,'0')}`;
+    sems.push({ num: n++, label, dias });
+  }
+  return sems;
+}
+
 async function renderFreqVisita() {
   const mes          = document.getElementById('freqSelMes')?.value || '';
   const promotorNome = document.getElementById('freqSelPromotor')?.value || '';
@@ -10435,6 +10466,7 @@ async function renderFreqVisita() {
 
     const [ano, mesNum] = mes.split('-').map(Number);
     const ultimo = new Date(ano, mesNum, 0).getDate();
+    const semanas = _freqSemanas(ano, mesNum, ultimo);
 
     const rows = roteiroLojas.map(r => {
       const loja = lojas.find(l => String(l.id) === String(r.lojaId));
@@ -10457,22 +10489,25 @@ async function renderFreqVisita() {
     const totalNao     = totalAgend - totalVisitou;
     const pctGeral     = totalAgend > 0 ? Math.round(totalVisitou / totalAgend * 100) : 0;
 
+    const colLabel = _freqModo === 'semana' ? 'SEMANAS DO MÊS' : 'DIAS DO MÊS';
+
     let html = `
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
-        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#1e293b">${totalAgend}</div><div style="font-size:11px;color:#64748b;margin-top:3px">Dias agendados</div></div>
-        <div style="background:#f0fdf4;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#059669">${totalVisitou}</div><div style="font-size:11px;color:#16a34a;margin-top:3px">Visitou</div></div>
-        <div style="background:#fef2f2;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#dc2626">${totalNao}</div><div style="font-size:11px;color:#dc2626;margin-top:3px">Não visitou</div></div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#1e293b">${_freqModo==='semana'?semanas.filter(s=>rows.some(r=>r.diasAgendados.some(d=>s.dias.includes(d)))).length:totalAgend}</div><div style="font-size:11px;color:#64748b;margin-top:3px">${_freqModo==='semana'?'Semanas agendadas':'Dias agendados'}</div></div>
+        <div style="background:#f0fdf4;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#059669">${totalVisitou}</div><div style="font-size:11px;color:#16a34a;margin-top:3px">Visitas realizadas</div></div>
+        <div style="background:#fef2f2;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#dc2626">${totalNao}</div><div style="font-size:11px;color:#dc2626;margin-top:3px">Visitas não realizadas</div></div>
         <div style="background:#eff6ff;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#2563eb">${pctGeral}%</div><div style="font-size:11px;color:#3b82f6;margin-top:3px">Frequência</div></div>
       </div>
       <div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
-        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#d1fae5;display:inline-block"></span>Visitou (lançou produto)</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#d1fae5;display:inline-block"></span>Visitou</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#fef3c7;display:inline-block"></span>Visitou parcial</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#fee2e2;display:inline-block"></span>Não visitou</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#f1f5f9;border:1px solid #e2e8f0;display:inline-block"></span>Não agendado</span>
       </div>
       <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">
         <div style="background:#f8fafc;padding:8px 12px;display:grid;grid-template-columns:170px 1fr 100px;gap:8px;align-items:center;border-bottom:1px solid #e2e8f0">
           <span style="font-size:11px;font-weight:600;color:#64748b">LOJA</span>
-          <span style="font-size:11px;font-weight:600;color:#64748b">DIAS DO MÊS</span>
+          <span style="font-size:11px;font-weight:600;color:#64748b">${colLabel}</span>
           <span style="font-size:11px;font-weight:600;color:#64748b;text-align:right">FREQUÊNCIA</span>
         </div>`;
 
@@ -10485,19 +10520,51 @@ async function renderFreqVisita() {
       const pc = pctR >= 80 ? '#059669' : pctR >= 50 ? '#d97706' : '#dc2626';
       const bb = pctR >= 80 ? '#d1fae5' : pctR >= 50 ? '#fef3c7' : '#fee2e2';
       const bc = pctR >= 80 ? '#065f46' : pctR >= 50 ? '#92400e' : '#991b1b';
+
       let chips = '';
-      for (let d = 1; d <= ultimo; d++) {
-        if (diasAgendados.includes(d)) {
-          chips += diasComVisita.has(d)
-            ? `<span style="width:22px;height:22px;border-radius:4px;background:#d1fae5;color:#065f46;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0" title="Dia ${d} — Visitou">${d}</span>`
-            : `<span style="width:22px;height:22px;border-radius:4px;background:#fee2e2;color:#991b1b;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0" title="Dia ${d} — Não visitou">${d}</span>`;
-        } else {
-          chips += `<span style="width:22px;height:22px;border-radius:4px;background:#f1f5f9;color:#cbd5e1;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${d}</span>`;
+
+      if (_freqModo === 'semana') {
+        // Chips por semana
+        semanas.forEach(sem => {
+          const agNaSem = sem.dias.filter(d => diasAgendados.includes(d));
+          const visitNaSem = agNaSem.filter(d => diasComVisita.has(d));
+          if (!agNaSem.length) {
+            // Não agendado nessa semana
+            chips += `<div style="border-radius:8px;padding:6px 10px;background:#f1f5f9;display:inline-flex;flex-direction:column;align-items:center;min-width:72px;flex-shrink:0" title="Sem ${sem.num} — Não agendado">
+              <span style="font-size:10px;font-weight:700;color:#94a3b8">Sem ${sem.num}</span>
+              <span style="font-size:9px;color:#cbd5e1;margin-top:2px">${sem.label}</span>
+              <span style="font-size:9px;color:#cbd5e1;margin-top:2px">—</span>
+            </div>`;
+          } else {
+            const tudo = visitNaSem.length === agNaSem.length;
+            const nada = visitNaSem.length === 0;
+            const bg = tudo ? '#d1fae5' : nada ? '#fee2e2' : '#fef3c7';
+            const tc = tudo ? '#065f46' : nada ? '#991b1b' : '#92400e';
+            const label2 = tudo ? '✓ tudo' : nada ? '✗ nenhum' : `${visitNaSem.length}/${agNaSem.length} dias`;
+            chips += `<div style="border-radius:8px;padding:6px 10px;background:${bg};display:inline-flex;flex-direction:column;align-items:center;min-width:72px;flex-shrink:0" title="Sem ${sem.num}: agendado dias ${agNaSem.join(', ')} — visitou dias ${visitNaSem.join(', ')||'nenhum'}">
+              <span style="font-size:10px;font-weight:700;color:${tc}">Sem ${sem.num}</span>
+              <span style="font-size:9px;color:${tc};opacity:.75;margin-top:1px">${sem.label}</span>
+              <span style="font-size:10px;font-weight:600;color:${tc};margin-top:3px">${label2}</span>
+            </div>`;
+          }
+        });
+      } else {
+        // Chips por dia (modo original)
+        for (let d = 1; d <= ultimo; d++) {
+          if (diasAgendados.includes(d)) {
+            chips += diasComVisita.has(d)
+              ? `<span style="width:22px;height:22px;border-radius:4px;background:#d1fae5;color:#065f46;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0" title="Dia ${d} — Visitou">${d}</span>`
+              : `<span style="width:22px;height:22px;border-radius:4px;background:#fee2e2;color:#991b1b;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0" title="Dia ${d} — Não visitou">${d}</span>`;
+          } else {
+            chips += `<span style="width:22px;height:22px;border-radius:4px;background:#f1f5f9;color:#cbd5e1;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${d}</span>`;
+          }
         }
       }
+
+      const gap = _freqModo === 'semana' ? '6px' : '3px';
       html += `<div style="${i<rows.length-1?'border-bottom:1px solid #f1f5f9;':''}padding:10px 12px;display:grid;grid-template-columns:170px 1fr 100px;gap:8px;align-items:start">
         <div><div style="font-size:12px;font-weight:600;color:#1e293b">${esc(nomeLoja)}</div>${sub?`<div style="font-size:11px;color:#64748b">${esc(sub)}</div>`:''}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:3px">${chips}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:${gap}">${chips}</div>
         <div style="text-align:right"><span style="background:${bb};color:${bc};font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;white-space:nowrap">${visitou}/${diasAgendados.length} · ${pctR}%</span><div style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:5px"><div style="height:100%;border-radius:3px;background:${pc};width:${pctR}%"></div></div></div>
       </div>`;
     });
