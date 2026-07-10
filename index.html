@@ -1732,6 +1732,13 @@
               <option value="">Todas as UFs</option>
             </select>
           </div>
+          <i class="ti ti-chevron-right" style="font-size:12px;color:#94a3b8;margin-bottom:10px"></i>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs text-slate-500">Loja</label>
+            <select id="gLoja" onchange="renderGraficos()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+              <option value="">Todas as Lojas</option>
+            </select>
+          </div>
         </div>
       </div>
       <!-- Cabeçalho de filtros ativos -->
@@ -8830,6 +8837,20 @@ function _popularFiltrosGraficos() {
     selUF.innerHTML = '<option value="">Todas as UFs</option>' + ufs.map(u=>`<option ${u===cur?'selected':''}>${u}</option>`).join('');
     if (lblUF) lblUF.textContent = 'UF';
   }
+
+  // Loja (cascata: baseada em Fábrica + Rede + UF)
+  const fUFpop = selUF?.value || '';
+  const selLoja = document.getElementById('gLoja');
+  if (selLoja) {
+    const cur = selLoja.value;
+    let base = produtos;
+    if (fFab)    base = base.filter(p=>p.fabrica===fFab);
+    if (fRede)   base = base.filter(p=>{ const l=lojas.find(l=>normTxt(l.nome)===normTxt(p.loja)); return l?.rede===fRede; });
+    if (ufsVend.length) base = base.filter(p=>ufsVend.includes(p.uf));
+    if (fUFpop)  base = base.filter(p=>p.uf===fUFpop);
+    const lojasOpts = [...new Set(base.map(p=>p.loja).filter(Boolean))].sort();
+    selLoja.innerHTML = '<option value="">Todas as Lojas</option>' + lojasOpts.map(l=>`<option ${l===cur?'selected':''}>${l}</option>`).join('');
+  }
 }
 
 function renderGraficos() {
@@ -8840,6 +8861,7 @@ function renderGraficos() {
   const fRede = document.getElementById('gRede')?.value     || '';
   const fVend = isVend ? '' : (document.getElementById('gVendedor')?.value||'');
   const fUF   = document.getElementById('gUF')?.value       || '';
+  const fLoja = document.getElementById('gLoja')?.value     || '';
   const vendSel= fVend ? usuarios.find(u=>u.role==='vendedor'&&u.nome===fVend) : null;
   const ufsVend= isVend ? (sessao.ufs||[]) : (vendSel?.ufs||[]);
 
@@ -8849,6 +8871,7 @@ function renderGraficos() {
     fRede ? { label: 'Rede',     val: fRede } : null,
     fVend ? { label: 'Vendedor', val: fVend } : null,
     fUF   ? { label: 'UF',       val: fUF   } : null,
+    fLoja ? { label: 'Loja',     val: fLoja } : null,
   ].filter(Boolean);
   const gFL = document.getElementById('gFiltroLabel');
   const gRL = document.getElementById('gRedeLabel');
@@ -8864,6 +8887,7 @@ function renderGraficos() {
     { label: 'Rede',     id: 'gRede'     },
     { label: 'Vendedor', id: 'gVendedor' },
     { label: 'UF',       id: 'gUF'       },
+    { label: 'Loja',     id: 'gLoja'     },
   ]);
 
   // Datas do gráfico de distribuição
@@ -8881,6 +8905,7 @@ function renderGraficos() {
   if (fRede) base = base.filter(p=>{ const l=lojas.find(l=>normTxt(l.nome)===normTxt(p.loja)); return l?.rede===fRede; });
   if (ufsVend.length && !isVend) base = base.filter(p=>ufsVend.includes(p.uf));
   if (fUF)   base = base.filter(p=>p.uf===fUF);
+  if (fLoja) base = base.filter(p=>normTxt(p.loja)===normTxt(fLoja));
 
   // Agrupar por produto+und+validade
   const mapa = new Map();
@@ -10679,6 +10704,15 @@ function rotSetTab(tab) {
   if (tab === 'frequencia') _freqInicializar();
 }
 
+function _freqToggleSem(num) {
+  const body  = document.getElementById('freqSemBody_' + num);
+  const arrow = document.getElementById('freqSemArrow_' + num);
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : '';
+  if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+}
+
 function _freqInicializar() {
   const selMes = document.getElementById('freqSelMes');
   if (selMes && !selMes.options.length) {
@@ -10870,136 +10904,100 @@ async function renderFreqVisita() {
         <div style="background:#eff6ff;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#2563eb">${pctGeral}%</div><div style="font-size:11px;color:#3b82f6;margin-top:3px">Frequência</div></div>
       </div>
       <div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
-        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#fef9c3;border:1px solid #fde68a;display:inline-block"></span>Visitou</span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#fee2e2;border:1px solid #fca5a5;display:inline-block"></span>Não visitou</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#d1fae5;border:1px solid #6ee7b7;display:inline-block"></span>Visitou (agendado)</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#fef9c3;border:1px solid #fde68a;display:inline-block"></span>Visitou (fora do agendamento)</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#fee2e2;border:1px solid #fca5a5;display:inline-block"></span>Não Visitou</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#f1f5f9;border:1px solid #e2e8f0;display:inline-block"></span>Não agendado</span>
       </div>`;
 
-    if (semAtiva) {
-      // ── Grade de dias da semana selecionada (Seg–Sáb, já ordenados pela _freqSemanas) ──
-      const diasSem = semAtiva.dias; // já vêm em ordem Seg→Sáb, sem Domingo
-      const nCols = diasSem.length;
-      const colW = '80px';
-      const gridCols = `180px repeat(${nCols}, ${colW}) 90px`;
+    // Helper: cor/texto da célula
+    const _cel = (agendado, visitou_d, borderStyle, extraStyle) => {
+      let bg, txt, tc;
+      if (!agendado && !visitou_d) { bg = '#f8fafc'; txt = ''; tc = '#cbd5e1'; }
+      else if (!agendado && visitou_d) { bg = '#fef9c3'; txt = 'Visitou'; tc = '#92400e'; }
+      else if (agendado && visitou_d) { bg = '#d1fae5'; txt = 'Visitou'; tc = '#065f46'; }
+      else { bg = '#fee2e2'; txt = 'Não Visitou'; tc = '#991b1b'; }
+      return `<div style="background:${bg};${borderStyle}${extraStyle||''}padding:5px 2px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:${tc};text-align:center;line-height:1.2">${txt}</div>`;
+    };
 
-      // Cabeçalho
-      let header = `<div style="font-size:11px;font-weight:700;color:#64748b;padding:8px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0">LOJA</div>`;
+    // Helper: renderiza o grid de uma semana (sem cabeçalho externo)
+    const _renderSemGrid = (diasSem, scopeRows) => {
+      const nCols = diasSem.length;
+      const gridCols = `180px repeat(${nCols}, 80px) 90px`;
+      let h = `<div style="overflow:auto"><div style="display:grid;grid-template-columns:${gridCols};min-width:max-content">`;
+      // cabeçalho
+      h += `<div style="font-size:11px;font-weight:700;color:#64748b;padding:8px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0">LOJA</div>`;
       diasSem.forEach(d => {
         const dow = DOW[new Date(ano, mesNum - 1, d).getDay()];
-        const dd  = String(d).padStart(2,'0');
-        const mm  = String(mesNum).padStart(2,'0');
-        header += `<div style="font-size:11px;font-weight:700;color:#1e3a5f;padding:8px 4px;background:#f8fafc;border-bottom:1px solid #e2e8f0;text-align:center;line-height:1.4">${dow}<br><span style="font-size:10px;font-weight:500;color:#64748b">${dd}.${mm}</span></div>`;
+        const dd = String(d).padStart(2,'0'), mm = String(mesNum).padStart(2,'0');
+        h += `<div style="font-size:11px;font-weight:700;color:#1e3a5f;padding:8px 4px;background:#f8fafc;border-bottom:1px solid #e2e8f0;text-align:center;line-height:1.4">${dow}<br><span style="font-size:10px;font-weight:500;color:#64748b">${dd}.${mm}</span></div>`;
       });
-      header += `<div style="font-size:11px;font-weight:700;color:#64748b;padding:8px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0;text-align:right">FREQ.</div>`;
-
-      html += `<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:auto">
-        <div style="display:grid;grid-template-columns:${gridCols};min-width:max-content">${header}`;
-
-      rows.forEach((row, i) => {
+      h += `<div style="font-size:11px;font-weight:700;color:#64748b;padding:8px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0;text-align:right">FREQ.</div>`;
+      // linhas
+      scopeRows.forEach((row, i) => {
         const { loja, diasAgendados, diasComVisita } = row;
         const nomeLoja = loja?.nome || `Loja #${row.r.lojaId}`;
-        const sub = [loja?.rede, loja?.uf].filter(Boolean).join(' · ');
-        // Contar apenas dias da semana selecionada
-        const agSem   = diasAgendados.filter(d => diasSem.includes(d));
+        const uf = loja?.uf || '';
+        const agSem = diasAgendados.filter(d => diasSem.includes(d));
         const visitSem = agSem.filter(d => diasComVisita.has(d)).length;
-        const pctR    = agSem.length > 0 ? Math.round(visitSem / agSem.length * 100) : 0;
+        const pctR = agSem.length > 0 ? Math.round(visitSem / agSem.length * 100) : 0;
         const pc = pctR >= 80 ? '#059669' : pctR >= 50 ? '#d97706' : '#dc2626';
         const bb = pctR >= 80 ? '#d1fae5' : pctR >= 50 ? '#fef3c7' : '#fee2e2';
         const bc = pctR >= 80 ? '#065f46' : pctR >= 50 ? '#92400e' : '#991b1b';
         const bb2 = i % 2 === 0 ? '#fff' : '#fafafa';
-        const border = i < rows.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
-
-        let cells = `<div style="background:${bb2};${border}padding:10px;display:flex;flex-direction:column;justify-content:center">
+        const bdr = i < scopeRows.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
+        h += `<div style="background:${bb2};${bdr}padding:10px;display:flex;flex-direction:column;justify-content:center">
           <div style="font-size:12px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nomeLoja)}</div>
-          ${sub ? `<div style="font-size:11px;color:#64748b;margin-top:2px">${esc(sub)}</div>` : ''}
+          ${uf ? `<div style="font-size:11px;color:#64748b;margin-top:2px">${esc(uf)}</div>` : ''}
         </div>`;
-
         diasSem.forEach(d => {
-          const agendado  = diasAgendados.includes(d);
-          const visitou_d = diasComVisita.has(d);
-          let bg, icon, tc;
-          if (!agendado) {
-            bg = '#f8fafc'; icon = ''; tc = '#cbd5e1';
-          } else if (visitou_d) {
-            bg = '#fef9c3'; icon = '✓'; tc = '#92400e';
-          } else {
-            bg = '#fee2e2'; icon = '✗'; tc = '#991b1b';
-          }
-          cells += `<div style="background:${bg};${border}padding:8px 4px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${tc}">${icon}</div>`;
+          h += _cel(diasAgendados.includes(d), diasComVisita.has(d), bdr);
         });
-
-        cells += `<div style="background:${bb2};${border}padding:10px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center">
+        h += `<div style="background:${bb2};${bdr}padding:10px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center">
           <span style="background:${bb};color:${bc};font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;white-space:nowrap">${visitSem}/${agSem.length} · ${pctR}%</span>
           <div style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:5px;width:100%"><div style="height:100%;border-radius:3px;background:${pc};width:${pctR}%"></div></div>
         </div>`;
-
-        html += cells;
       });
+      h += '</div></div>';
+      return h;
+    };
 
-      html += '</div></div>';
+    if (semAtiva) {
+      // ── Semana específica selecionada ──
+      html += `<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">`;
+      html += _renderSemGrid(semAtiva.dias, rows);
+      html += `</div>`;
 
     } else {
-      // ── Modo "Todas as semanas": grade com todos os dias úteis do mês (Seg–Sáb) ──
-      const todosDias = semanas.flatMap(s => s.dias); // em ordem Seg→Sáb, sem Domingo
-      const nCols = todosDias.length;
-      const colW = '58px';
-      const gridCols = `180px repeat(${nCols}, ${colW}) 90px`;
+      // ── "Todas as semanas": blocos retráteis por semana ──
+      html += `<div style="display:flex;flex-direction:column;gap:8px">`;
 
-      // Cabeçalho
-      let header = `<div style="font-size:11px;font-weight:700;color:#64748b;padding:8px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0">LOJA</div>`;
-      todosDias.forEach((d, colIdx) => {
-        const sem = semanas.find(s => s.dias.includes(d));
-        const isFirstOfSem = sem && sem.dias[0] === d;
-        const dow = DOW[new Date(ano, mesNum - 1, d).getDay()];
-        const dd  = String(d).padStart(2,'0');
-        const mm  = String(mesNum).padStart(2,'0');
-        const bleft = isFirstOfSem && colIdx > 0 ? 'border-left:2px solid #cbd5e1;' : '';
-        header += `<div style="font-size:10px;font-weight:700;color:#1e3a5f;padding:6px 2px;background:#f8fafc;border-bottom:1px solid #e2e8f0;text-align:center;line-height:1.4;${bleft}">${dow.slice(0,3)}<br><span style="font-size:9px;font-weight:500;color:#64748b">${dd}.${mm}</span></div>`;
-      });
-      header += `<div style="font-size:11px;font-weight:700;color:#64748b;padding:8px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0;text-align:right">FREQ.</div>`;
+      semanas.forEach(sem => {
+        const agSemTotal   = rows.reduce((s, row) => s + row.diasAgendados.filter(d => sem.dias.includes(d)).length, 0);
+        const visitSemTot  = rows.reduce((s, row) => s + row.diasAgendados.filter(d => sem.dias.includes(d) && row.diasComVisita.has(d)).length, 0);
+        const pctSem = agSemTotal > 0 ? Math.round(visitSemTot / agSemTotal * 100) : 0;
+        const pcSem  = pctSem >= 80 ? '#059669' : pctSem >= 50 ? '#d97706' : '#dc2626';
 
-      html += `<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:auto">
-        <div style="display:grid;grid-template-columns:${gridCols};min-width:max-content">${header}`;
-
-      rows.forEach((row, i) => {
-        const { loja, diasAgendados, diasComVisita } = row;
-        const nomeLoja = loja?.nome || `Loja #${row.r.lojaId}`;
-        const sub = [loja?.rede, loja?.uf].filter(Boolean).join(' · ');
-        const visitou = diasAgendados.filter(d => diasComVisita.has(d)).length;
-        const pctR = diasAgendados.length > 0 ? Math.round(visitou / diasAgendados.length * 100) : 0;
-        const pc = pctR >= 80 ? '#059669' : pctR >= 50 ? '#d97706' : '#dc2626';
-        const bb = pctR >= 80 ? '#d1fae5' : pctR >= 50 ? '#fef3c7' : '#fee2e2';
-        const bc = pctR >= 80 ? '#065f46' : pctR >= 50 ? '#92400e' : '#991b1b';
-        const bb2 = i % 2 === 0 ? '#fff' : '#fafafa';
-        const border = i < rows.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
-
-        let cells = `<div style="background:${bb2};${border}padding:10px;display:flex;flex-direction:column;justify-content:center">
-          <div style="font-size:12px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nomeLoja)}</div>
-          ${sub ? `<div style="font-size:11px;color:#64748b;margin-top:2px">${esc(sub)}</div>` : ''}
+        html += `<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">
+          <div onclick="_freqToggleSem(${sem.num})" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8fafc;cursor:pointer;user-select:none">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span id="freqSemArrow_${sem.num}" style="font-size:11px;color:#64748b;display:inline-block;transform:rotate(0deg);transition:transform .2s">▶</span>
+              <span style="font-size:13px;font-weight:700;color:#1e3a5f">Semana ${sem.num}</span>
+              <span style="font-size:12px;color:#94a3b8">${sem.label}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <span style="font-size:12px;color:#64748b">${agSemTotal} agendados</span>
+              <span style="font-size:12px;color:#64748b">${visitSemTot} visitados</span>
+              <span style="font-size:12px;font-weight:700;color:${pcSem}">${pctSem}%</span>
+            </div>
+          </div>
+          <div id="freqSemBody_${sem.num}" style="display:none">
+            ${_renderSemGrid(sem.dias, rows)}
+          </div>
         </div>`;
-
-        todosDias.forEach((d, colIdx) => {
-          const sem = semanas.find(s => s.dias.includes(d));
-          const isFirstOfSem = sem && sem.dias[0] === d;
-          const agendado  = diasAgendados.includes(d);
-          const visitou_d = diasComVisita.has(d);
-          let bg, icon, tc;
-          if (!agendado)      { bg = '#f8fafc'; icon = '';  tc = '#cbd5e1'; }
-          else if (visitou_d) { bg = '#fef9c3'; icon = '✓'; tc = '#92400e'; }
-          else                { bg = '#fee2e2'; icon = '✗'; tc = '#991b1b'; }
-          const bleft = isFirstOfSem && colIdx > 0 ? 'border-left:2px solid #e2e8f0;' : '';
-          cells += `<div style="background:${bg};${border}${bleft}padding:6px 2px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:${tc}">${icon}</div>`;
-        });
-
-        cells += `<div style="background:${bb2};${border}padding:10px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center">
-          <span style="background:${bb};color:${bc};font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;white-space:nowrap">${visitou}/${diasAgendados.length} · ${pctR}%</span>
-          <div style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:5px;width:100%"><div style="height:100%;border-radius:3px;background:${pc};width:${pctR}%"></div></div>
-        </div>`;
-
-        html += cells;
       });
 
-      html += '</div></div>';
+      html += `</div>`;
     }
 
     cont.innerHTML = html;
