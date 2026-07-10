@@ -10765,14 +10765,35 @@ function freqSetModo(modo) {
 }
 
 function _freqSemanas(ano, mesNum, ultimo) {
+  // Semanas reais de calendário: Segunda a Sábado
   const sems = [];
   let n = 1;
-  for (let d = 1; d <= ultimo; d += 7) {
+  // Achar a Segunda-feira da primeira semana que contém dias deste mês
+  const primeiroDia = new Date(ano, mesNum - 1, 1);
+  let dow = primeiroDia.getDay(); // 0=Dom,1=Seg,...,6=Sáb
+  if (dow === 0) dow = 7; // tratar Dom como 7
+  let seg = new Date(primeiroDia.getTime() - (dow - 1) * 86400000); // Segunda da semana
+
+  while (true) {
+    // Coletar dias Seg(0)→Sáb(5) desta semana que pertencem ao mês
     const dias = [];
-    for (let dd = d; dd <= Math.min(d + 6, ultimo); dd++) dias.push(dd);
-    const ini = dias[0], fim = dias[dias.length - 1];
-    const label = ini === fim ? `${String(ini).padStart(2,'0')}/${String(mesNum).padStart(2,'0')}` : `${String(ini).padStart(2,'0')} – ${String(fim).padStart(2,'0')}/${String(mesNum).padStart(2,'0')}`;
-    sems.push({ num: n++, label, dias });
+    for (let i = 0; i < 6; i++) {
+      const dia = new Date(seg.getTime() + i * 86400000);
+      if (dia.getFullYear() === ano && dia.getMonth() + 1 === mesNum) {
+        dias.push(dia.getDate());
+      }
+    }
+    if (dias.length > 0) {
+      const ini = dias[0], fim = dias[dias.length - 1];
+      const pad = v => String(v).padStart(2,'0');
+      const label = ini === fim
+        ? `${pad(ini)}/${pad(mesNum)}`
+        : `${pad(ini)} – ${pad(fim)}/${pad(mesNum)}`;
+      sems.push({ num: n++, label, dias });
+    }
+    // Avançar para a próxima segunda
+    seg = new Date(seg.getTime() + 7 * 86400000);
+    if (seg > new Date(ano, mesNum - 1, ultimo)) break;
   }
   return sems;
 }
@@ -10813,7 +10834,10 @@ async function renderFreqVisita() {
       // Calcular semana atual para pré-selecionar
       const hoje = new Date();
       const mesHoje = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
-      const semAtualNum = mes === mesHoje ? Math.min(Math.ceil(hoje.getDate() / 7), semanas.length) : null;
+      const diaHoje = hoje.getDate();
+      const semAtualNum = mes === mesHoje
+        ? (semanas.find(s => s.dias.includes(diaHoje))?.num ?? null)
+        : null;
       const curSem = selSem.value || (semAtualNum ? String(semAtualNum) : '');
       selSem.innerHTML = '<option value="">Todas as semanas</option>' +
         semanas.map(s => `<option value="${s.num}" ${String(s.num)===curSem?'selected':''}>${'Semana '+s.num+' ('+s.label+')'}</option>`).join('');
@@ -10864,10 +10888,8 @@ async function renderFreqVisita() {
       </div>`;
 
     if (semAtiva) {
-      // ── Grade de dias da semana selecionada (Seg–Sáb, sem Domingo) ──
-      const diasSem = semAtiva.dias
-        .filter(d => new Date(ano, mesNum - 1, d).getDay() !== 0)   // remove Domingo
-        .sort((a, b) => new Date(ano, mesNum-1, a).getDay() - new Date(ano, mesNum-1, b).getDay()); // Seg(1)→Sáb(6)
+      // ── Grade de dias da semana selecionada (Seg–Sáb, já ordenados pela _freqSemanas) ──
+      const diasSem = semAtiva.dias; // já vêm em ordem Seg→Sáb, sem Domingo
       const nCols = diasSem.length;
       const colW = '80px';
       const gridCols = `180px repeat(${nCols}, ${colW}) 90px`;
