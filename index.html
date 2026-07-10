@@ -10923,6 +10923,7 @@ async function renderFreqVisita() {
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#d1fae5;border:1px solid #6ee7b7;display:inline-block"></span>Visitou (agendado)</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#fef9c3;border:1px solid #fde68a;display:inline-block"></span>Visitou (fora do agendamento)</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#fee2e2;border:1px solid #fca5a5;display:inline-block"></span>Não Visitou</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#eff6ff;border:1px solid #bfdbfe;display:inline-block"></span>Agendado (futuro)</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#f1f5f9;border:1px solid #e2e8f0;display:inline-block"></span>Não agendado</span>
       </div>
       <div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
@@ -10932,13 +10933,18 @@ async function renderFreqVisita() {
         <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#64748b"><i class="ti ti-map-pin" style="font-size:13px;color:#94a3b8" aria-hidden="true"></i>Sem GPS</span>
       </div>`;
 
+    const _hoje = new Date(); _hoje.setHours(0,0,0,0);
+
     // Helper: cor/texto da célula + indicador GPS
-    const _cel = (agendado, visitou_d, borderStyle, extraStyle, gpsInfo) => {
+    // isPast = true → dia anterior a hoje (já passou)
+    const _cel = (agendado, visitou_d, borderStyle, extraStyle, gpsInfo, diaDate) => {
+      const isPast = diaDate ? diaDate < _hoje : true;
       let bg, txt, tc;
       if (!agendado && !visitou_d) { bg = '#f8fafc'; txt = ''; tc = '#cbd5e1'; }
       else if (!agendado && visitou_d) { bg = '#fef9c3'; txt = 'Visitou'; tc = '#92400e'; }
       else if (agendado && visitou_d) { bg = '#d1fae5'; txt = 'Visitou'; tc = '#065f46'; }
-      else { bg = '#fee2e2'; txt = 'Não Visitou'; tc = '#991b1b'; }
+      else if (agendado && !visitou_d && !isPast) { bg = '#eff6ff'; txt = 'Agendado'; tc = '#1d4ed8'; } // futuro
+      else { bg = '#fee2e2'; txt = 'Não Visitou'; tc = '#991b1b'; } // passado sem visita
       let gpsHtml = '';
       if (visitou_d && gpsInfo !== undefined) {
         const { distancia, presenca } = gpsInfo || {};
@@ -10987,7 +10993,8 @@ async function renderFreqVisita() {
           ${uf ? `<span style="font-size:11px;color:#64748b;white-space:nowrap;flex-shrink:0">· ${esc(uf)}</span>` : ''}
         </div>`;
         diasSem.forEach(d => {
-          h += _cel(diasAgendados.includes(d), diasComVisita.has(d), bdr, '', gpsPerDia?.get(d));
+          const diaDate = new Date(ano, mesNum - 1, d);
+          h += _cel(diasAgendados.includes(d), diasComVisita.has(d), bdr, '', gpsPerDia?.get(d), diaDate);
         });
         h += `<div style="background:${bb2};${bdr}padding:10px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center">
           <span style="background:${bb};color:${bc};font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;white-space:nowrap">${visitSem}/${agSem.length} · ${pctR}%</span>
