@@ -2170,6 +2170,9 @@
             <button onclick="exportarHistorico()" class="flex items-center gap-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold rounded-lg px-3 py-1.5 transition border border-green-200">
               <i class="ti ti-file-spreadsheet" style="font-size:14px" aria-hidden="true"></i> Exportar Excel
             </button>
+            <button id="btnLimparHistorico" onclick="limparTodoHistorico()" style="display:none;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5" class="flex items-center gap-1 text-xs font-semibold rounded-lg px-3 py-1.5 transition">
+              🗑 Limpar histórico
+            </button>
           </div>
         </div>
         <div class="overflow-x-auto">
@@ -4137,6 +4140,9 @@ function entrarNoApp(user) {
   // Botões Histórico e SellOut visíveis somente para Admin
   const btnHist2 = document.getElementById('btnViewHistorico');
   if (btnHist2) btnHist2.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
+  // Botão limpar histórico: só admin
+  const btnLH = document.getElementById('btnLimparHistorico');
+  if (btnLH) btnLH.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
   const btnSO2 = document.getElementById('btnViewSellOut');
   if (btnSO2) btnSO2.style.display = (['admin','vendedor','diretor'].includes(user.role)) ? 'inline-flex' : 'none';
   // Botão Comunicados: visível para todos os perfis
@@ -12798,6 +12804,30 @@ function excluirMovHistorico(movId) {
   renderHistorico();
   showToast('🗑 Registro removido do histórico.', '#7f1d1d');
 }
+async function limparTodoHistorico() {
+  if (sessao?.role !== 'admin') return;
+  const total = historico.length;
+  if (!total) { showToast('Histórico já está vazio.', '#64748b'); return; }
+  if (!confirm(`⚠️ Isso vai apagar TODOS os ${total} registros do histórico permanentemente.\n\nEsta ação não pode ser desfeita. Confirmar?`)) return;
+  showToast('⏳ Apagando histórico...', '#1e3a5f');
+  // Apaga em lotes de 400 (limite Firestore batch = 500)
+  const ids = historico.map(m => m.firestoreId).filter(Boolean);
+  const LOTE = 400;
+  for (let i = 0; i < ids.length; i += LOTE) {
+    const batch = db.batch();
+    ids.slice(i, i + LOTE).forEach(id => batch.delete(FS_HISTORICO.doc(id)));
+    await batch.commit();
+  }
+  // Apagar documentos sem firestoreId no data (registros muito antigos)
+  const semId = historico.filter(m => !m.firestoreId);
+  for (const m of semId) {
+    const snap = await FS_HISTORICO.where('id', '==', m.id).get();
+    snap.forEach(doc => doc.ref.delete());
+  }
+  historico = [];
+  renderHistorico();
+  showToast('✅ Histórico apagado com sucesso.', '#166534');
+}
 
 function verificarAlertaDataEntrega() {
   if (sessao?.role !== 'admin') return;
@@ -14397,7 +14427,7 @@ async function carregarDados() {
     lojas       = lojaSnap.docs.map(d => d.data());
     catalogo    = catSnap.docs.map(d => d.data());
     produtos    = prodSnap.docs.map(d => d.data());
-    historico   = histSnap.docs.map(d => d.data());
+    historico   = histSnap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
     selloutHist = soHistSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch(e) {
     console.error('Erro ao carregar Firebase:', e);
