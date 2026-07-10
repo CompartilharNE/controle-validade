@@ -2388,6 +2388,12 @@
                 <option value="">Selecione um promotor…</option>
               </select>
             </div>
+            <div id="freqSelSemanaWrap" style="min-width:160px;display:none">
+              <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Semana</label>
+              <select id="freqSelSemana" onchange="renderFreqVisita()" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white">
+                <option value="">Todas as semanas</option>
+              </select>
+            </div>
             <div style="min-width:140px">
               <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Visualização</label>
               <div style="display:flex;background:#e8edf2;border-radius:8px;padding:3px;gap:2px">
@@ -10779,6 +10785,8 @@ async function renderFreqVisita() {
 
   if (!mes || !promotorNome) {
     cont.innerHTML = '<div style="text-align:center;padding:32px 16px;color:#94a3b8"><i class="ti ti-calendar-stats" style="font-size:36px;display:block;margin-bottom:8px"></i><p style="font-size:13px;margin:0">Selecione um promotor para ver a frequência de visitas</p></div>';
+    const sw = document.getElementById('freqSelSemanaWrap');
+    if (sw) sw.style.display = 'none';
     return;
   }
 
@@ -10798,6 +10806,21 @@ async function renderFreqVisita() {
     const ultimo = new Date(ano, mesNum, 0).getDate();
     const semanas = _freqSemanas(ano, mesNum, ultimo);
 
+    // Popular selector de semana
+    const selSem = document.getElementById('freqSelSemana');
+    const semWrap = document.getElementById('freqSelSemanaWrap');
+    if (selSem) {
+      const curSem = selSem.value;
+      selSem.innerHTML = '<option value="">Todas as semanas</option>' +
+        semanas.map(s => `<option value="${s.num}" ${String(s.num)===curSem?'selected':''}>${'Semana '+s.num+' ('+s.label+')'}</option>`).join('');
+    }
+    if (semWrap) semWrap.style.display = '';
+
+    // Semana filtrada
+    const semFiltro = selSem?.value ? parseInt(selSem.value) : null;
+    const semAtiva = semFiltro ? semanas.find(s => s.num === semFiltro) : null;
+    const diasFiltro = semAtiva ? semAtiva.dias : null; // null = todos os dias
+
     const rows = roteiroLojas.map(r => {
       const loja = lojas.find(l => String(l.id) === String(r.lojaId));
       const diasAgendados = _freqGetDatasDoMes(mes, r.dias || []);
@@ -10814,8 +10837,8 @@ async function renderFreqVisita() {
       return { loja, r, diasAgendados, diasComVisita };
     });
 
-    const totalAgend   = rows.reduce((s, r) => s + r.diasAgendados.length, 0);
-    const totalVisitou = rows.reduce((s, r) => s + r.diasAgendados.filter(d => r.diasComVisita.has(d)).length, 0);
+    const totalAgend   = rows.reduce((s, r) => s + r.diasAgendados.filter(d => !diasFiltro || diasFiltro.includes(d)).length, 0);
+    const totalVisitou = rows.reduce((s, r) => s + r.diasAgendados.filter(d => (!diasFiltro || diasFiltro.includes(d)) && r.diasComVisita.has(d)).length, 0);
     const totalNao     = totalAgend - totalVisitou;
     const pctGeral     = totalAgend > 0 ? Math.round(totalVisitou / totalAgend * 100) : 0;
 
@@ -10854,8 +10877,9 @@ async function renderFreqVisita() {
       let chips = '';
 
       if (_freqModo === 'semana') {
-        // Chips por semana
-        semanas.forEach(sem => {
+        // Chips por semana (filtrar se selecionada)
+        const semanasVisiveis = semAtiva ? [semAtiva] : semanas;
+        semanasVisiveis.forEach(sem => {
           const agNaSem = sem.dias.filter(d => diasAgendados.includes(d));
           const visitNaSem = agNaSem.filter(d => diasComVisita.has(d));
           if (!agNaSem.length) {
@@ -10879,8 +10903,9 @@ async function renderFreqVisita() {
           }
         });
       } else {
-        // Chips por dia (modo original)
-        for (let d = 1; d <= ultimo; d++) {
+        // Chips por dia — filtrar pela semana se selecionada
+        const diasVisiveis = diasFiltro || Array.from({length: ultimo}, (_, i) => i + 1);
+        diasVisiveis.forEach(d => {
           if (diasAgendados.includes(d)) {
             chips += diasComVisita.has(d)
               ? `<span style="width:22px;height:22px;border-radius:4px;background:#d1fae5;color:#065f46;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0" title="Dia ${d} — Visitou">${d}</span>`
@@ -10888,7 +10913,7 @@ async function renderFreqVisita() {
           } else {
             chips += `<span style="width:22px;height:22px;border-radius:4px;background:#f1f5f9;color:#cbd5e1;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${d}</span>`;
           }
-        }
+        });
       }
 
       const gap = _freqModo === 'semana' ? '6px' : '3px';
