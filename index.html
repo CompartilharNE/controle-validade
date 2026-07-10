@@ -2131,6 +2131,18 @@
          Aba: Roteirização
          ════════════════════════════════════════ -->
     <div id="viewRoteirizacao" style="display:none;margin-bottom:24px">
+      <!-- Sub-tabs -->
+      <div style="display:flex;gap:0;margin-bottom:16px;background:white;border:1px solid #bfdbfe;border-radius:12px;overflow:hidden">
+        <button id="rotTabCadastrar" onclick="rotSetTab('cadastrar')" style="flex:1;padding:10px 16px;font-size:13px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;background:#1e3a5f;color:white;border-radius:0;transition:background .15s">
+          <i class="ti ti-route" style="font-size:15px" aria-hidden="true"></i> Cadastrar Roteirização
+        </button>
+        <button id="rotTabFrequencia" onclick="rotSetTab('frequencia')" style="flex:1;padding:10px 16px;font-size:13px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;background:white;color:#475569;border-left:1px solid #bfdbfe;border-radius:0;transition:background .15s">
+          <i class="ti ti-calendar-stats" style="font-size:15px" aria-hidden="true"></i> Frequência de Visita
+        </button>
+      </div>
+
+      <!-- Painel: Cadastrar Roteirização -->
+      <div id="rotPanelCadastrar">
       <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
           <div style="width:36px;height:36px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center">
@@ -2237,6 +2249,50 @@
         </div>
         <div id="rotRelatorioBody"></div>
       </div>
+      </div><!-- fim rotPanelCadastrar -->
+
+      <!-- Painel: Frequência de Visita -->
+      <div id="rotPanelFrequencia" style="display:none">
+        <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <div style="width:36px;height:36px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center">
+              <i class="ti ti-calendar-stats" style="font-size:18px;color:#1e40af"></i>
+            </div>
+            <div>
+              <h2 style="font-size:16px;font-weight:700;color:#1e3a5f;margin:0">Frequência de Visitas</h2>
+              <p style="font-size:12px;color:#64748b;margin:0">Verifique se o promotor foi às lojas agendadas (detectado por lançamentos no app)</p>
+            </div>
+          </div>
+
+          <!-- Filtros da Frequência -->
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end">
+            <div style="min-width:160px">
+              <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Mês</label>
+              <select id="freqSelMes" onchange="renderFreqVisita()" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white"></select>
+            </div>
+            <div id="freqFiltroVendedor" style="display:none;min-width:180px">
+              <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Vendedor</label>
+              <select id="freqSelVendedor" onchange="_freqOnVendedorChange()" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white">
+                <option value="">Selecione um vendedor…</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:180px;max-width:320px">
+              <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Promotor</label>
+              <select id="freqSelPromotor" onchange="renderFreqVisita()" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:13px;color:#1e293b;background:white">
+                <option value="">Selecione um promotor…</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Área de resultado -->
+          <div id="freqConteudo">
+            <div style="text-align:center;padding:32px 16px;color:#94a3b8">
+              <i class="ti ti-calendar-stats" style="font-size:36px;display:block;margin-bottom:8px"></i>
+              <p style="font-size:13px;margin:0">Selecione um promotor para ver a frequência de visitas</p>
+            </div>
+          </div>
+        </div>
+      </div><!-- fim rotPanelFrequencia -->
     </div>
 
     <!-- ════════════════════════════════════════
@@ -10226,6 +10282,190 @@ async function salvarRoteirizacao() {
     console.error('Erro ao salvar roteirização:', e);
     alert('Erro ao salvar: ' + e.message);
     if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ti ti-device-floppy" style="font-size:14px"></i> Salvar'; }
+  }
+}
+
+// ══════════════════════════════════════════════
+// ── FREQUÊNCIA DE VISITAS ─────────────────────
+// ══════════════════════════════════════════════
+
+function rotSetTab(tab) {
+  const pCad  = document.getElementById('rotPanelCadastrar');
+  const pFreq = document.getElementById('rotPanelFrequencia');
+  const tCad  = document.getElementById('rotTabCadastrar');
+  const tFreq = document.getElementById('rotTabFrequencia');
+  if (pCad)  pCad.style.display  = tab === 'cadastrar'  ? '' : 'none';
+  if (pFreq) pFreq.style.display = tab === 'frequencia' ? '' : 'none';
+  if (tCad)  { tCad.style.background  = tab === 'cadastrar'  ? '#1e3a5f' : 'white'; tCad.style.color  = tab === 'cadastrar'  ? 'white' : '#475569'; }
+  if (tFreq) { tFreq.style.background = tab === 'frequencia' ? '#1e3a5f' : 'white'; tFreq.style.color = tab === 'frequencia' ? 'white' : '#475569'; }
+  if (tab === 'frequencia') _freqInicializar();
+}
+
+function _freqInicializar() {
+  const selMes = document.getElementById('freqSelMes');
+  if (selMes && !selMes.options.length) {
+    const hoje = new Date();
+    const opts = [];
+    for (let i = -3; i <= 2; i++) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      opts.push(`<option value="${val}" ${i===0?'selected':''}>${_rotMesLabel(val)}</option>`);
+    }
+    selMes.innerHTML = opts.join('');
+  }
+  const isAdmin = sessao?.role === 'admin';
+  const isVend  = sessao?.role === 'vendedor';
+  const filtroVend = document.getElementById('freqFiltroVendedor');
+  const selVend    = document.getElementById('freqSelVendedor');
+  if (filtroVend) filtroVend.style.display = isAdmin ? '' : 'none';
+  if (isAdmin) {
+    if (selVend) {
+      const vendedores = usuarios.filter(u => u.role === 'vendedor').sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR'));
+      selVend.innerHTML = '<option value="">Selecione um vendedor…</option>' +
+        vendedores.map(v => `<option value="${esc(v.nome)}">${esc(v.nome)}</option>`).join('');
+    }
+  }
+  _freqPopularPromotores(isAdmin ? '' : null);
+}
+
+function _freqOnVendedorChange() {
+  const v = document.getElementById('freqSelVendedor')?.value || '';
+  _freqPopularPromotores(v);
+  const cont = document.getElementById('freqConteudo');
+  if (cont) cont.innerHTML = '<div style="text-align:center;padding:32px 16px;color:#94a3b8"><i class="ti ti-calendar-stats" style="font-size:36px;display:block;margin-bottom:8px"></i><p style="font-size:13px;margin:0">Selecione um promotor para ver a frequência de visitas</p></div>';
+}
+
+function _freqPopularPromotores(vendedorNome) {
+  const selProm = document.getElementById('freqSelPromotor');
+  if (!selProm) return;
+  let proms = usuarios.filter(u => u.role === 'promotor');
+  if (vendedorNome) {
+    proms = proms.filter(p => p.vendedorResponsavel === vendedorNome);
+  } else if (sessao?.role === 'vendedor') {
+    const ufsVend = sessao.ufs || [];
+    proms = proms.filter(p => {
+      if (p.vendedorResponsavel) return p.vendedorResponsavel === sessao.nome;
+      const ufsP = [...new Set(produtos.filter(pr => pr.promotor === p.nome).map(pr => pr.uf).filter(Boolean))];
+      return ufsP.some(u => ufsVend.includes(u));
+    });
+  }
+  proms.sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  const cv = selProm.value;
+  selProm.innerHTML = '<option value="">Selecione um promotor…</option>' +
+    proms.map(p => `<option value="${esc(p.nome)}" ${p.nome===cv?'selected':''}>${esc(p.nome)}</option>`).join('');
+}
+
+function _freqGetDatasDoMes(mesStr, diasSemana) {
+  const [ano, mes] = mesStr.split('-').map(Number);
+  const map = {Seg:1, Ter:2, Qua:3, Qui:4, Sex:5, 'Sáb':6};
+  const alvo = (diasSemana||[]).map(d => map[d]).filter(n => n !== undefined);
+  if (!alvo.length) return [];
+  const datas = [];
+  const ultimo = new Date(ano, mes, 0).getDate();
+  for (let d = 1; d <= ultimo; d++) {
+    if (alvo.includes(new Date(ano, mes-1, d).getDay())) datas.push(d);
+  }
+  return datas;
+}
+
+async function renderFreqVisita() {
+  const mes          = document.getElementById('freqSelMes')?.value || '';
+  const promotorNome = document.getElementById('freqSelPromotor')?.value || '';
+  const cont         = document.getElementById('freqConteudo');
+  if (!cont) return;
+
+  if (!mes || !promotorNome) {
+    cont.innerHTML = '<div style="text-align:center;padding:32px 16px;color:#94a3b8"><i class="ti ti-calendar-stats" style="font-size:36px;display:block;margin-bottom:8px"></i><p style="font-size:13px;margin:0">Selecione um promotor para ver a frequência de visitas</p></div>';
+    return;
+  }
+
+  cont.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8"><i class="ti ti-loader-2" style="font-size:28px"></i></div>';
+
+  try {
+    const docKey = _rotDocKey(promotorNome, mes);
+    const doc = await FS_ROTEIROS.doc(docKey).get();
+    const roteiroLojas = doc.exists ? (doc.data().lojas || []) : [];
+
+    if (!roteiroLojas.length) {
+      cont.innerHTML = '<div style="text-align:center;padding:32px 16px;color:#94a3b8"><i class="ti ti-route-off" style="font-size:36px;display:block;margin-bottom:8px"></i><p style="font-size:13px;margin:0">Nenhum roteiro cadastrado para este promotor neste mês</p></div>';
+      return;
+    }
+
+    const [ano, mesNum] = mes.split('-').map(Number);
+    const ultimo = new Date(ano, mesNum, 0).getDate();
+
+    const rows = roteiroLojas.map(r => {
+      const loja = lojas.find(l => String(l.id) === String(r.lojaId));
+      const diasAgendados = _freqGetDatasDoMes(mes, r.dias || []);
+      const movs = historico.filter(m => {
+        if (m.atualizadoPor !== promotorNome) return false;
+        const d = m.data?.toDate ? m.data.toDate() : new Date(m.data?.seconds ? m.data.seconds*1000 : m.data);
+        if (d.getFullYear() !== ano || d.getMonth()+1 !== mesNum) return false;
+        return loja ? (String(m.lojaId) === String(loja.id) || m.loja === loja.nome) : false;
+      });
+      const diasComVisita = new Set(movs.map(m => {
+        const d = m.data?.toDate ? m.data.toDate() : new Date(m.data?.seconds ? m.data.seconds*1000 : m.data);
+        return d.getDate();
+      }));
+      return { loja, r, diasAgendados, diasComVisita };
+    });
+
+    const totalAgend   = rows.reduce((s, r) => s + r.diasAgendados.length, 0);
+    const totalVisitou = rows.reduce((s, r) => s + r.diasAgendados.filter(d => r.diasComVisita.has(d)).length, 0);
+    const totalNao     = totalAgend - totalVisitou;
+    const pctGeral     = totalAgend > 0 ? Math.round(totalVisitou / totalAgend * 100) : 0;
+
+    let html = `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#1e293b">${totalAgend}</div><div style="font-size:11px;color:#64748b;margin-top:3px">Dias agendados</div></div>
+        <div style="background:#f0fdf4;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#059669">${totalVisitou}</div><div style="font-size:11px;color:#16a34a;margin-top:3px">Visitou</div></div>
+        <div style="background:#fef2f2;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#dc2626">${totalNao}</div><div style="font-size:11px;color:#dc2626;margin-top:3px">Não visitou</div></div>
+        <div style="background:#eff6ff;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#2563eb">${pctGeral}%</div><div style="font-size:11px;color:#3b82f6;margin-top:3px">Frequência</div></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#d1fae5;display:inline-block"></span>Visitou (lançou produto)</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#fee2e2;display:inline-block"></span>Não visitou</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:12px;height:12px;border-radius:3px;background:#f1f5f9;border:1px solid #e2e8f0;display:inline-block"></span>Não agendado</span>
+      </div>
+      <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">
+        <div style="background:#f8fafc;padding:8px 12px;display:grid;grid-template-columns:170px 1fr 100px;gap:8px;align-items:center;border-bottom:1px solid #e2e8f0">
+          <span style="font-size:11px;font-weight:600;color:#64748b">LOJA</span>
+          <span style="font-size:11px;font-weight:600;color:#64748b">DIAS DO MÊS</span>
+          <span style="font-size:11px;font-weight:600;color:#64748b;text-align:right">FREQUÊNCIA</span>
+        </div>`;
+
+    rows.forEach((row, i) => {
+      const { loja, diasAgendados, diasComVisita } = row;
+      const nomeLoja = loja?.nome || `Loja #${row.r.lojaId}`;
+      const sub = [loja?.rede, loja?.uf].filter(Boolean).join(' · ');
+      const visitou = diasAgendados.filter(d => diasComVisita.has(d)).length;
+      const pctR = diasAgendados.length > 0 ? Math.round(visitou / diasAgendados.length * 100) : 0;
+      const pc = pctR >= 80 ? '#059669' : pctR >= 50 ? '#d97706' : '#dc2626';
+      const bb = pctR >= 80 ? '#d1fae5' : pctR >= 50 ? '#fef3c7' : '#fee2e2';
+      const bc = pctR >= 80 ? '#065f46' : pctR >= 50 ? '#92400e' : '#991b1b';
+      let chips = '';
+      for (let d = 1; d <= ultimo; d++) {
+        if (diasAgendados.includes(d)) {
+          chips += diasComVisita.has(d)
+            ? `<span style="width:22px;height:22px;border-radius:4px;background:#d1fae5;color:#065f46;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0" title="Dia ${d} — Visitou">${d}</span>`
+            : `<span style="width:22px;height:22px;border-radius:4px;background:#fee2e2;color:#991b1b;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0" title="Dia ${d} — Não visitou">${d}</span>`;
+        } else {
+          chips += `<span style="width:22px;height:22px;border-radius:4px;background:#f1f5f9;color:#cbd5e1;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${d}</span>`;
+        }
+      }
+      html += `<div style="${i<rows.length-1?'border-bottom:1px solid #f1f5f9;':''}padding:10px 12px;display:grid;grid-template-columns:170px 1fr 100px;gap:8px;align-items:start">
+        <div><div style="font-size:12px;font-weight:600;color:#1e293b">${esc(nomeLoja)}</div>${sub?`<div style="font-size:11px;color:#64748b">${esc(sub)}</div>`:''}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px">${chips}</div>
+        <div style="text-align:right"><span style="background:${bb};color:${bc};font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;white-space:nowrap">${visitou}/${diasAgendados.length} · ${pctR}%</span><div style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:5px"><div style="height:100%;border-radius:3px;background:${pc};width:${pctR}%"></div></div></div>
+      </div>`;
+    });
+
+    html += '</div>';
+    cont.innerHTML = html;
+
+  } catch(e) {
+    console.error('Erro ao carregar frequência:', e);
+    cont.innerHTML = '<div style="text-align:center;padding:24px;color:#dc2626;font-size:13px">Erro ao carregar dados.</div>';
   }
 }
 
