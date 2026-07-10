@@ -929,10 +929,7 @@
         <i class="ti ti-speakerphone" style="font-size:14px" aria-hidden="true"></i> Comunicados
         <span id="badgeComunicados" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;min-width:14px;text-align:center"></span>
       </button>
-      <button id="btnViewRuptura" onclick="setView('ruptura')"
-        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
-        <i class="ti ti-alert-triangle" style="font-size:14px" aria-hidden="true"></i> Ruptura
-      </button>
+
       <button id="btnViewHistorico" onclick="setView('historico')"
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
         <i class="ti ti-history" style="font-size:14px" aria-hidden="true"></i> Histórico
@@ -1967,6 +1964,40 @@
       </div>
       </div><!-- /tabPanelConc -->
 
+      <!-- ── Ruptura de Gôndola ── -->
+      <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe;margin-top:14px">
+        <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
+          <i class="ti ti-alert-triangle" style="font-size:16px;color:#93c5fd"></i>
+          <span style="font-size:13px;font-weight:700;color:#fff">Ruptura de Gôndola</span>
+          <span style="font-size:11px;color:#93c5fd;margin-left:4px">— calculado automaticamente pelo Histórico</span>
+        </div>
+        <!-- Filtros -->
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px">
+          <select id="gRuptRede" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas as Redes</option></select>
+          <select id="gRuptVendedor" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos os Vendedores</option></select>
+          <select id="gRuptUF" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas as UFs</option></select>
+          <select id="gRuptLoja" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas as Lojas</option></select>
+          <select id="gRuptPromotor" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos os Promotores</option></select>
+          <select id="gRuptProduto" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos os Produtos</option></select>
+          <div style="width:1px;height:20px;background:#e2e8f0;align-self:center"></div>
+          <input id="gRuptDataIni" type="text" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="width:120px">
+          <span style="font-size:12px;color:#94a3b8">até</span>
+          <input id="gRuptDataFim" type="text" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="width:120px">
+          <button onclick="limparFiltrosGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
+            <i class="ti ti-x" style="font-size:13px"></i> Limpar filtro
+          </button>
+        </div>
+        <!-- Cards de resumo -->
+        <div id="gRuptStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px"></div>
+        <!-- Legenda -->
+        <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:14px;height:12px;border-radius:3px;background:#22c55e;display:inline-block"></span>Na gôndola</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:14px;height:12px;border-radius:3px;background:#dc2626;display:inline-block"></span>Ruptura ativa</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:14px;height:12px;border-radius:3px;background:#f97316;display:inline-block"></span>Ruptura resolvida</span>
+        </div>
+        <!-- Timeline e tabela -->
+        <div id="gRuptConteudo"><div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">Carregando dados...</div></div>
+      </div>
       <!-- ── Barra de abas dos gráficos ── -->
       <div style="background:#e8edf2;padding:3px;border-radius:10px;display:flex;gap:2px;margin-top:12px">
         <button id="gTab-dist" onclick="setGraficoTab('dist')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:#1e3a5f;color:#fff;font-weight:600;box-shadow:0 2px 6px rgba(30,58,95,.35);transition:all .2s">Distribuição</button>
@@ -2056,133 +2087,6 @@
     </div>
     <!-- ══ FIM ABA COMUNICADOS ══ -->
 
-    <!-- Aba: Histórico de movimentações (só Admin) -->
-    <!-- ════════════════════════════════════════
-         Aba: Ruptura de Produto
-         ════════════════════════════════════════ -->
-    <div id="viewRuptura" style="display:none;margin-bottom:24px">
-      <!-- Sub-tabs -->
-      <div style="display:flex;gap:0;margin-bottom:16px;background:white;border:1px solid #bfdbfe;border-radius:12px;overflow:hidden">
-        <button id="ruptTabAtivas" onclick="ruptSetTab('ativas')"
-          style="flex:1;padding:10px 16px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:#1e3a5f;color:white;transition:all .15s">
-          <i class="ti ti-alert-circle" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i> Rupturas Ativas
-        </button>
-        <button id="ruptTabHistorico" onclick="ruptSetTab('historico')"
-          style="flex:1;padding:10px 16px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;color:#64748b;border-left:1px solid #bfdbfe;transition:all .15s">
-          <i class="ti ti-clock-history" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i> Histórico de Rupturas
-        </button>
-      </div>
-
-      <!-- ─── SUB-ABA: ATIVAS ─── -->
-      <div id="ruptPanelAtivas">
-        <!-- Filtros Ativas -->
-        <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
-          <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
-            <i class="ti ti-filter" style="font-size:16px;color:#93c5fd"></i>
-            <span style="font-size:13px;font-weight:700;color:#fff">Filtros — Rupturas Ativas</span>
-          </div>
-          <div class="flex flex-wrap items-end gap-3">
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Rede</label><select id="ruptFiltroRede" onchange="_ruptPopularSelects();renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Vendedor</label><select id="ruptFiltroVendedor" onchange="_ruptPopularSelects();renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">UF</label><select id="ruptFiltroUF" onchange="_ruptPopularSelects();renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Loja</label><select id="ruptFiltroLoja" onchange="_ruptPopularSelects();renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Promotor</label><select id="ruptFiltroPromotor" onchange="_ruptPopularSelects();renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Produto</label><select id="ruptFiltroProduto" onchange="renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
-            <div style="width:1px;height:38px;background:#e2e8f0;align-self:flex-end"></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Status</label><select id="ruptFiltroStatus" onchange="renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option><option value="ativa">Ativas</option><option value="resolvida">Resolvidas</option></select></div>
-            <div class="flex flex-col gap-1" style="justify-content:flex-end">
-              <button onclick="limparFiltrosRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
-                <i class="ti ti-x" style="font-size:13px"></i> Limpar filtro
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stats Ativas -->
-        <div id="ruptStatsAtivas" class="grid grid-cols-2 gap-3 mb-4" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"></div>
-
-        <!-- Gráfico de barras -->
-        <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
-          <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
-            <i class="ti ti-chart-bar" style="font-size:16px;color:#93c5fd"></i>
-            <span style="font-size:13px;font-weight:700;color:#fff">Produtos com mais rupturas</span>
-          </div>
-          <div id="ruptGrafico"></div>
-        </div>
-
-        <!-- Tabela Ativas -->
-        <div class="bg-white rounded-2xl shadow overflow-hidden">
-          <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
-            <span class="text-sm font-semibold text-slate-700">Rupturas registradas</span>
-            <div class="flex items-center gap-3">
-              <span id="ruptContadorAtivas" class="text-xs text-slate-400">0 registros</span>
-              <button onclick="abrirModalRuptura(null)" style="background:#dc2626;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-                <i class="ti ti-plus" style="font-size:14px"></i> Registrar ruptura
-              </button>
-            </div>
-          </div>
-          <div class="overflow-x-auto">
-            <table><thead><tr>
-              <th>Produto</th><th>Loja</th><th>UF</th><th>Rede</th><th>Início</th><th>Dias</th><th>Promotor</th><th>Status</th><th></th>
-            </tr></thead><tbody id="ruptTableBody"></tbody></table>
-          </div>
-          <div id="ruptSemDados" class="hidden text-center py-10 text-slate-400 text-sm">Nenhuma ruptura registrada ainda.</div>
-        </div>
-      </div>
-
-      <!-- ─── SUB-ABA: HISTÓRICO ─── -->
-      <div id="ruptPanelHistorico" style="display:none">
-        <!-- Filtros Histórico -->
-        <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
-          <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
-            <i class="ti ti-filter" style="font-size:16px;color:#93c5fd"></i>
-            <span style="font-size:13px;font-weight:700;color:#fff">Filtros — Histórico de Rupturas</span>
-          </div>
-          <div class="flex flex-wrap items-end gap-3">
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Rede</label><select id="ruptHFiltroRede" onchange="_ruptHPopularSelects();renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Vendedor</label><select id="ruptHFiltroVendedor" onchange="_ruptHPopularSelects();renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">UF</label><select id="ruptHFiltroUF" onchange="_ruptHPopularSelects();renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Loja</label><select id="ruptHFiltroLoja" onchange="_ruptHPopularSelects();renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Promotor</label><select id="ruptHFiltroPromotor" onchange="_ruptHPopularSelects();renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Produto</label><select id="ruptHFiltroProduto" onchange="renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
-            <div style="width:1px;height:38px;background:#e2e8f0;align-self:flex-end"></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data inicial</label><input id="ruptHDataIni" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
-            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data final</label><input id="ruptHDataFim" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
-            <div class="flex flex-col gap-1" style="justify-content:flex-end">
-              <button onclick="limparFiltrosRupturasHist()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
-                <i class="ti ti-x" style="font-size:13px"></i> Limpar filtro
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stats Histórico -->
-        <div id="ruptStatsHist" class="grid grid-cols-2 gap-3 mb-4" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"></div>
-
-        <!-- Timeline -->
-        <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
-          <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
-            <i class="ti ti-timeline" style="font-size:16px;color:#93c5fd"></i>
-            <span style="font-size:13px;font-weight:700;color:#fff">Linha do tempo — últimos 60 dias</span>
-          </div>
-          <div id="ruptTimeline"></div>
-        </div>
-
-        <!-- Tabela Histórico -->
-        <div class="bg-white rounded-2xl shadow overflow-hidden">
-          <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
-            <span class="text-sm font-semibold text-slate-700">Histórico de rupturas resolvidas</span>
-            <span id="ruptContadorHist" class="text-xs text-slate-400">0 registros</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table><thead><tr>
-              <th>Produto</th><th>Loja</th><th>UF</th><th>Rede</th><th>Início</th><th>Fim</th><th>Duração</th><th>Motivo</th>
-            </tr></thead><tbody id="ruptHTableBody"></tbody></table>
-          </div>
-          <div id="ruptHSemDados" class="hidden text-center py-10 text-slate-400 text-sm">Nenhuma ruptura no histórico ainda.</div>
-        </div>
-      </div>
-    </div>
 
     <div id="viewHistorico" style="display:none;margin-bottom:24px">
       <!-- Filtros Histórico -->
@@ -3880,54 +3784,7 @@
   </div>
 </div>
 
-<!-- Modal Registrar Ruptura -->
-<div id="modalRuptura" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-    <div class="px-5 py-4 flex items-center gap-3" style="background:#1e3a5f">
-      <i class="ti ti-alert-triangle" style="font-size:20px;color:#fff" aria-hidden="true"></i>
-      <div>
-        <p class="text-white font-semibold text-sm mb-0">Registrar Ruptura</p>
-        <p class="text-xs" style="color:#93c5fd;margin:0">Informe os dados da ruptura</p>
-      </div>
-      <button onclick="document.getElementById('modalRuptura').classList.add('hidden')" style="margin-left:auto;background:none;border:none;color:#93c5fd;cursor:pointer;font-size:20px;line-height:1">×</button>
-    </div>
-    <div class="p-4 flex flex-col gap-3">
-      <input type="hidden" id="ruptModalId" />
-      <div class="flex flex-col gap-1">
-        <label class="text-xs font-medium text-slate-600">Promotor *</label>
-        <select id="ruptModalPromotor" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Selecione...</option></select>
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-xs font-medium text-slate-600">Loja *</label>
-        <select id="ruptModalLoja" onchange="_ruptModalOnLojaChange()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Selecione...</option></select>
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-xs font-medium text-slate-600">Produto *</label>
-        <select id="ruptModalProduto" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Selecione...</option></select>
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-xs font-medium text-slate-600">Motivo *</label>
-        <select id="ruptModalMotivo" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
-          <option value="">Selecione...</option>
-          <option value="Sem pedido">Sem pedido</option>
-          <option value="Ruptura estoque">Ruptura estoque</option>
-          <option value="Produto trocado">Produto trocado</option>
-          <option value="Outro">Outro</option>
-        </select>
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-xs font-medium text-slate-600">Observação</label>
-        <textarea id="ruptModalObs" rows="2" placeholder="Observações adicionais..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white resize-none"></textarea>
-      </div>
-      <div class="flex gap-2 mt-1">
-        <button onclick="salvarRuptura()" class="flex-1 text-white font-semibold text-sm rounded-xl py-3 transition flex items-center justify-center gap-2" style="background:#dc2626">
-          <i class="ti ti-check" style="font-size:16px"></i> Salvar
-        </button>
-        <button onclick="document.getElementById('modalRuptura').classList.add('hidden')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-xl py-3 transition">Cancelar</button>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <!-- Loading overlay Firebase -->
 <div id="appLoader" style="display:flex;position:fixed;inset:0;background:rgba(15,23,42,0.88);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:16px">
@@ -3962,7 +3819,6 @@ const FS_SELLOUT_HIST    = db.collection('sellout_historico');
 const FS_CONCORRENTES_DB = db.collection('concorrentes_db');
 const FS_ROTEIROS        = db.collection('roteiros');
 const FS_COMUNICADOS     = db.collection('comunicados');
-const FS_RUPTURAS        = db.collection('rupturas');
 
 // ── Logos das fábricas na tela de login ─────
 (function _carregarLogosLogin() {
@@ -4071,9 +3927,6 @@ let fabricas    = [];
 let lojas       = [];
 let redesConfig  = []; // [{nome, apelidos:[]}]
 let selloutHist  = []; // [{id, dataGerado, fabrica, rede, ufs, vendedor, produtos, dataEnviada, status}]
-let rupturas     = [];
-let _ruptTab     = 'ativas'; // 'ativas' | 'historico'
-let _ruptUnsubscribe = null;
 let sessao      = JSON.parse(sessionStorage.getItem('cv_sessao') || 'null');
 let consolidado = {};
 let sortCol   = 'status';
@@ -4251,9 +4104,6 @@ function entrarNoApp(user) {
   // Botão Lojas visível para admin/vendedor/diretor
   const btnLojas3 = document.getElementById('btnViewLojas');
   if (btnLojas3) btnLojas3.style.display = (user.role === 'promotor') ? 'none' : 'inline-flex';
-  // Botão Ruptura: visível para admin, diretor e vendedor
-  const btnRupt2 = document.getElementById('btnViewRuptura');
-  if (btnRupt2) btnRupt2.style.display = (['admin','diretor','vendedor'].includes(user.role)) ? 'inline-flex' : 'none';
   // Botões Histórico e SellOut visíveis somente para Admin
   const btnHist2 = document.getElementById('btnViewHistorico');
   if (btnHist2) btnHist2.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
@@ -9626,7 +9476,6 @@ function setView(v) {
   const selloutDiv   = document.getElementById('viewSellOut');
   const rankingDiv      = document.getElementById('viewRanking');
   const roteirizacaoDiv = document.getElementById('viewRoteirizacao');
-  const rupturaDiv      = document.getElementById('viewRuptura');
   const btnProd      = document.getElementById('btnViewProdutos');
   const btnLojas     = document.getElementById('btnViewLojas');
   const btnGraf      = document.getElementById('btnViewGraficos');
@@ -9634,7 +9483,6 @@ function setView(v) {
   const btnSO        = document.getElementById('btnViewSellOut');
   const btnRank      = document.getElementById('btnViewRanking');
   const btnRoteir    = document.getElementById('btnViewRoteirizacao');
-  const btnRupt      = document.getElementById('btnViewRuptura');
   const _offStyle    = 'transparent';
   // Ocultar tudo primeiro
   if (graficosDiv)      graficosDiv.style.display      = 'none';
@@ -9642,7 +9490,6 @@ function setView(v) {
   if (selloutDiv)       selloutDiv.style.display       = 'none';
   if (rankingDiv)       rankingDiv.style.display       = 'none';
   if (roteirizacaoDiv)  roteirizacaoDiv.style.display  = 'none';
-  if (rupturaDiv)       rupturaDiv.style.display       = 'none';
   const comunDiv0 = document.getElementById('viewComunicados');
   if (comunDiv0) comunDiv0.style.display = 'none';
   // Barra Excel contextual: visível apenas em Produtos e Lojas
@@ -9658,7 +9505,6 @@ function setView(v) {
   if (btnSO)     { btnSO.style.background    =_offStyle; btnSO.style.color    ='#64748b'; btnSO.style.border    ='0.5px solid #cbd5e1'; btnSO.style.borderBottom=''; btnSO.style.boxShadow='none'; }
   if (btnRank)   { btnRank.style.background  =_offStyle; btnRank.style.color  ='#64748b'; btnRank.style.border  ='0.5px solid #cbd5e1'; btnRank.style.borderBottom=''; btnRank.style.boxShadow='none'; }
   if (btnRoteir) { btnRoteir.style.background=_offStyle; btnRoteir.style.color='#64748b'; btnRoteir.style.border='0.5px solid #cbd5e1'; btnRoteir.style.borderBottom=''; btnRoteir.style.boxShadow='none'; }
-  if (btnRupt)   { btnRupt.style.background  =_offStyle; btnRupt.style.color  ='#64748b'; btnRupt.style.border  ='0.5px solid #cbd5e1'; btnRupt.style.borderBottom=''; btnRupt.style.boxShadow='none'; }
   const btnComun0 = document.getElementById('btnViewComunicados');
   if (btnComun0) { btnComun0.style.background=_offStyle; btnComun0.style.color='#64748b'; btnComun0.style.border='0.5px solid #cbd5e1'; btnComun0.style.borderBottom=''; btnComun0.style.boxShadow='none'; }
   // Ocultar formulário de adicionar produto quando não está na aba Produtos
@@ -9768,6 +9614,7 @@ function setView(v) {
         s.onload = () => { setGraficoTab(_gTabAtual || 'dist'); };
         document.head.appendChild(s);
       } else { setGraficoTab(_gTabAtual || 'dist'); }
+      renderGraficoRuptura();
       return;
     }
     if (v === 'historico') {
@@ -9840,20 +9687,6 @@ function setView(v) {
       const btnXLRot = document.getElementById('btnExportCSV');
       if (btnXLRot) { btnXLRot.style.display = 'none'; btnXLRot.classList.add('hidden'); }
       initRoteirizacao();
-      return;
-    }
-    if (v === 'ruptura') {
-      if (tabelaDiv)    tabelaDiv.style.display  = 'none';
-      if (lojasDiv)     lojasDiv.classList.add('hidden');
-      if (rupturaDiv)   rupturaDiv.style.display  = 'block';
-      if (cardFiltroProd) cardFiltroProd.style.display = 'none';
-      const _fdbRupt = document.getElementById('filtroDataBadge'); if (_fdbRupt) _fdbRupt.style.display = 'none';
-      btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
-      if (btnLojas) { btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none'; }
-      if (btnRupt) { btnRupt.style.background = '#1e3a5f'; btnRupt.style.color = 'white'; btnRupt.style.border = 'none'; btnRupt.style.borderBottom = '3px solid #0c1f35'; btnRupt.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)'; }
-      const btnXLRupt = document.getElementById('btnExportCSV');
-      if (btnXLRupt) { btnXLRupt.style.display = 'none'; btnXLRupt.classList.add('hidden'); }
-      initRuptura();
       return;
     }
     if (v === 'ranking') {
@@ -14372,467 +14205,216 @@ async function carregarDados() {
 })();
 
 
+
+
 // ══════════════════════════════════════════════
-// ── RUPTURA DE PRODUTO ────────────────────────
+// ── RUPTURA DE GÔNDOLA (calculada do histórico) ──
 // ══════════════════════════════════════════════
 
-function initRuptura() {
-  if (_ruptUnsubscribe) {
-    _ruptPopularSelects();
-    _ruptHPopularSelects();
-    if (_ruptTab === 'ativas') renderRupturas();
-    else renderRupturasHistorico();
-    return;
-  }
-  _ruptUnsubscribe = FS_RUPTURAS.orderBy('dataInicio','desc').onSnapshot(function(snap) {
-    rupturas = snap.docs.map(function(d) { return Object.assign({ firestoreId: d.id }, d.data()); });
-    _ruptPopularSelects();
-    _ruptHPopularSelects();
-    if (_ruptTab === 'ativas') renderRupturas();
-    else renderRupturasHistorico();
-  }, function(err) {
-    console.error('Erro ao carregar rupturas:', err);
-    showToast('Erro ao carregar rupturas: ' + err.message, '#dc2626');
+function _calcularRupturas() {
+  const grupos = {};
+  historico.forEach(function(m) {
+    const key = (m.produto || m.prod || '') + '|||' + (m.lojaId || m.loja || '');
+    if (!grupos[key]) grupos[key] = { produto: m.produto || m.prod || '', loja: m.loja || '', lojaId: m.lojaId || '', rede: m.rede || '', uf: m.uf || '', vendedor: m.vendedor || '', promotor: m.atualizadoPor || '', movs: [] };
+    grupos[key].movs.push(m);
   });
-}
 
-function ruptSetTab(tab) {
-  _ruptTab = tab;
-  var pa = document.getElementById('ruptPanelAtivas');
-  var ph = document.getElementById('ruptPanelHistorico');
-  var ta = document.getElementById('ruptTabAtivas');
-  var th = document.getElementById('ruptTabHistorico');
-  if (pa) pa.style.display = tab === 'ativas' ? '' : 'none';
-  if (ph) ph.style.display = tab === 'historico' ? '' : 'none';
-  if (ta) { ta.style.background = tab === 'ativas' ? '#1e3a5f' : 'transparent'; ta.style.color = tab === 'ativas' ? 'white' : '#64748b'; }
-  if (th) { th.style.background = tab === 'historico' ? '#1e3a5f' : 'transparent'; th.style.color = tab === 'historico' ? 'white' : '#64748b'; }
-  if (tab === 'ativas') renderRupturas();
-  else renderRupturasHistorico();
-}
+  const rupturas = [];
+  const hoje = new Date(); hoje.setHours(23,59,59,0);
 
-function _ruptGetBase() {
-  var base = rupturas.slice();
-  if (sessao && sessao.role === 'vendedor' && sessao.ufs && sessao.ufs.length) {
-    base = base.filter(function(r) { return sessao.ufs.indexOf(r.uf) !== -1; });
-  } else if (sessao && sessao.role === 'promotor') {
-    base = base.filter(function(r) { return r.promotor === sessao.nome; });
-  }
-  return base;
-}
-
-function _ruptPopularSelects() {
-  var base = _ruptGetBase();
-  var fRede = (document.getElementById('ruptFiltroRede') || {}).value || '';
-  var fVend = (document.getElementById('ruptFiltroVendedor') || {}).value || '';
-  var fUF   = (document.getElementById('ruptFiltroUF') || {}).value   || '';
-  var fLoja = (document.getElementById('ruptFiltroLoja') || {}).value  || '';
-  var fProm = (document.getElementById('ruptFiltroPromotor') || {}).value || '';
-
-  var filtered = base.slice();
-  if (fRede) filtered = filtered.filter(function(r) { return r.rede === fRede; });
-  if (fVend) filtered = filtered.filter(function(r) { return r.vendedor === fVend; });
-  if (fUF)   filtered = filtered.filter(function(r) { return r.uf === fUF; });
-  if (fLoja) filtered = filtered.filter(function(r) { return r.loja === fLoja; });
-  if (fProm) filtered = filtered.filter(function(r) { return r.promotor === fProm; });
-
-  var redeEl = document.getElementById('ruptFiltroRede');
-  if (redeEl) { var cv=redeEl.value; redeEl.innerHTML='<option value="">Todas</option>'+[...new Set(base.map(function(r){return r.rede;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv?' selected':'')+'>'+v+'</option>';}).join(''); }
-  var vendEl = document.getElementById('ruptFiltroVendedor');
-  if (vendEl) {
-    var isAdmDir = sessao && (sessao.role==='admin'||sessao.role==='diretor');
-    vendEl.parentElement.style.display = isAdmDir ? '' : 'none';
-    if (isAdmDir) { var cv2=vendEl.value; var vends=usuarios.filter(function(u){return u.role==='vendedor';}).sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR');}); vendEl.innerHTML='<option value="">Todos</option>'+vends.map(function(v){return '<option value="'+v.nome+'"'+(v.nome===cv2?' selected':'')+'>'+v.nome+'</option>';}).join(''); }
-  }
-  var ufEl = document.getElementById('ruptFiltroUF');
-  if (ufEl) { var cv3=ufEl.value; ufEl.innerHTML='<option value="">Todas</option>'+[...new Set(filtered.map(function(r){return r.uf;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv3?' selected':'')+'>'+v+'</option>';}).join(''); }
-  var lojaEl = document.getElementById('ruptFiltroLoja');
-  if (lojaEl) { var cv4=lojaEl.value; lojaEl.innerHTML='<option value="">Todas</option>'+[...new Set(filtered.map(function(r){return r.loja;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv4?' selected':'')+'>'+v+'</option>';}).join(''); }
-  var promEl = document.getElementById('ruptFiltroPromotor');
-  if (promEl) { var cv5=promEl.value; promEl.innerHTML='<option value="">Todos</option>'+[...new Set(filtered.map(function(r){return r.promotor;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv5?' selected':'')+'>'+v+'</option>';}).join(''); }
-  var prodEl = document.getElementById('ruptFiltroProduto');
-  if (prodEl) { var cv6=prodEl.value; prodEl.innerHTML='<option value="">Todos</option>'+[...new Set(filtered.map(function(r){return r.produto;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv6?' selected':'')+'>'+v+'</option>';}).join(''); }
-}
-
-function _ruptHPopularSelects() {
-  var base = _ruptGetBase().filter(function(r) { return r.status === 'resolvida'; });
-  var fRede = (document.getElementById('ruptHFiltroRede') || {}).value || '';
-  var fVend = (document.getElementById('ruptHFiltroVendedor') || {}).value || '';
-  var fUF   = (document.getElementById('ruptHFiltroUF') || {}).value   || '';
-  var fLoja = (document.getElementById('ruptHFiltroLoja') || {}).value  || '';
-  var fProm = (document.getElementById('ruptHFiltroPromotor') || {}).value || '';
-
-  var filtered = base.slice();
-  if (fRede) filtered = filtered.filter(function(r) { return r.rede === fRede; });
-  if (fVend) filtered = filtered.filter(function(r) { return r.vendedor === fVend; });
-  if (fUF)   filtered = filtered.filter(function(r) { return r.uf === fUF; });
-  if (fLoja) filtered = filtered.filter(function(r) { return r.loja === fLoja; });
-  if (fProm) filtered = filtered.filter(function(r) { return r.promotor === fProm; });
-
-  var redeEl = document.getElementById('ruptHFiltroRede');
-  if (redeEl) { var cv=redeEl.value; redeEl.innerHTML='<option value="">Todas</option>'+[...new Set(base.map(function(r){return r.rede;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv?' selected':'')+'>'+v+'</option>';}).join(''); }
-  var vendEl = document.getElementById('ruptHFiltroVendedor');
-  if (vendEl) {
-    var isAdmDir = sessao && (sessao.role==='admin'||sessao.role==='diretor');
-    vendEl.parentElement.style.display = isAdmDir ? '' : 'none';
-    if (isAdmDir) { var cv2=vendEl.value; var vends=usuarios.filter(function(u){return u.role==='vendedor';}).sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR');}); vendEl.innerHTML='<option value="">Todos</option>'+vends.map(function(v){return '<option value="'+v.nome+'"'+(v.nome===cv2?' selected':'')+'>'+v.nome+'</option>';}).join(''); }
-  }
-  var ufEl = document.getElementById('ruptHFiltroUF');
-  if (ufEl) { var cv3=ufEl.value; ufEl.innerHTML='<option value="">Todas</option>'+[...new Set(filtered.map(function(r){return r.uf;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv3?' selected':'')+'>'+v+'</option>';}).join(''); }
-  var lojaEl = document.getElementById('ruptHFiltroLoja');
-  if (lojaEl) { var cv4=lojaEl.value; lojaEl.innerHTML='<option value="">Todas</option>'+[...new Set(filtered.map(function(r){return r.loja;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv4?' selected':'')+'>'+v+'</option>';}).join(''); }
-  var promEl = document.getElementById('ruptHFiltroPromotor');
-  if (promEl) { var cv5=promEl.value; promEl.innerHTML='<option value="">Todos</option>'+[...new Set(filtered.map(function(r){return r.promotor;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv5?' selected':'')+'>'+v+'</option>';}).join(''); }
-  var prodEl = document.getElementById('ruptHFiltroProduto');
-  if (prodEl) { var cv6=prodEl.value; prodEl.innerHTML='<option value="">Todos</option>'+[...new Set(filtered.map(function(r){return r.produto;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv6?' selected':'')+'>'+v+'</option>';}).join(''); }
-}
-
-function _ruptFiltrar() {
-  var base = _ruptGetBase();
-  var fRede   = (document.getElementById('ruptFiltroRede') || {}).value   || '';
-  var fVend   = (document.getElementById('ruptFiltroVendedor') || {}).value || '';
-  var fUF     = (document.getElementById('ruptFiltroUF') || {}).value     || '';
-  var fLoja   = (document.getElementById('ruptFiltroLoja') || {}).value    || '';
-  var fProm   = (document.getElementById('ruptFiltroPromotor') || {}).value || '';
-  var fProd   = (document.getElementById('ruptFiltroProduto') || {}).value  || '';
-  var fStatus = (document.getElementById('ruptFiltroStatus') || {}).value   || '';
-  if (fRede)   base = base.filter(function(r) { return r.rede === fRede; });
-  if (fVend)   base = base.filter(function(r) { return r.vendedor === fVend; });
-  if (fUF)     base = base.filter(function(r) { return r.uf === fUF; });
-  if (fLoja)   base = base.filter(function(r) { return r.loja === fLoja; });
-  if (fProm)   base = base.filter(function(r) { return r.promotor === fProm; });
-  if (fProd)   base = base.filter(function(r) { return r.produto === fProd; });
-  if (fStatus) base = base.filter(function(r) { return r.status === fStatus; });
-  return base;
-}
-
-function _ruptHFiltrar() {
-  var base = _ruptGetBase().filter(function(r) { return r.status === 'resolvida'; });
-  var fRede = (document.getElementById('ruptHFiltroRede') || {}).value   || '';
-  var fVend = (document.getElementById('ruptHFiltroVendedor') || {}).value || '';
-  var fUF   = (document.getElementById('ruptHFiltroUF') || {}).value     || '';
-  var fLoja = (document.getElementById('ruptHFiltroLoja') || {}).value    || '';
-  var fProm = (document.getElementById('ruptHFiltroPromotor') || {}).value || '';
-  var fProd = (document.getElementById('ruptHFiltroProduto') || {}).value  || '';
-  var fDtI  = dataParaISO((document.getElementById('ruptHDataIni') || {}).value || '');
-  var fDtF  = dataParaISO((document.getElementById('ruptHDataFim') || {}).value || '');
-  if (fRede) base = base.filter(function(r) { return r.rede === fRede; });
-  if (fVend) base = base.filter(function(r) { return r.vendedor === fVend; });
-  if (fUF)   base = base.filter(function(r) { return r.uf === fUF; });
-  if (fLoja) base = base.filter(function(r) { return r.loja === fLoja; });
-  if (fProm) base = base.filter(function(r) { return r.promotor === fProm; });
-  if (fProd) base = base.filter(function(r) { return r.produto === fProd; });
-  if (fDtI || fDtF) {
-    base = base.filter(function(r) {
-      var d = r.dataInicio && r.dataInicio.toDate ? r.dataInicio.toDate().toISOString().slice(0,10) : '';
-      if (fDtI && d < fDtI) return false;
-      if (fDtF && d > fDtF) return false;
-      return true;
+  Object.values(grupos).forEach(function(g) {
+    g.movs.sort(function(a, b) {
+      const da = a.data && a.data.toDate ? a.data.toDate() : new Date(a.data && a.data.seconds ? a.data.seconds*1000 : a.data);
+      const db = b.data && b.data.toDate ? b.data.toDate() : new Date(b.data && b.data.seconds ? b.data.seconds*1000 : b.data);
+      return da - db;
     });
-  }
-  return base;
-}
 
-function _ruptDias(r) {
-  var ini = r.dataInicio && r.dataInicio.toDate ? r.dataInicio.toDate() : new Date(r.dataInicio);
-  var fim = r.dataFim && r.dataFim.toDate ? r.dataFim.toDate() : (r.dataFim ? new Date(r.dataFim) : new Date());
-  return Math.max(0, Math.round((fim - ini) / 86400000));
-}
+    for (let i = 0; i < g.movs.length; i++) {
+      const m = g.movs[i];
+      const tipo = (m.tipo || '').toLowerCase();
+      const isSaida = tipo.includes('saida') || tipo.includes('saída') || tipo === 'vencimento' || tipo.includes('venciment');
+      if (!isSaida) continue;
 
-function _ruptFmtDate(ts) {
-  if (!ts) return '—';
-  var d = ts.toDate ? ts.toDate() : new Date(ts);
-  return d.toLocaleDateString('pt-BR');
-}
+      const dataSaida = m.data && m.data.toDate ? m.data.toDate() : new Date(m.data && m.data.seconds ? m.data.seconds*1000 : m.data);
 
-function renderRupturas() {
-  var dados = _ruptFiltrar();
-  var tbody  = document.getElementById('ruptTableBody');
-  var semEl  = document.getElementById('ruptSemDados');
-  var cntEl  = document.getElementById('ruptContadorAtivas');
-  if (cntEl) cntEl.textContent = dados.length + ' registros';
-  var total     = dados.length;
-  var ativas    = dados.filter(function(r) { return r.status === 'ativa'; }).length;
-  var resolvidas= dados.filter(function(r) { return r.status === 'resolvida'; }).length;
-  var diasMedio = total ? Math.round(dados.reduce(function(s,r){return s+_ruptDias(r);},0) / total) : 0;
-  var statsEl = document.getElementById('ruptStatsAtivas');
-  if (statsEl) statsEl.innerHTML =
-    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #bfdbfe">' +
-      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total</div>' +
-      '<div style="font-size:26px;font-weight:700;color:#1e3a5f">' + total + '</div>' +
-    '</div>' +
-    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #fecaca">' +
-      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Ativas</div>' +
-      '<div style="font-size:26px;font-weight:700;color:#dc2626">' + ativas + '</div>' +
-    '</div>' +
-    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #bbf7d0">' +
-      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Resolvidas</div>' +
-      '<div style="font-size:26px;font-weight:700;color:#16a34a">' + resolvidas + '</div>' +
-    '</div>' +
-    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #fef08a">' +
-      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Dias Médio</div>' +
-      '<div style="font-size:26px;font-weight:700;color:#b45309">' + diasMedio + '</div>' +
-    '</div>';
-  var grafEl = document.getElementById('ruptGrafico');
-  if (grafEl) {
-    var countMap = {};
-    dados.filter(function(r){return r.status==='ativa';}).forEach(function(r){countMap[r.produto]=(countMap[r.produto]||0)+1;});
-    var sorted = Object.entries(countMap).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
-    var maxV = sorted[0] ? sorted[0][1] : 1;
-    if (!sorted.length) {
-      grafEl.innerHTML = '<p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">Sem dados para exibir</p>';
-    } else {
-      grafEl.innerHTML = sorted.map(function(entry) {
-        var nome = entry[0]; var count = entry[1];
-        var pct = Math.round((count / maxV) * 100);
-        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
-          '<span style="font-size:11px;width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(nome) + '</span>' +
-          '<div style="flex:1;height:10px;background:#f1f5f9;border-radius:5px;overflow:hidden">' +
-            '<div style="height:100%;background:#dc2626;border-radius:5px;width:' + pct + '%"></div>' +
-          '</div>' +
-          '<span style="font-size:11px;color:#64748b;min-width:24px;text-align:right">' + count + 'x</span>' +
-        '</div>';
-      }).join('');
-    }
-  }
-  if (!dados.length) {
-    if (tbody) tbody.innerHTML = '';
-    if (semEl) semEl.classList.remove('hidden');
-    return;
-  }
-  if (semEl) semEl.classList.add('hidden');
-  var isAdmin = sessao && (sessao.role==='admin'||sessao.role==='diretor');
-  tbody.innerHTML = dados.map(function(r) {
-    var dias = _ruptDias(r);
-    var isAtiva = r.status === 'ativa';
-    var statusBadge = isAtiva
-      ? '<span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">ATIVA</span>'
-      : '<span style="background:#dcfce7;color:#166534;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">RESOLVIDA</span>';
-    var acoes = isAdmin ? (
-      '<td style="white-space:nowrap">' +
-      (isAtiva ? '<button onclick="resolverRuptura(\'' + r.firestoreId + '\')" title="Marcar como resolvida" style="background:#16a34a;color:white;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;margin-right:4px"><i class="ti ti-check" style="font-size:11px"></i> Resolver</button>' : '') +
-      '<button onclick="excluirRuptura(\'' + r.firestoreId + '\')" title="Excluir" style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:2px 4px;border-radius:4px;font-size:15px;line-height:1" onmouseover="this.style.color=\'#ef4444\'" onmouseout="this.style.color=\'#94a3b8\'">&#x1f5d1;&#xfe0f;</button>' +
-      '</td>'
-    ) : '<td></td>';
-    return '<tr class="' + (isAtiva ? 'row-expired' : 'row-ok') + '">' +
-      '<td style="font-weight:600">' + esc(r.produto) + '</td>' +
-      '<td>' + esc(r.loja) + '</td>' +
-      '<td style="text-align:center">' + esc(r.uf) + '</td>' +
-      '<td>' + esc(r.rede) + '</td>' +
-      '<td>' + _ruptFmtDate(r.dataInicio) + '</td>' +
-      '<td style="text-align:center;font-weight:700;color:' + (dias>7?'#dc2626':'#b45309') + '">' + dias + 'd</td>' +
-      '<td>' + esc(r.promotor) + '</td>' +
-      '<td>' + statusBadge + '</td>' +
-      acoes +
-    '</tr>';
-  }).join('');
-}
-
-function renderRupturasHistorico() {
-  var dados = _ruptHFiltrar();
-  var tbody = document.getElementById('ruptHTableBody');
-  var semEl = document.getElementById('ruptHSemDados');
-  var cntEl = document.getElementById('ruptContadorHist');
-  if (cntEl) cntEl.textContent = dados.length + ' registros';
-  var total    = dados.length;
-  var diasTotal= dados.reduce(function(s,r){return s+_ruptDias(r);},0);
-  var diasMedio= total ? Math.round(diasTotal / total) : 0;
-  var statsEl = document.getElementById('ruptStatsHist');
-  if (statsEl) statsEl.innerHTML =
-    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #bfdbfe">' +
-      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Resolvidas</div>' +
-      '<div style="font-size:26px;font-weight:700;color:#1e3a5f">' + total + '</div>' +
-    '</div>' +
-    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #fef08a">' +
-      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Duração Média</div>' +
-      '<div style="font-size:26px;font-weight:700;color:#b45309">' + diasMedio + ' dias</div>' +
-    '</div>' +
-    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #e2e8f0">' +
-      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Dias Totais</div>' +
-      '<div style="font-size:26px;font-weight:700;color:#475569">' + diasTotal + '</div>' +
-    '</div>';
-  var timelineEl = document.getElementById('ruptTimeline');
-  if (timelineEl) {
-    var hoje = new Date(); hoje.setHours(23,59,59,999);
-    var inicio60 = new Date(hoje); inicio60.setDate(hoje.getDate()-59); inicio60.setHours(0,0,0,0);
-    var span60 = hoje - inicio60;
-    var baseAll = _ruptGetBase();
-    var tlDados = baseAll.filter(function(r) {
-      var ini = r.dataInicio && r.dataInicio.toDate ? r.dataInicio.toDate() : new Date(r.dataInicio);
-      return ini <= hoje && (!r.dataFim || (r.dataFim && r.dataFim.toDate ? r.dataFim.toDate() : new Date(r.dataFim)) >= inicio60);
-    }).slice(0,30);
-    if (!tlDados.length) {
-      timelineEl.innerHTML = '<p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">Nenhuma ruptura nos últimos 60 dias</p>';
-    } else {
-      var meses = [];
-      for (var i=0;i<60;i+=15) {
-        var d2=new Date(inicio60); d2.setDate(d2.getDate()+i);
-        meses.push({pct:Math.round((i/59)*100),label:d2.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})});
+      let proxEntrada = null;
+      for (let j = i+1; j < g.movs.length; j++) {
+        const tipo2 = (g.movs[j].tipo || '').toLowerCase();
+        if (tipo2.includes('entrada') || tipo2 === 'entrada' || tipo2.includes('reposic')) {
+          proxEntrada = g.movs[j].data && g.movs[j].data.toDate ? g.movs[j].data.toDate() : new Date(g.movs[j].data && g.movs[j].data.seconds ? g.movs[j].data.seconds*1000 : g.movs[j].data);
+          break;
+        }
       }
-      var regraHtml = '<div style="position:relative;height:18px;margin-bottom:4px;border-bottom:1px solid #e2e8f0">' +
-        meses.map(function(m){return '<span style="position:absolute;left:'+m.pct+'%;font-size:9px;color:#94a3b8;transform:translateX(-50%)">'+m.label+'</span>';}).join('') +
-      '</div>';
-      var linhasHtml = tlDados.map(function(r) {
-        var ini = r.dataInicio && r.dataInicio.toDate ? r.dataInicio.toDate() : new Date(r.dataInicio);
-        var fim = r.dataFim && r.dataFim.toDate ? r.dataFim.toDate() : hoje;
-        var iniC = ini<inicio60 ? inicio60 : ini;
-        var fimC = fim>hoje ? hoje : fim;
-        var left  = Math.max(0,Math.min(100,((iniC-inicio60)/span60)*100));
-        var width = Math.max(0.5,Math.min(100-left,((fimC-iniC)/span60)*100));
-        var cor   = r.status==='ativa' ? '#dc2626' : '#f97316';
-        return '<div style="position:relative;height:22px;margin-bottom:4px;display:flex;align-items:center">' +
-          '<span style="font-size:10px;color:#64748b;min-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0">' + esc(r.produto) + ' · ' + esc(r.loja) + '</span>' +
-          '<div style="flex:1;height:12px;background:#f1f5f9;border-radius:4px;position:relative;overflow:hidden">' +
-            '<div style="position:absolute;top:0;left:'+left+'%;width:'+width+'%;height:100%;background:'+cor+';border-radius:4px" title="'+esc(r.produto)+' — '+_ruptFmtDate(r.dataInicio)+' a '+(r.dataFim?_ruptFmtDate(r.dataFim):'hoje')+'"></div>' +
-          '</div>' +
-        '</div>';
-      }).join('');
-      timelineEl.innerHTML = regraHtml + linhasHtml;
+
+      const dataFim = proxEntrada || hoje;
+      const dias = Math.max(0, Math.round((dataFim - dataSaida) / (1000*60*60*24)));
+      if (dias < 1) continue;
+
+      rupturas.push({
+        produto: g.produto,
+        loja: g.loja,
+        lojaId: g.lojaId,
+        rede: g.rede,
+        uf: g.uf,
+        vendedor: g.vendedor,
+        promotor: g.promotor,
+        dataSaida: dataSaida,
+        dataFim: proxEntrada,
+        dias: dias,
+        ativa: !proxEntrada,
+      });
     }
-  }
-  if (!dados.length) {
-    if (tbody) tbody.innerHTML = '';
-    if (semEl) semEl.classList.remove('hidden');
+  });
+
+  return rupturas;
+}
+
+function _gRuptPopularSelects(todasRupturas) {
+  const setOpts = function(id, vals) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cur = el.value;
+    const placeholder = el.options[0] ? el.options[0].text : '—';
+    el.innerHTML = '<option value="">' + placeholder + '</option>' +
+      [...new Set(vals.filter(Boolean))].sort(function(a,b){return a.localeCompare(b,'pt-BR');})
+        .map(function(v){return '<option value="' + esc(v) + '"' + (v===cur?' selected':'') + '>' + esc(v) + '</option>';}).join('');
+  };
+  setOpts('gRuptRede',    todasRupturas.map(function(r){return r.rede;}));
+  setOpts('gRuptVendedor',todasRupturas.map(function(r){return r.vendedor;}));
+  setOpts('gRuptUF',      todasRupturas.map(function(r){return r.uf;}));
+  setOpts('gRuptLoja',    todasRupturas.map(function(r){return r.loja;}));
+  setOpts('gRuptPromotor',todasRupturas.map(function(r){return r.promotor;}));
+  setOpts('gRuptProduto', todasRupturas.map(function(r){return r.produto;}));
+}
+
+function limparFiltrosGraficoRuptura() {
+  ['gRuptRede','gRuptVendedor','gRuptUF','gRuptLoja','gRuptPromotor','gRuptProduto'].forEach(function(id){
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['gRuptDataIni','gRuptDataFim'].forEach(function(id){
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  renderGraficoRuptura();
+}
+
+function renderGraficoRuptura() {
+  if (document.getElementById('viewGraficos')?.style.display === 'none') return;
+  const todasRupturas = _calcularRupturas();
+  _gRuptPopularSelects(todasRupturas);
+
+  const fRede   = document.getElementById('gRuptRede')?.value || '';
+  const fVend   = document.getElementById('gRuptVendedor')?.value || '';
+  const fUF     = document.getElementById('gRuptUF')?.value || '';
+  const fLoja   = document.getElementById('gRuptLoja')?.value || '';
+  const fProm   = document.getElementById('gRuptPromotor')?.value || '';
+  const fProd   = document.getElementById('gRuptProduto')?.value || '';
+  const fIniStr = document.getElementById('gRuptDataIni')?.value || '';
+  const fFimStr = document.getElementById('gRuptDataFim')?.value || '';
+
+  const parseDataBR = function(s) {
+    if (!s || s.length < 10) return null;
+    const parts = s.split('/');
+    return new Date(+parts[2], +parts[1]-1, +parts[0]);
+  };
+  const fIni = parseDataBR(fIniStr);
+  const fFim = parseDataBR(fFimStr);
+
+  let lista = todasRupturas.filter(function(r) {
+    if (fRede  && r.rede     !== fRede)   return false;
+    if (fVend  && r.vendedor !== fVend)   return false;
+    if (fUF    && r.uf       !== fUF)     return false;
+    if (fLoja  && r.loja     !== fLoja)   return false;
+    if (fProm  && r.promotor !== fProm)   return false;
+    if (fProd  && r.produto  !== fProd)   return false;
+    if (fIni   && r.dataSaida < fIni)     return false;
+    if (fFim) { const fim = new Date(fFim); fim.setHours(23,59,59); if (r.dataSaida > fim) return false; }
+    return true;
+  });
+
+  const cont = document.getElementById('gRuptConteudo');
+  const statsEl = document.getElementById('gRuptStats');
+
+  const ativas = lista.filter(function(r){return r.ativa;}).length;
+  const resolvidas = lista.filter(function(r){return !r.ativa;}).length;
+  const mediaDias = lista.length ? Math.round(lista.reduce(function(s,r){return s+r.dias;},0)/lista.length) : 0;
+  const maiorDias = lista.length ? Math.max.apply(null, lista.map(function(r){return r.dias;})) : 0;
+
+  if (statsEl) statsEl.innerHTML =
+    '<div style="background:#fef2f2;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:20px;font-weight:700;color:#dc2626">' + ativas + '</div><div style="font-size:10px;color:#dc2626;margin-top:3px">Em ruptura agora</div></div>' +
+    '<div style="background:#fef3c7;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:20px;font-weight:700;color:#d97706">' + mediaDias + 'd</div><div style="font-size:10px;color:#d97706;margin-top:3px">Média de dias</div></div>' +
+    '<div style="background:#fef2f2;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:20px;font-weight:700;color:#dc2626">' + maiorDias + 'd</div><div style="font-size:10px;color:#dc2626;margin-top:3px">Maior ruptura</div></div>' +
+    '<div style="background:#f0fdf4;border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:20px;font-weight:700;color:#059669">' + resolvidas + '</div><div style="font-size:10px;color:#059669;margin-top:3px">Resolvidas</div></div>';
+
+  if (!lista.length) {
+    if (cont) cont.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">Nenhuma ruptura encontrada no período</div>';
     return;
   }
-  if (semEl) semEl.classList.add('hidden');
-  tbody.innerHTML = dados.map(function(r) {
-    var dias = _ruptDias(r);
+
+  lista.sort(function(a,b){return b.dias-a.dias;});
+
+  const hoje = new Date(); hoje.setHours(23,59,59,0);
+  const janela = 60;
+  const inicio60 = new Date(hoje.getTime() - janela*24*60*60*1000);
+  const top10 = lista.slice(0,10);
+
+  const fmtD = function(d) { return d ? (String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0')) : 'hoje'; };
+  const fmtData = function(d) { return d ? (String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear()) : '—'; };
+
+  let tlHtml = top10.map(function(r) {
+    const saidaMs = Math.max(r.dataSaida.getTime(), inicio60.getTime());
+    const fimMs   = r.ativa ? hoje.getTime() : Math.min(r.dataFim.getTime(), hoje.getTime());
+    const leftPct = Math.round((saidaMs - inicio60.getTime()) / (janela*24*60*60*1000) * 100);
+    const widPct  = Math.max(1, Math.round((fimMs - saidaMs) / (janela*24*60*60*1000) * 100));
+    const cor = r.ativa ? '#dc2626' : '#f97316';
+    return '<div style="display:flex;align-items:center;margin-bottom:5px;min-height:28px">' +
+      '<div style="width:200px;flex-shrink:0;padding-right:10px">' +
+        '<div style="font-size:11px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(r.produto) + '</div>' +
+        '<div style="font-size:10px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(r.loja) + '</div>' +
+      '</div>' +
+      '<div style="flex:1;height:22px;background:#f1f5f9;border-radius:4px;position:relative;overflow:hidden">' +
+        '<div style="position:absolute;left:0;right:0;top:0;bottom:0;background:#22c55e;border-radius:4px"></div>' +
+        '<div style="position:absolute;left:' + leftPct + '%;width:' + Math.min(widPct,100-leftPct) + '%;top:0;height:100%;background:' + cor + ';border-radius:4px;display:flex;align-items:center;padding-left:5px">' +
+          '<span style="font-size:9px;font-weight:700;color:white">' + (r.dias>5 ? r.dias+'d' : '') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="width:55px;text-align:right;font-size:11px;font-weight:700;color:' + cor + ';padding-left:6px;flex-shrink:0">' + r.dias + 'd' + (r.ativa?' ▲':'') + '</div>' +
+    '</div>';
+  }).join('');
+
+  let tbHtml = lista.map(function(r) {
     return '<tr>' +
       '<td style="font-weight:600">' + esc(r.produto) + '</td>' +
       '<td>' + esc(r.loja) + '</td>' +
-      '<td style="text-align:center">' + esc(r.uf) + '</td>' +
-      '<td>' + esc(r.rede) + '</td>' +
-      '<td>' + _ruptFmtDate(r.dataInicio) + '</td>' +
-      '<td>' + _ruptFmtDate(r.dataFim) + '</td>' +
-      '<td style="text-align:center;font-weight:700;color:#b45309">' + dias + 'd</td>' +
-      '<td>' + esc(r.motivo||'—') + '</td>' +
+      '<td><span style="background:#f1f5f9;color:#475569;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600">' + esc(r.uf||'—') + '</span></td>' +
+      '<td>' + esc(r.rede||'—') + '</td>' +
+      '<td>' + fmtData(r.dataSaida) + '</td>' +
+      '<td>' + (r.ativa ? '<span style="color:#94a3b8;font-size:11px">— sem registro novo</span>' : fmtData(r.dataFim)) + '</td>' +
+      '<td><span style="background:' + (r.dias>20?'#fee2e2':'#fef3c7') + ';color:' + (r.dias>20?'#991b1b':'#92400e') + ';padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600">' + r.dias + 'd</span></td>' +
+      '<td><span style="background:' + (r.ativa?'#fee2e2':'#d1fae5') + ';color:' + (r.ativa?'#991b1b':'#065f46') + ';padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600">' + (r.ativa?'● Ativa':'✓ Resolvida') + '</span></td>' +
     '</tr>';
   }).join('');
-}
 
-function limparFiltrosRuptura() {
-  ['ruptFiltroRede','ruptFiltroVendedor','ruptFiltroUF','ruptFiltroLoja','ruptFiltroPromotor','ruptFiltroProduto','ruptFiltroStatus'].forEach(function(id){
-    var el = document.getElementById(id); if (el) el.value = '';
-  });
-  _ruptPopularSelects();
-  renderRupturas();
-}
-
-function limparFiltrosRupturasHist() {
-  ['ruptHFiltroRede','ruptHFiltroVendedor','ruptHFiltroUF','ruptHFiltroLoja','ruptHFiltroPromotor','ruptHFiltroProduto','ruptHDataIni','ruptHDataFim'].forEach(function(id){
-    var el = document.getElementById(id); if (el) el.value = '';
-  });
-  _ruptHPopularSelects();
-  renderRupturasHistorico();
-}
-
-function _ruptModalOnLojaChange() {
-  var selLoja = document.getElementById('ruptModalLoja');
-  var lojaSel = lojas.filter(function(l){return l.nome === (selLoja && selLoja.value);})[0];
-  if (lojaSel) {
-    var ufEl = document.getElementById('ruptModalUF'); if (ufEl) ufEl.value = lojaSel.uf || '';
-    var redeEl = document.getElementById('ruptModalRede'); if (redeEl) redeEl.value = lojaSel.rede || '';
-    var vendEl = document.getElementById('ruptModalVendedor'); if (vendEl) vendEl.value = lojaSel.vendedor || '';
-  }
-}
-
-function abrirModalRuptura(ruptId) {
-  var modal = document.getElementById('modalRuptura');
-  var idEl  = document.getElementById('ruptModalId');
-  if (idEl) idEl.value = ruptId || '';
-  var selProm = document.getElementById('ruptModalPromotor');
-  if (selProm) {
-    var proms = usuarios.filter(function(u){return u.role==='promotor';}).sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR');});
-    var presel = sessao && sessao.role === 'promotor' ? sessao.nome : '';
-    selProm.innerHTML = '<option value="">Selecione...</option>' + proms.map(function(u){return '<option value="'+esc(u.nome)+'"'+(u.nome===presel?' selected':'')+'>'+esc(u.nome)+'</option>';}).join('');
-    if (sessao && sessao.role === 'promotor') { selProm.value = sessao.nome; selProm.disabled = true; } else { selProm.disabled = false; }
-  }
-  var selLoja = document.getElementById('ruptModalLoja');
-  if (selLoja) {
-    var lojasDisp = lojas.slice().sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'','pt-BR');});
-    if (sessao && sessao.role === 'vendedor' && sessao.ufs && sessao.ufs.length) lojasDisp = lojasDisp.filter(function(l){return sessao.ufs.indexOf(l.uf) !== -1;});
-    if (sessao && sessao.role === 'promotor' && sessao.uf) lojasDisp = lojasDisp.filter(function(l){return l.uf===sessao.uf;});
-    selLoja.innerHTML = '<option value="">Selecione...</option>' + lojasDisp.map(function(l){return '<option value="'+esc(l.nome)+'">'+esc(l.nome)+(l.rede?' · '+esc(l.rede):'')+(l.uf?' ('+esc(l.uf)+')':'')+'</option>';}).join('');
-  }
-  var selProd = document.getElementById('ruptModalProduto');
-  if (selProd) {
-    var prods = [...new Set(catalogo.map(function(c){return c.nome;}).filter(Boolean))].sort();
-    selProd.innerHTML = '<option value="">Selecione...</option>' + prods.map(function(p){return '<option value="'+esc(p)+'">'+esc(p)+'</option>';}).join('');
-  }
-  if (ruptId) {
-    var r = rupturas.filter(function(x){return x.firestoreId===ruptId;})[0];
-    if (r) {
-      if (selProm) selProm.value = r.promotor || '';
-      if (selLoja) selLoja.value = r.loja || '';
-      if (selProd) selProd.value = r.produto || '';
-      var motEl = document.getElementById('ruptModalMotivo'); if (motEl) motEl.value = r.motivo || '';
-      var obsEl = document.getElementById('ruptModalObs'); if (obsEl) obsEl.value = r.observacao || '';
-    }
-  } else {
-    var motEl2 = document.getElementById('ruptModalMotivo'); if (motEl2) motEl2.value = '';
-    var obsEl2 = document.getElementById('ruptModalObs'); if (obsEl2) obsEl2.value = '';
-  }
-  modal.classList.remove('hidden');
-}
-
-async function salvarRuptura() {
-  var promotor = ((document.getElementById('ruptModalPromotor') || {}).value || '').trim();
-  var lojaNome = ((document.getElementById('ruptModalLoja') || {}).value || '').trim();
-  var produto  = ((document.getElementById('ruptModalProduto') || {}).value || '').trim();
-  var motivo   = ((document.getElementById('ruptModalMotivo') || {}).value || '').trim();
-  var obs      = ((document.getElementById('ruptModalObs') || {}).value || '').trim();
-  var ruptId   = (document.getElementById('ruptModalId') || {}).value || '';
-  if (!promotor || !lojaNome || !produto || !motivo) {
-    showToast('⚠️ Preencha todos os campos obrigatórios.', '#92400e');
-    return;
-  }
-  var lojaObj = lojas.filter(function(l){return l.nome===lojaNome;})[0];
-  var uf      = lojaObj && lojaObj.uf      || '';
-  var rede    = lojaObj && lojaObj.rede    || '';
-  var vendedor= lojaObj && lojaObj.vendedor|| '';
-  try {
-    if (ruptId) {
-      await FS_RUPTURAS.doc(ruptId).update({ produto: produto, motivo: motivo, observacao: obs });
-      showToast('✅ Ruptura atualizada!', '#166534');
-    } else {
-      var docData = {
-        produto: produto, loja: lojaNome, lojaId: lojaObj && lojaObj.id || '',
-        rede: rede, uf: uf, vendedor: vendedor, promotor: promotor,
-        dataInicio: firebase.firestore.FieldValue.serverTimestamp(),
-        dataFim: null, motivo: motivo, observacao: obs,
-        criadoPor: sessao && sessao.nome || '', status: 'ativa', firestoreId: ''
-      };
-      var ref = await FS_RUPTURAS.add(docData);
-      await FS_RUPTURAS.doc(ref.id).update({ firestoreId: ref.id });
-      showToast('✅ Ruptura registrada!', '#166534');
-    }
-    document.getElementById('modalRuptura').classList.add('hidden');
-  } catch(e) {
-    showToast('❌ Erro ao salvar: ' + e.message, '#dc2626');
-  }
-}
-
-async function resolverRuptura(firestoreId) {
-  if (!confirm('Marcar esta ruptura como resolvida?')) return;
-  try {
-    await FS_RUPTURAS.doc(firestoreId).update({
-      status: 'resolvida',
-      dataFim: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    showToast('✅ Ruptura resolvida!', '#166534');
-  } catch(e) {
-    showToast('❌ Erro: ' + e.message, '#dc2626');
-  }
-}
-
-async function excluirRuptura(firestoreId) {
-  if (!confirm('Excluir esta ruptura permanentemente?')) return;
-  try {
-    await FS_RUPTURAS.doc(firestoreId).delete();
-    showToast('🗑️ Ruptura excluída.', '#475569');
-  } catch(e) {
-    showToast('❌ Erro: ' + e.message, '#dc2626');
-  }
+  if (cont) cont.innerHTML =
+    '<div style="margin-bottom:14px">' +
+      '<div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:5px;padding:0 2px"><span>Produto / Loja</span><span style="margin-right:58px">Últimos 60 dias</span><span>Total</span></div>' +
+      tlHtml +
+      (lista.length>10 ? '<div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:4px">+ ' + (lista.length-10) + ' ocorrências adicionais na tabela abaixo</div>' : '') +
+    '</div>' +
+    '<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">' +
+      '<table style="width:100%;border-collapse:collapse">' +
+        '<thead><tr style="background:#f8fafc">' +
+          '<th style="font-size:10px;font-weight:600;color:#64748b;padding:7px 10px;border-bottom:1px solid #e2e8f0;text-align:left">Produto</th>' +
+          '<th style="font-size:10px;font-weight:600;color:#64748b;padding:7px 10px;border-bottom:1px solid #e2e8f0;text-align:left">Loja</th>' +
+          '<th style="font-size:10px;font-weight:600;color:#64748b;padding:7px 10px;border-bottom:1px solid #e2e8f0;text-align:left">UF</th>' +
+          '<th style="font-size:10px;font-weight:600;color:#64748b;padding:7px 10px;border-bottom:1px solid #e2e8f0;text-align:left">Rede</th>' +
+          '<th style="font-size:10px;font-weight:600;color:#64748b;padding:7px 10px;border-bottom:1px solid #e2e8f0;text-align:left">Último registro (saída)</th>' +
+          '<th style="font-size:10px;font-weight:600;color:#64748b;padding:7px 10px;border-bottom:1px solid #e2e8f0;text-align:left">Próxima entrada</th>' +
+          '<th style="font-size:10px;font-weight:600;color:#64748b;padding:7px 10px;border-bottom:1px solid #e2e8f0;text-align:left">Dias ruptura</th>' +
+          '<th style="font-size:10px;font-weight:600;color:#64748b;padding:7px 10px;border-bottom:1px solid #e2e8f0;text-align:left">Situação</th>' +
+        '</tr></thead>' +
+        '<tbody>' + tbHtml + '</tbody>' +
+      '</table>' +
+    '</div>';
 }
 
 
