@@ -1964,45 +1964,49 @@
       </div>
       </div><!-- /tabPanelConc -->
 
-      <!-- ── Ruptura de Gôndola ── -->
-      <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe;margin-top:14px">
-        <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
-          <i class="ti ti-alert-triangle" style="font-size:16px;color:#93c5fd"></i>
-          <span style="font-size:13px;font-weight:700;color:#fff">Ruptura de Gôndola</span>
-          <span style="font-size:11px;color:#93c5fd;margin-left:4px">— calculado automaticamente pelo Histórico</span>
+      <!-- ── Painel: Ruptura de Gôndola ── -->
+      <div id="tabPanelRupt" style="display:none">
+        <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe;margin-top:0">
+          <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
+            <i class="ti ti-alert-triangle" style="font-size:16px;color:#93c5fd" aria-hidden="true"></i>
+            <span style="font-size:13px;font-weight:700;color:#fff">Ruptura de Gôndola</span>
+            <span style="font-size:11px;color:#93c5fd;margin-left:4px">— calculado automaticamente pelo Histórico</span>
+          </div>
+          <!-- Filtros -->
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px">
+            <select id="gRuptRede" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas as Redes</option></select>
+            <select id="gRuptVendedor" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos os Vendedores</option></select>
+            <select id="gRuptUF" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas as UFs</option></select>
+            <select id="gRuptLoja" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas as Lojas</option></select>
+            <select id="gRuptPromotor" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos os Promotores</option></select>
+            <select id="gRuptProduto" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos os Produtos</option></select>
+            <div style="width:1px;height:20px;background:#e2e8f0;align-self:center"></div>
+            <input id="gRuptDataIni" type="text" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="width:120px">
+            <span style="font-size:12px;color:#94a3b8">até</span>
+            <input id="gRuptDataFim" type="text" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="width:120px">
+            <button onclick="limparFiltrosGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
+              <i class="ti ti-x" style="font-size:13px" aria-hidden="true"></i> Limpar filtro
+            </button>
+          </div>
+          <!-- Cards de resumo -->
+          <div id="gRuptStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px"></div>
+          <!-- Legenda -->
+          <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:14px;height:12px;border-radius:3px;background:#22c55e;display:inline-block"></span>Na gôndola</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:14px;height:12px;border-radius:3px;background:#dc2626;display:inline-block"></span>Ruptura ativa</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:14px;height:12px;border-radius:3px;background:#f97316;display:inline-block"></span>Ruptura resolvida</span>
+          </div>
+          <!-- Timeline e tabela -->
+          <div id="gRuptConteudo"><div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">Carregando dados...</div></div>
         </div>
-        <!-- Filtros -->
-        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px">
-          <select id="gRuptRede" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas as Redes</option></select>
-          <select id="gRuptVendedor" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos os Vendedores</option></select>
-          <select id="gRuptUF" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas as UFs</option></select>
-          <select id="gRuptLoja" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas as Lojas</option></select>
-          <select id="gRuptPromotor" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos os Promotores</option></select>
-          <select id="gRuptProduto" onchange="renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos os Produtos</option></select>
-          <div style="width:1px;height:20px;background:#e2e8f0;align-self:center"></div>
-          <input id="gRuptDataIni" type="text" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="width:120px">
-          <span style="font-size:12px;color:#94a3b8">até</span>
-          <input id="gRuptDataFim" type="text" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white" style="width:120px">
-          <button onclick="limparFiltrosGraficoRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
-            <i class="ti ti-x" style="font-size:13px"></i> Limpar filtro
-          </button>
-        </div>
-        <!-- Cards de resumo -->
-        <div id="gRuptStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px"></div>
-        <!-- Legenda -->
-        <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap">
-          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:14px;height:12px;border-radius:3px;background:#22c55e;display:inline-block"></span>Na gôndola</span>
-          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:14px;height:12px;border-radius:3px;background:#dc2626;display:inline-block"></span>Ruptura ativa</span>
-          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b"><span style="width:14px;height:12px;border-radius:3px;background:#f97316;display:inline-block"></span>Ruptura resolvida</span>
-        </div>
-        <!-- Timeline e tabela -->
-        <div id="gRuptConteudo"><div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">Carregando dados...</div></div>
-      </div>
+      </div><!-- /tabPanelRupt -->
+
       <!-- ── Barra de abas dos gráficos ── -->
       <div style="background:#e8edf2;padding:3px;border-radius:10px;display:flex;gap:2px;margin-top:12px">
         <button id="gTab-dist" onclick="setGraficoTab('dist')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:#1e3a5f;color:#fff;font-weight:600;box-shadow:0 2px 6px rgba(30,58,95,.35);transition:all .2s">Distribuição</button>
         <button id="gTab-rank" onclick="setGraficoTab('rank')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;color:#64748b;font-weight:600;transition:all .2s">Ranking</button>
         <button id="gTab-mov"  onclick="setGraficoTab('mov')"  style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;color:#64748b;font-weight:600;transition:all .2s">Movimentações</button>
+        <button id="gTab-rupt" onclick="setGraficoTab('rupt')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;color:#64748b;font-weight:600;transition:all .2s">Ruptura</button>
         <button id="gTab-conc" onclick="setGraficoTab('conc')" style="flex:1;padding:9px 8px;border:none;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;color:#64748b;font-weight:600;transition:all .2s">Concorrência</button>
       </div>
     </div>
@@ -8214,12 +8218,12 @@ let _gTabAtual = 'dist';
 
 function setGraficoTab(tab) {
   _gTabAtual = tab;
-  const paineis = { dist: 'tabPanelDist', rank: 'tabPanelRank', mov: 'tabPanelMov', conc: 'tabPanelConc' };
+  const paineis = { dist: 'tabPanelDist', rank: 'tabPanelRank', mov: 'tabPanelMov', rupt: 'tabPanelRupt', conc: 'tabPanelConc' };
   Object.entries(paineis).forEach(([k, id]) => {
     const el = document.getElementById(id);
     if (el) el.style.display = k === tab ? '' : 'none';
   });
-  ['dist','rank','mov','conc'].forEach(k => {
+  ['dist','rank','mov','rupt','conc'].forEach(k => {
     const btn = document.getElementById('gTab-'+k);
     if (!btn) return;
     const ativo = k === tab;
@@ -8232,6 +8236,7 @@ function setGraficoTab(tab) {
   if (tab === 'dist') { setGUnd(_gUnd); }
   if (tab === 'rank') { initRankingLojas(); }
   if (tab === 'mov')  { renderMovChart(); }
+  if (tab === 'rupt') { renderGraficoRuptura(); }
   if (tab === 'conc') { renderConcChart(); }
 }
 
@@ -9614,7 +9619,6 @@ function setView(v) {
         s.onload = () => { setGraficoTab(_gTabAtual || 'dist'); };
         document.head.appendChild(s);
       } else { setGraficoTab(_gTabAtual || 'dist'); }
-      renderGraficoRuptura();
       return;
     }
     if (v === 'historico') {
