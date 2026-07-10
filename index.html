@@ -929,6 +929,10 @@
         <i class="ti ti-speakerphone" style="font-size:14px" aria-hidden="true"></i> Comunicados
         <span id="badgeComunicados" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;min-width:14px;text-align:center"></span>
       </button>
+      <button id="btnViewRuptura" onclick="setView('ruptura')"
+        style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
+        <i class="ti ti-alert-triangle" style="font-size:14px" aria-hidden="true"></i> Ruptura
+      </button>
       <button id="btnViewHistorico" onclick="setView('historico')"
         style="background:transparent;color:#64748b;border:0.5px solid #cbd5e1;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px">
         <i class="ti ti-history" style="font-size:14px" aria-hidden="true"></i> Histórico
@@ -2053,6 +2057,133 @@
     <!-- ══ FIM ABA COMUNICADOS ══ -->
 
     <!-- Aba: Histórico de movimentações (só Admin) -->
+    <!-- ════════════════════════════════════════
+         Aba: Ruptura de Produto
+         ════════════════════════════════════════ -->
+    <div id="viewRuptura" style="display:none;margin-bottom:24px">
+      <!-- Sub-tabs -->
+      <div style="display:flex;gap:0;margin-bottom:16px;background:white;border:1px solid #bfdbfe;border-radius:12px;overflow:hidden">
+        <button id="ruptTabAtivas" onclick="ruptSetTab('ativas')"
+          style="flex:1;padding:10px 16px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:#1e3a5f;color:white;transition:all .15s">
+          <i class="ti ti-alert-circle" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i> Rupturas Ativas
+        </button>
+        <button id="ruptTabHistorico" onclick="ruptSetTab('historico')"
+          style="flex:1;padding:10px 16px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;color:#64748b;border-left:1px solid #bfdbfe;transition:all .15s">
+          <i class="ti ti-clock-history" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i> Histórico de Rupturas
+        </button>
+      </div>
+
+      <!-- ─── SUB-ABA: ATIVAS ─── -->
+      <div id="ruptPanelAtivas">
+        <!-- Filtros Ativas -->
+        <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+          <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
+            <i class="ti ti-filter" style="font-size:16px;color:#93c5fd"></i>
+            <span style="font-size:13px;font-weight:700;color:#fff">Filtros — Rupturas Ativas</span>
+          </div>
+          <div class="flex flex-wrap items-end gap-3">
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Rede</label><select id="ruptFiltroRede" onchange="_ruptPopularSelects();renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Vendedor</label><select id="ruptFiltroVendedor" onchange="_ruptPopularSelects();renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">UF</label><select id="ruptFiltroUF" onchange="_ruptPopularSelects();renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Loja</label><select id="ruptFiltroLoja" onchange="_ruptPopularSelects();renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Promotor</label><select id="ruptFiltroPromotor" onchange="_ruptPopularSelects();renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Produto</label><select id="ruptFiltroProduto" onchange="renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
+            <div style="width:1px;height:38px;background:#e2e8f0;align-self:flex-end"></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Status</label><select id="ruptFiltroStatus" onchange="renderRupturas()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option><option value="ativa">Ativas</option><option value="resolvida">Resolvidas</option></select></div>
+            <div class="flex flex-col gap-1" style="justify-content:flex-end">
+              <button onclick="limparFiltrosRuptura()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
+                <i class="ti ti-x" style="font-size:13px"></i> Limpar filtro
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Ativas -->
+        <div id="ruptStatsAtivas" class="grid grid-cols-2 gap-3 mb-4" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"></div>
+
+        <!-- Gráfico de barras -->
+        <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+          <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
+            <i class="ti ti-chart-bar" style="font-size:16px;color:#93c5fd"></i>
+            <span style="font-size:13px;font-weight:700;color:#fff">Produtos com mais rupturas</span>
+          </div>
+          <div id="ruptGrafico"></div>
+        </div>
+
+        <!-- Tabela Ativas -->
+        <div class="bg-white rounded-2xl shadow overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
+            <span class="text-sm font-semibold text-slate-700">Rupturas registradas</span>
+            <div class="flex items-center gap-3">
+              <span id="ruptContadorAtivas" class="text-xs text-slate-400">0 registros</span>
+              <button onclick="abrirModalRuptura(null)" style="background:#dc2626;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+                <i class="ti ti-plus" style="font-size:14px"></i> Registrar ruptura
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table><thead><tr>
+              <th>Produto</th><th>Loja</th><th>UF</th><th>Rede</th><th>Início</th><th>Dias</th><th>Promotor</th><th>Status</th><th></th>
+            </tr></thead><tbody id="ruptTableBody"></tbody></table>
+          </div>
+          <div id="ruptSemDados" class="hidden text-center py-10 text-slate-400 text-sm">Nenhuma ruptura registrada ainda.</div>
+        </div>
+      </div>
+
+      <!-- ─── SUB-ABA: HISTÓRICO ─── -->
+      <div id="ruptPanelHistorico" style="display:none">
+        <!-- Filtros Histórico -->
+        <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+          <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
+            <i class="ti ti-filter" style="font-size:16px;color:#93c5fd"></i>
+            <span style="font-size:13px;font-weight:700;color:#fff">Filtros — Histórico de Rupturas</span>
+          </div>
+          <div class="flex flex-wrap items-end gap-3">
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Rede</label><select id="ruptHFiltroRede" onchange="_ruptHPopularSelects();renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Vendedor</label><select id="ruptHFiltroVendedor" onchange="_ruptHPopularSelects();renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">UF</label><select id="ruptHFiltroUF" onchange="_ruptHPopularSelects();renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Loja</label><select id="ruptHFiltroLoja" onchange="_ruptHPopularSelects();renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Promotor</label><select id="ruptHFiltroPromotor" onchange="_ruptHPopularSelects();renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Produto</label><select id="ruptHFiltroProduto" onchange="renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todos</option></select></div>
+            <div style="width:1px;height:38px;background:#e2e8f0;align-self:flex-end"></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data inicial</label><input id="ruptHDataIni" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-slate-500">Data final</label><input id="ruptHDataFim" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" oninput="mascaraData(this);renderRupturasHistorico()" class="border border-slate-300 rounded-lg px-2 py-2 text-sm bg-white text-center" style="width:110px" /></div>
+            <div class="flex flex-col gap-1" style="justify-content:flex-end">
+              <button onclick="limparFiltrosRupturasHist()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
+                <i class="ti ti-x" style="font-size:13px"></i> Limpar filtro
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Histórico -->
+        <div id="ruptStatsHist" class="grid grid-cols-2 gap-3 mb-4" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"></div>
+
+        <!-- Timeline -->
+        <div class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
+          <div style="background:#1e3a5f;padding:10px 16px;margin:-16px -16px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px">
+            <i class="ti ti-timeline" style="font-size:16px;color:#93c5fd"></i>
+            <span style="font-size:13px;font-weight:700;color:#fff">Linha do tempo — últimos 60 dias</span>
+          </div>
+          <div id="ruptTimeline"></div>
+        </div>
+
+        <!-- Tabela Histórico -->
+        <div class="bg-white rounded-2xl shadow overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
+            <span class="text-sm font-semibold text-slate-700">Histórico de rupturas resolvidas</span>
+            <span id="ruptContadorHist" class="text-xs text-slate-400">0 registros</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table><thead><tr>
+              <th>Produto</th><th>Loja</th><th>UF</th><th>Rede</th><th>Início</th><th>Fim</th><th>Duração</th><th>Motivo</th>
+            </tr></thead><tbody id="ruptHTableBody"></tbody></table>
+          </div>
+          <div id="ruptHSemDados" class="hidden text-center py-10 text-slate-400 text-sm">Nenhuma ruptura no histórico ainda.</div>
+        </div>
+      </div>
+    </div>
+
     <div id="viewHistorico" style="display:none;margin-bottom:24px">
       <!-- Filtros Histórico -->
       <div id="cardFiltrosHistorico" class="bg-white rounded-2xl shadow p-4 mb-4" style="border:1px solid #bfdbfe">
@@ -3749,6 +3880,55 @@
   </div>
 </div>
 
+<!-- Modal Registrar Ruptura -->
+<div id="modalRuptura" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+    <div class="px-5 py-4 flex items-center gap-3" style="background:#1e3a5f">
+      <i class="ti ti-alert-triangle" style="font-size:20px;color:#fff" aria-hidden="true"></i>
+      <div>
+        <p class="text-white font-semibold text-sm mb-0">Registrar Ruptura</p>
+        <p class="text-xs" style="color:#93c5fd;margin:0">Informe os dados da ruptura</p>
+      </div>
+      <button onclick="document.getElementById('modalRuptura').classList.add('hidden')" style="margin-left:auto;background:none;border:none;color:#93c5fd;cursor:pointer;font-size:20px;line-height:1">×</button>
+    </div>
+    <div class="p-4 flex flex-col gap-3">
+      <input type="hidden" id="ruptModalId" />
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Promotor *</label>
+        <select id="ruptModalPromotor" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Selecione...</option></select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Loja *</label>
+        <select id="ruptModalLoja" onchange="_ruptModalOnLojaChange()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Selecione...</option></select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Produto *</label>
+        <select id="ruptModalProduto" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"><option value="">Selecione...</option></select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Motivo *</label>
+        <select id="ruptModalMotivo" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+          <option value="">Selecione...</option>
+          <option value="Sem pedido">Sem pedido</option>
+          <option value="Ruptura estoque">Ruptura estoque</option>
+          <option value="Produto trocado">Produto trocado</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Observação</label>
+        <textarea id="ruptModalObs" rows="2" placeholder="Observações adicionais..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white resize-none"></textarea>
+      </div>
+      <div class="flex gap-2 mt-1">
+        <button onclick="salvarRuptura()" class="flex-1 text-white font-semibold text-sm rounded-xl py-3 transition flex items-center justify-center gap-2" style="background:#dc2626">
+          <i class="ti ti-check" style="font-size:16px"></i> Salvar
+        </button>
+        <button onclick="document.getElementById('modalRuptura').classList.add('hidden')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-xl py-3 transition">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Loading overlay Firebase -->
 <div id="appLoader" style="display:flex;position:fixed;inset:0;background:rgba(15,23,42,0.88);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:16px">
   <div style="width:52px;height:52px;border:5px solid #1e40af;border-top-color:transparent;border-radius:50%;animation:fbSpin 0.75s linear infinite"></div>
@@ -3782,6 +3962,7 @@ const FS_SELLOUT_HIST    = db.collection('sellout_historico');
 const FS_CONCORRENTES_DB = db.collection('concorrentes_db');
 const FS_ROTEIROS        = db.collection('roteiros');
 const FS_COMUNICADOS     = db.collection('comunicados');
+const FS_RUPTURAS        = db.collection('rupturas');
 
 // ── Logos das fábricas na tela de login ─────
 (function _carregarLogosLogin() {
@@ -3890,6 +4071,9 @@ let fabricas    = [];
 let lojas       = [];
 let redesConfig  = []; // [{nome, apelidos:[]}]
 let selloutHist  = []; // [{id, dataGerado, fabrica, rede, ufs, vendedor, produtos, dataEnviada, status}]
+let rupturas     = [];
+let _ruptTab     = 'ativas'; // 'ativas' | 'historico'
+let _ruptUnsubscribe = null;
 let sessao      = JSON.parse(sessionStorage.getItem('cv_sessao') || 'null');
 let consolidado = {};
 let sortCol   = 'status';
@@ -4067,6 +4251,9 @@ function entrarNoApp(user) {
   // Botão Lojas visível para admin/vendedor/diretor
   const btnLojas3 = document.getElementById('btnViewLojas');
   if (btnLojas3) btnLojas3.style.display = (user.role === 'promotor') ? 'none' : 'inline-flex';
+  // Botão Ruptura: visível para admin, diretor e vendedor
+  const btnRupt2 = document.getElementById('btnViewRuptura');
+  if (btnRupt2) btnRupt2.style.display = (['admin','diretor','vendedor'].includes(user.role)) ? 'inline-flex' : 'none';
   // Botões Histórico e SellOut visíveis somente para Admin
   const btnHist2 = document.getElementById('btnViewHistorico');
   if (btnHist2) btnHist2.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
@@ -9439,6 +9626,7 @@ function setView(v) {
   const selloutDiv   = document.getElementById('viewSellOut');
   const rankingDiv      = document.getElementById('viewRanking');
   const roteirizacaoDiv = document.getElementById('viewRoteirizacao');
+  const rupturaDiv      = document.getElementById('viewRuptura');
   const btnProd      = document.getElementById('btnViewProdutos');
   const btnLojas     = document.getElementById('btnViewLojas');
   const btnGraf      = document.getElementById('btnViewGraficos');
@@ -9446,6 +9634,7 @@ function setView(v) {
   const btnSO        = document.getElementById('btnViewSellOut');
   const btnRank      = document.getElementById('btnViewRanking');
   const btnRoteir    = document.getElementById('btnViewRoteirizacao');
+  const btnRupt      = document.getElementById('btnViewRuptura');
   const _offStyle    = 'transparent';
   // Ocultar tudo primeiro
   if (graficosDiv)      graficosDiv.style.display      = 'none';
@@ -9453,6 +9642,7 @@ function setView(v) {
   if (selloutDiv)       selloutDiv.style.display       = 'none';
   if (rankingDiv)       rankingDiv.style.display       = 'none';
   if (roteirizacaoDiv)  roteirizacaoDiv.style.display  = 'none';
+  if (rupturaDiv)       rupturaDiv.style.display       = 'none';
   const comunDiv0 = document.getElementById('viewComunicados');
   if (comunDiv0) comunDiv0.style.display = 'none';
   // Barra Excel contextual: visível apenas em Produtos e Lojas
@@ -9468,6 +9658,7 @@ function setView(v) {
   if (btnSO)     { btnSO.style.background    =_offStyle; btnSO.style.color    ='#64748b'; btnSO.style.border    ='0.5px solid #cbd5e1'; btnSO.style.borderBottom=''; btnSO.style.boxShadow='none'; }
   if (btnRank)   { btnRank.style.background  =_offStyle; btnRank.style.color  ='#64748b'; btnRank.style.border  ='0.5px solid #cbd5e1'; btnRank.style.borderBottom=''; btnRank.style.boxShadow='none'; }
   if (btnRoteir) { btnRoteir.style.background=_offStyle; btnRoteir.style.color='#64748b'; btnRoteir.style.border='0.5px solid #cbd5e1'; btnRoteir.style.borderBottom=''; btnRoteir.style.boxShadow='none'; }
+  if (btnRupt)   { btnRupt.style.background  =_offStyle; btnRupt.style.color  ='#64748b'; btnRupt.style.border  ='0.5px solid #cbd5e1'; btnRupt.style.borderBottom=''; btnRupt.style.boxShadow='none'; }
   const btnComun0 = document.getElementById('btnViewComunicados');
   if (btnComun0) { btnComun0.style.background=_offStyle; btnComun0.style.color='#64748b'; btnComun0.style.border='0.5px solid #cbd5e1'; btnComun0.style.borderBottom=''; btnComun0.style.boxShadow='none'; }
   // Ocultar formulário de adicionar produto quando não está na aba Produtos
@@ -9649,6 +9840,20 @@ function setView(v) {
       const btnXLRot = document.getElementById('btnExportCSV');
       if (btnXLRot) { btnXLRot.style.display = 'none'; btnXLRot.classList.add('hidden'); }
       initRoteirizacao();
+      return;
+    }
+    if (v === 'ruptura') {
+      if (tabelaDiv)    tabelaDiv.style.display  = 'none';
+      if (lojasDiv)     lojasDiv.classList.add('hidden');
+      if (rupturaDiv)   rupturaDiv.style.display  = 'block';
+      if (cardFiltroProd) cardFiltroProd.style.display = 'none';
+      const _fdbRupt = document.getElementById('filtroDataBadge'); if (_fdbRupt) _fdbRupt.style.display = 'none';
+      btnProd.style.background  = 'transparent'; btnProd.style.color = '#64748b'; btnProd.style.border = '0.5px solid #cbd5e1'; btnProd.style.borderBottom = ''; btnProd.style.boxShadow = 'none';
+      if (btnLojas) { btnLojas.style.background = 'transparent'; btnLojas.style.color = '#64748b'; btnLojas.style.border = '0.5px solid #cbd5e1'; btnLojas.style.borderBottom = ''; btnLojas.style.boxShadow = 'none'; }
+      if (btnRupt) { btnRupt.style.background = '#1e3a5f'; btnRupt.style.color = 'white'; btnRupt.style.border = 'none'; btnRupt.style.borderBottom = '3px solid #0c1f35'; btnRupt.style.boxShadow = '0 4px 12px rgba(30,58,95,.45)'; }
+      const btnXLRupt = document.getElementById('btnExportCSV');
+      if (btnXLRupt) { btnXLRupt.style.display = 'none'; btnXLRupt.classList.add('hidden'); }
+      initRuptura();
       return;
     }
     if (v === 'ranking') {
@@ -13746,298 +13951,138 @@ function abrirEditEAN(id) {
   document.getElementById('ee_id').value = id;
   document.getElementById('ee_ean').value = item.ean;
   document.getElementById('ee_nome').value = item.nome;
+  document.
+
   document.getElementById('ee_codigo').value = item.codigo || '';
   document.getElementById('ee_und').value = item.und || '';
-  document.getElementById('ee_qtde_caixa').value = item.qtdeCaixa || '';
+  document.getElementById('ee_qtde_caixa').value = item.qtde_caixa || '';
   document.getElementById('ee_shelflife').value = item.shelfLife || '';
   document.getElementById('ee_fabrica').value = item.fabrica || '';
-  document.getElementById('ee_fotoLabel').textContent = item.foto ? 'Foto já anexada' : 'Nenhuma foto selecionada';
-  const prev = document.getElementById('ee_fotoPreview');
-  if (item.foto) {
-    prev.innerHTML = `<img src="${item.foto}" style="width:100%;height:100%;object-fit:contain">`;
-    prev.classList.remove('hidden');
-  } else {
-    prev.innerHTML = '';
-    prev.classList.add('hidden');
+  var _eeFotoLabel = document.getElementById('ee_fotoLabel');
+  var _eeFotoPrev  = document.getElementById('ee_fotoPreview');
+  if (_eeFotoLabel) _eeFotoLabel.textContent = item.foto ? '✅ Foto anexada' : 'Nenhuma foto selecionada';
+  if (_eeFotoPrev) {
+    if (item.foto) { _eeFotoPrev.innerHTML = '<img src="' + item.foto + '" style="max-height:100%;max-width:100%;object-fit:contain" />'; _eeFotoPrev.classList.remove('hidden'); }
+    else { _eeFotoPrev.innerHTML = ''; _eeFotoPrev.classList.add('hidden'); }
   }
-  window._editEANFoto = item.foto || null;
-  window._editEANId = id;
-  // Códigos de rede
-  window._editEANCodRedes = Object.assign({}, item.codigosRedes || {});
-  // Popular select de redes
-  const redes = [...new Set(lojas.map(l => l.rede).filter(Boolean))].sort();
-  const sel = document.getElementById('ee_redesSel');
-  if (sel) {
-    sel.innerHTML = '<option value="">Selecionar rede...</option>' + redes.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  window._eeNovaFoto = null;
+  var _eeListaRedes = document.getElementById('ee_redesLista');
+  if (_eeListaRedes) {
+    var rds = item.redesCodigos || {};
+    _eeListaRedes.innerHTML = Object.entries(rds).map(function(entry) {
+      var r = entry[0]; var c = entry[1];
+      return '<div data-rede="' + r + '" data-cod="' + c + '" class="flex items-center justify-between text-xs bg-white border border-slate-200 rounded px-2 py-1 mb-1">' +
+        '<span><strong>' + esc(r) + '</strong>: ' + esc(c) + '</span>' +
+        '<button onclick="_eeRemRede(\'' + esc(r) + '\')" style="color:#ef4444;background:none;border:none;cursor:pointer;font-weight:700">×</button>' +
+      '</div>';
+    }).join('');
   }
-  document.getElementById('ee_redesCod').value = '';
-  _eeRenderRedes();
+  var _eeSelRedes = document.getElementById('ee_redesSel');
+  if (_eeSelRedes) {
+    var _redes2 = redesConfig.map(function(r){return r.nome;}).sort();
+    _eeSelRedes.innerHTML = '<option value="">Selecionar rede...</option>' + _redes2.map(function(r){return '<option>' + esc(r) + '</option>';}).join('');
+  }
   document.getElementById('editEANModal').classList.remove('hidden');
 }
-function _eeRenderRedes() {
-  const ul = document.getElementById('ee_redesLista');
-  if (!ul) return;
-  const obj = window._editEANCodRedes || {};
-  const keys = Object.keys(obj);
-  if (!keys.length) {
-    ul.innerHTML = '<p style="font-size:11px;color:#94a3b8;text-align:center;padding:4px 0">Nenhum código de rede cadastrado.</p>';
-    return;
-  }
-  ul.innerHTML = keys.map(r => `
-    <div style="display:flex;align-items:center;gap:6px;background:#fff;border:0.5px solid #e2e8f0;border-radius:6px;padding:4px 8px">
-      <span style="font-size:11px;font-weight:500;color:#334155;flex:1">${esc(r)}</span>
-      <span style="font-size:11px;font-family:monospace;color:#1d4ed8;background:#eff6ff;border-radius:4px;padding:1px 6px">${esc(obj[r])}</span>
-      <button data-rede="${esc(r)}" onclick="_eeRemoveRede(this.dataset.rede)" style="background:none;border:none;color:#dc2626;font-size:14px;cursor:pointer;line-height:1;padding:0">×</button>
-    </div>`).join('');
-}
-function _eeAddRede() {
-  const rede = document.getElementById('ee_redesSel').value.trim();
-  const cod  = document.getElementById('ee_redesCod').value.trim();
-  if (!rede) { showToast('⚠️ Selecione uma rede.','#92400e'); return; }
-  if (!cod)  { showToast('⚠️ Informe o código.','#92400e'); return; }
-  window._editEANCodRedes[rede] = cod;
-  document.getElementById('ee_redesSel').value = '';
-  document.getElementById('ee_redesCod').value = '';
-  _eeRenderRedes();
-}
-function _eeRemoveRede(rede) {
-  delete window._editEANCodRedes[rede];
-  _eeRenderRedes();
-}
+
 function previewFotoEANEdit(input) {
+  var label = document.getElementById('ee_fotoLabel');
+  var preview = document.getElementById('ee_fotoPreview');
   if (!input.files || !input.files[0]) return;
-  const file = input.files[0];
-  document.getElementById('ee_fotoLabel').textContent = file.name;
-  const reader = new FileReader();
+  var reader = new FileReader();
   reader.onload = function(e) {
-    window._editEANFoto = e.target.result;
-    const prev = document.getElementById('ee_fotoPreview');
-    prev.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain">`;
-    prev.classList.remove('hidden');
+    if (label) label.textContent = '✅ Foto anexada';
+    if (preview) { preview.innerHTML = '<img src="' + e.target.result + '" style="max-height:100%;max-width:100%;object-fit:contain" />'; preview.classList.remove('hidden'); }
+    window._eeNovaFoto = e.target.result;
   };
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(input.files[0]);
 }
+
+function _eeAddRede() {
+  var sel  = document.getElementById('ee_redesSel');
+  var inp  = document.getElementById('ee_redesCod');
+  var lista= document.getElementById('ee_redesLista');
+  var rede = sel && sel.value ? sel.value.trim() : '';
+  var cod  = inp && inp.value ? inp.value.trim() : '';
+  if (!rede || !cod) { showToast('⚠️ Selecione a rede e informe o código.','#92400e'); return; }
+  if (lista && lista.querySelector('[data-rede="' + rede + '"]')) { showToast('⚠️ Rede já adicionada.','#92400e'); return; }
+  var div = document.createElement('div');
+  div.setAttribute('data-rede', rede);
+  div.setAttribute('data-cod', cod);
+  div.className = 'flex items-center justify-between text-xs bg-white border border-slate-200 rounded px-2 py-1 mb-1';
+  div.innerHTML = '<span><strong>' + esc(rede) + '</strong>: ' + esc(cod) + '</span><button onclick="_eeRemRede(\'' + esc(rede) + '\')" style="color:#ef4444;background:none;border:none;cursor:pointer;font-weight:700">×</button>';
+  if (lista) lista.appendChild(div);
+  if (sel) sel.value = '';
+  if (inp) inp.value = '';
+}
+
+function _eeRemRede(rede) {
+  var lista = document.getElementById('ee_redesLista');
+  if (!lista) return;
+  var el = lista.querySelector('[data-rede="' + rede + '"]');
+  if (el) el.remove();
+}
+
 function salvarEdicaoEAN() {
-  const id = Number(document.getElementById('ee_id').value);
-  const idx = catalogo.findIndex(p => p.id === id);
-  if (idx < 0) return;
-  const ean = document.getElementById('ee_ean').value.trim();
-  const nome = document.getElementById('ee_nome').value.trim();
+  var id   = parseInt(document.getElementById('ee_id').value);
+  var ean  = document.getElementById('ee_ean').value.trim();
+  var nome = document.getElementById('ee_nome').value.trim();
   if (!ean || !nome) { showToast('⚠️ EAN e Nome são obrigatórios.','#92400e'); return; }
-  catalogo[idx].ean = ean;
-  catalogo[idx].nome = nome;
-  catalogo[idx].codigo = document.getElementById('ee_codigo').value.trim();
-  catalogo[idx].und = document.getElementById('ee_und').value;
-  catalogo[idx].qtdeCaixa = document.getElementById('ee_qtde_caixa').value.trim();
-  catalogo[idx].shelfLife = document.getElementById('ee_shelflife').value.trim();
-  catalogo[idx].fabrica = document.getElementById('ee_fabrica').value;
-  if (window._editEANFoto !== undefined) catalogo[idx].foto = window._editEANFoto;
-  catalogo[idx].codigosRedes = Object.assign({}, window._editEANCodRedes || {});
+  var codigo    = document.getElementById('ee_codigo').value.trim();
+  var und       = document.getElementById('ee_und').value;
+  var qtde_caixa= parseFloat(document.getElementById('ee_qtde_caixa').value)||0;
+  var shelfLife = parseInt(document.getElementById('ee_shelflife').value)||0;
+  var fabrica   = document.getElementById('ee_fabrica').value;
+  var lista     = document.getElementById('ee_redesLista');
+  var redesCodigos = {};
+  if (lista) { lista.querySelectorAll('[data-rede]').forEach(function(el) { if (el.dataset.rede) redesCodigos[el.dataset.rede] = el.dataset.cod||''; }); }
+  var idx = catalogo.findIndex(function(p) { return p.id === id; });
+  if (idx < 0) return;
+  var foto = window._eeNovaFoto || catalogo[idx].foto || '';
+  window._eeNovaFoto = null;
+  catalogo[idx] = Object.assign({}, catalogo[idx], { ean: ean, nome: nome, codigo: codigo, und: und, qtde_caixa: qtde_caixa, shelfLife: shelfLife, fabrica: fabrica, foto: foto, redesCodigos: redesCodigos });
   FS_CATALOGO.doc(String(id)).set(catalogo[idx]);
-  renderCatalogo();
   document.getElementById('editEANModal').classList.add('hidden');
-  showToast('✅ Produto do catálogo atualizado!','#166534');
+  renderCatalogo();
+  showToast('✅ Produto atualizado!', '#166534');
 }
-
-// ── Editar Usuário ───────────────────────────
-function abrirEditUsuario(id) {
-  const u = usuarios.find(x => x.id === id);
-  if (!u) return;
-  document.getElementById('eu_id').value = id;
-  document.getElementById('eu_nome').value = u.nome;
-  document.getElementById('eu_usuario').value = u.usuario;
-  document.getElementById('eu_senha').value = '';
-  document.getElementById('eu_role').value = u.role;
-  document.getElementById('eu_uf').value = u.uf || '';
-  document.querySelectorAll('#eu_ufs_checkboxes input[type=checkbox]').forEach(cb => {
-    cb.checked = u.ufs && u.ufs.includes(cb.value);
-  });
-  const euTelEl = document.getElementById('eu_telefone');
-  if (euTelEl) euTelEl.value = u.telefone || '';
-  toggleUFFieldEdit();
-  // Preencher vendedor responsável depois de toggleUFFieldEdit (que popula as opções)
-  const euVendResp = document.getElementById('eu_vendresp');
-  if (euVendResp) euVendResp.value = u.vendedorResponsavel || '';
-  document.getElementById('editUsuarioModal').classList.remove('hidden');
-}
-function toggleUFFieldEdit() {
-  const role = document.getElementById('eu_role').value;
-  document.getElementById('eu_uf_container').style.display = role === 'promotor' ? '' : 'none';
-  document.getElementById('eu_ufs_vendedor_container').style.display = role === 'vendedor' ? '' : 'none';
-  const vrc = document.getElementById('eu_vendresp_container');
-  if (vrc) {
-    vrc.style.display = role === 'promotor' ? '' : 'none';
-    if (role === 'promotor') {
-      const sel = document.getElementById('eu_vendresp');
-      const cv = sel ? sel.value : '';
-      const vends = usuarios.filter(u => u.role === 'vendedor').sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
-      if (sel) sel.innerHTML = '<option value="">Selecione</option>' + vends.map(v => `<option value="${esc(v.nome)}" ${v.nome===cv?'selected':''}>${esc(v.nome)}</option>`).join('');
-    }
-  }
-}
-
-function salvarEdicaoUsuario() {
-  const id = Number(document.getElementById('eu_id').value);
-  const idx = usuarios.findIndex(u => u.id === id);
-  if (idx < 0) return;
-  const nome = document.getElementById('eu_nome').value.trim();
-  const usuario = document.getElementById('eu_usuario').value.trim().toLowerCase();
-  const senha = document.getElementById('eu_senha').value;
-  const role = document.getElementById('eu_role').value;
-  if (!nome || !usuario) { showToast('⚠️ Nome e Login são obrigatórios.','#92400e'); return; }
-  if (usuarios.find(u => u.usuario === usuario && u.id !== id)) { showToast('⚠️ Login já existe.','#92400e'); return; }
-  usuarios[idx].nome = nome;
-  usuarios[idx].usuario = usuario;
-  if (senha && senha.length >= 4) usuarios[idx].senha = senha;
-  else if (senha && senha.length > 0) { showToast('⚠️ Senha: mínimo 4 caracteres.','#92400e'); return; }
-  usuarios[idx].role = role;
-  usuarios[idx].telefone = (document.getElementById('eu_telefone')?.value || '').trim().replace(/\D/g,'');
-  if (role === 'promotor') {
-    usuarios[idx].uf = document.getElementById('eu_uf').value;
-    usuarios[idx].ufs = [];
-    usuarios[idx].vendedorResponsavel = document.getElementById('eu_vendresp')?.value || '';
-  } else if (role === 'vendedor') {
-    const ufs = Array.from(document.querySelectorAll('#eu_ufs_checkboxes input[type=checkbox]:checked')).map(cb => cb.value);
-    usuarios[idx].ufs = ufs;
-    usuarios[idx].uf = '';
-    usuarios[idx].vendedorResponsavel = '';
-  } else {
-    usuarios[idx].uf = '';
-    usuarios[idx].ufs = [];
-    usuarios[idx].vendedorResponsavel = '';
-  }
-  salvarUsuarios(); renderUsuarios();
-  document.getElementById('editUsuarioModal').classList.add('hidden');
-  showToast('✅ Usuário atualizado!','#166534');
-}
-
-// ── toggleUFField (novo usuário) ─────────────
-function toggleUFField() {
-  const role = document.getElementById('u_role').value;
-  document.getElementById('u_uf_container').style.display = role === 'promotor' ? '' : 'none';
-  document.getElementById('u_ufs_vendedor_container').style.display = role === 'vendedor' ? '' : 'none';
-  const vrc = document.getElementById('u_vendresp_container');
-  if (vrc) {
-    vrc.style.display = role === 'promotor' ? '' : 'none';
-    if (role === 'promotor') {
-      const sel = document.getElementById('u_vendresp');
-      const cv = sel ? sel.value : '';
-      const vends = usuarios.filter(u => u.role === 'vendedor').sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
-      if (sel) sel.innerHTML = '<option value="">Selecione</option>' + vends.map(v => `<option value="${esc(v.nome)}" ${v.nome===cv?'selected':''}>${esc(v.nome)}</option>`).join('');
-    }
-  }
-}
-
-// ── Alerta de vencimento ──────────────────────
-function verificarAlertaVencimento() {
-  let lista = produtos;
-  if (sessao.role === 'promotor') lista = produtos.filter(p => p.promotor === sessao.nome);
-  if (sessao.role === 'vendedor') lista = produtos.filter(p => sessao.ufs && sessao.ufs.includes(p.uf));
-  const alerta = lista.filter(p => {
-    const d = diasRestantes(p.validade);
-    return d >= 0 && d <= 15;
-  }).sort((a,b) => diasRestantes(a.validade) - diasRestantes(b.validade));
-  if (!alerta.length) return;
-  const isPromotor = sessao.role === 'promotor';
-  const sub = document.getElementById('alertaVencTexto');
-  if (sub) sub.innerHTML = isPromotor
-    ? 'Os seguintes produtos vencem em até <strong>15 dias</strong>. Solicite SellOut para itens críticos.'
-    : 'Os seguintes produtos vencem em até <strong>15 dias</strong>:';
-  document.getElementById('listaAlertaVencimento').innerHTML = alerta.map(p => {
-    const d = diasRestantes(p.validade);
-    const cor    = d <= 3 ? '#fee2e2' : '#fef9c3';
-    const txtCor = d <= 3 ? '#991b1b' : '#854d0e';
-    const jaSOL  = p.selloutSolicitado;
-    const bordaSO = jaSOL ? 'border:2px solid #fca5a5;' : '';
-    const badgeSO = jaSOL
-      ? `<div style="margin-top:6px"><span style="font-size:11px;background:#fee2e2;color:#991b1b;border-radius:6px;padding:3px 8px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-circle-check" style="font-size:12px" aria-hidden="true"></i> SellOut solicitado</span></div>`
-      : '';
-    const btnRow = isPromotor && !jaSOL
-      ? `<div id="soBtnWrap_${p.id}" style="display:flex;justify-content:flex-end;margin-top:6px"><button onclick="_solicitarSellOutAlerta(${p.id})" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:5px 10px;border-radius:8px;border:1.5px solid #A32D2D;background:#FCEBEB;color:#A32D2D;cursor:pointer"><i class="ti ti-alert-triangle" style="font-size:13px" aria-hidden="true"></i> Solicitar SellOut</button></div>`
-      : '';
-    return `<div id="alertaItem_${p.id}" style="background:${cor};border-radius:8px;padding:10px 12px;${bordaSO}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div>
-          <p style="font-size:13px;font-weight:600;color:#1e293b;margin:0">${esc(p.produto)}</p>
-          <p style="font-size:11px;color:#64748b;margin:2px 0 0">${esc(p.loja)} · ${esc(p.uf)}</p>
-          <p style="font-size:11px;color:#64748b;margin:1px 0 0">${esc(p.fabrica||'—')} · ${p.quantidade||0}${p.und ? ' ' + p.und.charAt(0).toUpperCase() + p.und.slice(1).toLowerCase() : ''}</p>
-          ${badgeSO}
-        </div>
-        <div style="text-align:right;flex-shrink:0;margin-left:10px">
-          <p style="font-size:12px;font-weight:700;color:${txtCor};margin:0">${d === 0 ? 'Hoje!' : d + 'd'}</p>
-          <p style="font-size:10px;color:#94a3b8;margin:2px 0 0">${fmtData(p.validade)}</p>
-        </div>
-      </div>
-      ${btnRow}
-    </div>`;
-  }).join('');
-  document.getElementById('alertaVencimentoModal').classList.remove('hidden');
-}
-
-function _solicitarSellOutAlerta(prodId) {
-  const idx = produtos.findIndex(p => p.id === prodId);
-  if (idx < 0) return;
-  const hoje = new Date().toISOString().slice(0,10);
-  produtos[idx].selloutSolicitado   = true;
-  produtos[idx].selloutSolicitadoEm  = hoje;
-  produtos[idx].selloutSolicitadoPor = sessao.nome || '';
-  FS_PRODUTOS.doc(String(prodId)).update({
-    selloutSolicitado:   true,
-    selloutSolicitadoEm:  hoje,
-    selloutSolicitadoPor: sessao.nome || ''
-  }).catch(e => console.warn('Erro ao solicitar SellOut:', e));
-  // Atualiza o card no popup sem fechar o modal
-  const el = document.getElementById('alertaItem_' + prodId);
-  if (el) {
-    el.style.border = '2px solid #fca5a5';
-    const btnWrap = document.getElementById('soBtnWrap_' + prodId);
-    if (btnWrap) {
-      btnWrap.style.justifyContent = 'flex-start';
-      btnWrap.innerHTML = `<div style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:5px 10px;border-radius:8px;color:#27500A;background:#EAF3DE"><i class="ti ti-circle-check" aria-hidden="true" style="font-size:14px"></i> SellOut solicitado</div>`;
-    }
-  }
-  renderTabela();
-  showToast('✅ SellOut solicitado com sucesso!', '#166534');
-}
-
 
 function removerPromotorImportado(chave) {
   if (!confirm('Remover dados deste promotor?')) return;
   delete consolidado[chave];
   FS_CFG_CONSOLIDADO.set({ data: consolidado });
   renderRelatorio();
-  showToast('🗑 Dados removidos.','#7f1d1d');
+  showToast('✅ Promotor removido.', '#166534');
+}
+
+function deletarProdutoImportado(chave, prodId) {
+  if (!confirm('Excluir este produto do relatório?')) return;
+  var c = consolidado[chave];
+  if (!c) return;
+  c.produtos = (c.produtos || []).filter(function(p) { return p.id !== prodId; });
+  if (!c.produtos.length) { delete consolidado[chave]; }
+  FS_CFG_CONSOLIDADO.set({ data: consolidado });
+  renderRelatorio();
+  showToast('🗑️ Produto removido.', '#475569');
 }
 
 function limparTodosImportados() {
-  if (!confirm('Remover TODOS os dados importados? Ação irreversível.')) return;
+  if (!confirm('Limpar todos os dados importados?')) return;
   consolidado = {};
   FS_CFG_CONSOLIDADO.set({ data: consolidado });
   renderRelatorio();
-  showToast('🗑 Todos os dados removidos.','#7f1d1d');
+  showToast('🗑️ Dados limpos.', '#475569');
 }
 
-function deletarProdutoImportado(chave, id) {
-  if (!confirm('Remover este produto?')) return;
-  if (!consolidado[chave]) return;
-  consolidado[chave].produtos = consolidado[chave].produtos.filter(p => p.id !== id);
-  if (!consolidado[chave].produtos.length) delete consolidado[chave];
-  FS_CFG_CONSOLIDADO.set({ data: consolidado });
-  renderRelatorio();
-  showToast('🗑 Produto removido.','#7f1d1d');
-}
-
-// ── Consolidado: renderizar relatório ────────
 function renderRelatorio() {
-  const chaves = Object.keys(consolidado);
-  const elVazio = document.getElementById('relatorioVazio');
-  const elDados = document.getElementById('relatorioPromotores');
-  if (!elVazio || !elDados) return;
-
+  var chaves  = Object.keys(consolidado);
+  var elVazio = document.getElementById('relatorioVazio');
+  var elDados = document.getElementById('relatorioPromotores');
   if (!chaves.length) {
-    elVazio.classList.remove('hidden');
-    elDados.classList.add('hidden');
-    return;
+    if (elVazio) elVazio.classList.remove('hidden');
+    if (elDados) elDados.classList.add('hidden');
+
+return;
   }
   elVazio.classList.add('hidden');
   elDados.classList.remove('hidden');
@@ -14299,31 +14344,498 @@ async function carregarDados() {
     name: 'Controle de Validade',
     short_name: 'Validade',
     start_url: './',
+
     display: 'standalone',
-    background_color: '#ffffff',
+    background_color: '#f1f5f9',
     theme_color: '#1e40af',
     icons: [{ src: iconURI, sizes: '512x512', type: 'image/svg+xml' }]
   };
-  const mLink = document.getElementById('pwaManifest');
-  if (mLink) mLink.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifest));
+  var blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  var manifestURL = URL.createObjectURL(blob);
+  var manifestEl = document.getElementById('pwaManifest');
+  if (manifestEl) manifestEl.href = manifestURL;
+
+  var _deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    _deferredPrompt = e;
+    var btn = document.getElementById('btnInstalarApp');
+    if (btn) btn.style.display = 'inline-flex';
+  });
+  window.instalarApp = function() {
+    if (!_deferredPrompt) return;
+    _deferredPrompt.prompt();
+    _deferredPrompt.userChoice.then(function() { _deferredPrompt = null; });
+    var modal = document.getElementById('modalInstalarApp');
+    if (modal) modal.classList.add('hidden');
+  };
 })();
 
-let _pwaPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  _pwaPrompt = e;
-});
 
-function instalarApp() {
-  if (_pwaPrompt) {
-    _pwaPrompt.prompt();
-    _pwaPrompt.userChoice.then(() => { _pwaPrompt = null; });
-  } else {
-    document.getElementById('modalInstalarApp').classList.remove('hidden');
+// ══════════════════════════════════════════════
+// ── RUPTURA DE PRODUTO ────────────────────────
+// ══════════════════════════════════════════════
+
+function initRuptura() {
+  if (_ruptUnsubscribe) {
+    _ruptPopularSelects();
+    _ruptHPopularSelects();
+    if (_ruptTab === 'ativas') renderRupturas();
+    else renderRupturasHistorico();
+    return;
+  }
+  _ruptUnsubscribe = FS_RUPTURAS.orderBy('dataInicio','desc').onSnapshot(function(snap) {
+    rupturas = snap.docs.map(function(d) { return Object.assign({ firestoreId: d.id }, d.data()); });
+    _ruptPopularSelects();
+    _ruptHPopularSelects();
+    if (_ruptTab === 'ativas') renderRupturas();
+    else renderRupturasHistorico();
+  }, function(err) {
+    console.error('Erro ao carregar rupturas:', err);
+    showToast('Erro ao carregar rupturas: ' + err.message, '#dc2626');
+  });
+}
+
+function ruptSetTab(tab) {
+  _ruptTab = tab;
+  var pa = document.getElementById('ruptPanelAtivas');
+  var ph = document.getElementById('ruptPanelHistorico');
+  var ta = document.getElementById('ruptTabAtivas');
+  var th = document.getElementById('ruptTabHistorico');
+  if (pa) pa.style.display = tab === 'ativas' ? '' : 'none';
+  if (ph) ph.style.display = tab === 'historico' ? '' : 'none';
+  if (ta) { ta.style.background = tab === 'ativas' ? '#1e3a5f' : 'transparent'; ta.style.color = tab === 'ativas' ? 'white' : '#64748b'; }
+  if (th) { th.style.background = tab === 'historico' ? '#1e3a5f' : 'transparent'; th.style.color = tab === 'historico' ? 'white' : '#64748b'; }
+  if (tab === 'ativas') renderRupturas();
+  else renderRupturasHistorico();
+}
+
+function _ruptGetBase() {
+  var base = rupturas.slice();
+  if (sessao && sessao.role === 'vendedor' && sessao.ufs && sessao.ufs.length) {
+    base = base.filter(function(r) { return sessao.ufs.indexOf(r.uf) !== -1; });
+  } else if (sessao && sessao.role === 'promotor') {
+    base = base.filter(function(r) { return r.promotor === sessao.nome; });
+  }
+  return base;
+}
+
+function _ruptPopularSelects() {
+  var base = _ruptGetBase();
+  var fRede = (document.getElementById('ruptFiltroRede') || {}).value || '';
+  var fVend = (document.getElementById('ruptFiltroVendedor') || {}).value || '';
+  var fUF   = (document.getElementById('ruptFiltroUF') || {}).value   || '';
+  var fLoja = (document.getElementById('ruptFiltroLoja') || {}).value  || '';
+  var fProm = (document.getElementById('ruptFiltroPromotor') || {}).value || '';
+
+  var filtered = base.slice();
+  if (fRede) filtered = filtered.filter(function(r) { return r.rede === fRede; });
+  if (fVend) filtered = filtered.filter(function(r) { return r.vendedor === fVend; });
+  if (fUF)   filtered = filtered.filter(function(r) { return r.uf === fUF; });
+  if (fLoja) filtered = filtered.filter(function(r) { return r.loja === fLoja; });
+  if (fProm) filtered = filtered.filter(function(r) { return r.promotor === fProm; });
+
+  var redeEl = document.getElementById('ruptFiltroRede');
+  if (redeEl) { var cv=redeEl.value; redeEl.innerHTML='<option value="">Todas</option>'+[...new Set(base.map(function(r){return r.rede;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv?' selected':'')+'>'+v+'</option>';}).join(''); }
+  var vendEl = document.getElementById('ruptFiltroVendedor');
+  if (vendEl) {
+    var isAdmDir = sessao && (sessao.role==='admin'||sessao.role==='diretor');
+    vendEl.parentElement.style.display = isAdmDir ? '' : 'none';
+    if (isAdmDir) { var cv2=vendEl.value; var vends=usuarios.filter(function(u){return u.role==='vendedor';}).sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR');}); vendEl.innerHTML='<option value="">Todos</option>'+vends.map(function(v){return '<option value="'+v.nome+'"'+(v.nome===cv2?' selected':'')+'>'+v.nome+'</option>';}).join(''); }
+  }
+  var ufEl = document.getElementById('ruptFiltroUF');
+  if (ufEl) { var cv3=ufEl.value; ufEl.innerHTML='<option value="">Todas</option>'+[...new Set(filtered.map(function(r){return r.uf;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv3?' selected':'')+'>'+v+'</option>';}).join(''); }
+  var lojaEl = document.getElementById('ruptFiltroLoja');
+  if (lojaEl) { var cv4=lojaEl.value; lojaEl.innerHTML='<option value="">Todas</option>'+[...new Set(filtered.map(function(r){return r.loja;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv4?' selected':'')+'>'+v+'</option>';}).join(''); }
+  var promEl = document.getElementById('ruptFiltroPromotor');
+  if (promEl) { var cv5=promEl.value; promEl.innerHTML='<option value="">Todos</option>'+[...new Set(filtered.map(function(r){return r.promotor;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv5?' selected':'')+'>'+v+'</option>';}).join(''); }
+  var prodEl = document.getElementById('ruptFiltroProduto');
+  if (prodEl) { var cv6=prodEl.value; prodEl.innerHTML='<option value="">Todos</option>'+[...new Set(filtered.map(function(r){return r.produto;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv6?' selected':'')+'>'+v+'</option>';}).join(''); }
+}
+
+function _ruptHPopularSelects() {
+  var base = _ruptGetBase().filter(function(r) { return r.status === 'resolvida'; });
+  var fRede = (document.getElementById('ruptHFiltroRede') || {}).value || '';
+  var fVend = (document.getElementById('ruptHFiltroVendedor') || {}).value || '';
+  var fUF   = (document.getElementById('ruptHFiltroUF') || {}).value   || '';
+  var fLoja = (document.getElementById('ruptHFiltroLoja') || {}).value  || '';
+  var fProm = (document.getElementById('ruptHFiltroPromotor') || {}).value || '';
+
+  var filtered = base.slice();
+  if (fRede) filtered = filtered.filter(function(r) { return r.rede === fRede; });
+  if (fVend) filtered = filtered.filter(function(r) { return r.vendedor === fVend; });
+  if (fUF)   filtered = filtered.filter(function(r) { return r.uf === fUF; });
+  if (fLoja) filtered = filtered.filter(function(r) { return r.loja === fLoja; });
+  if (fProm) filtered = filtered.filter(function(r) { return r.promotor === fProm; });
+
+  var redeEl = document.getElementById('ruptHFiltroRede');
+  if (redeEl) { var cv=redeEl.value; redeEl.innerHTML='<option value="">Todas</option>'+[...new Set(base.map(function(r){return r.rede;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv?' selected':'')+'>'+v+'</option>';}).join(''); }
+  var vendEl = document.getElementById('ruptHFiltroVendedor');
+  if (vendEl) {
+    var isAdmDir = sessao && (sessao.role==='admin'||sessao.role==='diretor');
+    vendEl.parentElement.style.display = isAdmDir ? '' : 'none';
+    if (isAdmDir) { var cv2=vendEl.value; var vends=usuarios.filter(function(u){return u.role==='vendedor';}).sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR');}); vendEl.innerHTML='<option value="">Todos</option>'+vends.map(function(v){return '<option value="'+v.nome+'"'+(v.nome===cv2?' selected':'')+'>'+v.nome+'</option>';}).join(''); }
+  }
+  var ufEl = document.getElementById('ruptHFiltroUF');
+  if (ufEl) { var cv3=ufEl.value; ufEl.innerHTML='<option value="">Todas</option>'+[...new Set(filtered.map(function(r){return r.uf;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv3?' selected':'')+'>'+v+'</option>';}).join(''); }
+  var lojaEl = document.getElementById('ruptHFiltroLoja');
+  if (lojaEl) { var cv4=lojaEl.value; lojaEl.innerHTML='<option value="">Todas</option>'+[...new Set(filtered.map(function(r){return r.loja;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv4?' selected':'')+'>'+v+'</option>';}).join(''); }
+  var promEl = document.getElementById('ruptHFiltroPromotor');
+  if (promEl) { var cv5=promEl.value; promEl.innerHTML='<option value="">Todos</option>'+[...new Set(filtered.map(function(r){return r.promotor;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv5?' selected':'')+'>'+v+'</option>';}).join(''); }
+  var prodEl = document.getElementById('ruptHFiltroProduto');
+  if (prodEl) { var cv6=prodEl.value; prodEl.innerHTML='<option value="">Todos</option>'+[...new Set(filtered.map(function(r){return r.produto;}).filter(Boolean))].sort().map(function(v){return '<option'+(v===cv6?' selected':'')+'>'+v+'</option>';}).join(''); }
+}
+
+function _ruptFiltrar() {
+  var base = _ruptGetBase();
+  var fRede   = (document.getElementById('ruptFiltroRede') || {}).value   || '';
+  var fVend   = (document.getElementById('ruptFiltroVendedor') || {}).value || '';
+  var fUF     = (document.getElementById('ruptFiltroUF') || {}).value     || '';
+  var fLoja   = (document.getElementById('ruptFiltroLoja') || {}).value    || '';
+  var fProm   = (document.getElementById('ruptFiltroPromotor') || {}).value || '';
+  var fProd   = (document.getElementById('ruptFiltroProduto') || {}).value  || '';
+  var fStatus = (document.getElementById('ruptFiltroStatus') || {}).value   || '';
+  if (fRede)   base = base.filter(function(r) { return r.rede === fRede; });
+  if (fVend)   base = base.filter(function(r) { return r.vendedor === fVend; });
+  if (fUF)     base = base.filter(function(r) { return r.uf === fUF; });
+  if (fLoja)   base = base.filter(function(r) { return r.loja === fLoja; });
+  if (fProm)   base = base.filter(function(r) { return r.promotor === fProm; });
+  if (fProd)   base = base.filter(function(r) { return r.produto === fProd; });
+  if (fStatus) base = base.filter(function(r) { return r.status === fStatus; });
+  return base;
+}
+
+function _ruptHFiltrar() {
+  var base = _ruptGetBase().filter(function(r) { return r.status === 'resolvida'; });
+  var fRede = (document.getElementById('ruptHFiltroRede') || {}).value   || '';
+  var fVend = (document.getElementById('ruptHFiltroVendedor') || {}).value || '';
+  var fUF   = (document.getElementById('ruptHFiltroUF') || {}).value     || '';
+  var fLoja = (document.getElementById('ruptHFiltroLoja') || {}).value    || '';
+  var fProm = (document.getElementById('ruptHFiltroPromotor') || {}).value || '';
+  var fProd = (document.getElementById('ruptHFiltroProduto') || {}).value  || '';
+  var fDtI  = dataParaISO((document.getElementById('ruptHDataIni') || {}).value || '');
+  var fDtF  = dataParaISO((document.getElementById('ruptHDataFim') || {}).value || '');
+  if (fRede) base = base.filter(function(r) { return r.rede === fRede; });
+  if (fVend) base = base.filter(function(r) { return r.vendedor === fVend; });
+  if (fUF)   base = base.filter(function(r) { return r.uf === fUF; });
+  if (fLoja) base = base.filter(function(r) { return r.loja === fLoja; });
+  if (fProm) base = base.filter(function(r) { return r.promotor === fProm; });
+  if (fProd) base = base.filter(function(r) { return r.produto === fProd; });
+  if (fDtI || fDtF) {
+    base = base.filter(function(r) {
+      var d = r.dataInicio && r.dataInicio.toDate ? r.dataInicio.toDate().toISOString().slice(0,10) : '';
+      if (fDtI && d < fDtI) return false;
+      if (fDtF && d > fDtF) return false;
+      return true;
+    });
+  }
+  return base;
+}
+
+function _ruptDias(r) {
+  var ini = r.dataInicio && r.dataInicio.toDate ? r.dataInicio.toDate() : new Date(r.dataInicio);
+  var fim = r.dataFim && r.dataFim.toDate ? r.dataFim.toDate() : (r.dataFim ? new Date(r.dataFim) : new Date());
+  return Math.max(0, Math.round((fim - ini) / 86400000));
+}
+
+function _ruptFmtDate(ts) {
+  if (!ts) return '—';
+  var d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('pt-BR');
+}
+
+function renderRupturas() {
+  var dados = _ruptFiltrar();
+  var tbody  = document.getElementById('ruptTableBody');
+  var semEl  = document.getElementById('ruptSemDados');
+  var cntEl  = document.getElementById('ruptContadorAtivas');
+  if (cntEl) cntEl.textContent = dados.length + ' registros';
+  var total     = dados.length;
+  var ativas    = dados.filter(function(r) { return r.status === 'ativa'; }).length;
+  var resolvidas= dados.filter(function(r) { return r.status === 'resolvida'; }).length;
+  var diasMedio = total ? Math.round(dados.reduce(function(s,r){return s+_ruptDias(r);},0) / total) : 0;
+  var statsEl = document.getElementById('ruptStatsAtivas');
+  if (statsEl) statsEl.innerHTML =
+    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #bfdbfe">' +
+      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total</div>' +
+      '<div style="font-size:26px;font-weight:700;color:#1e3a5f">' + total + '</div>' +
+    '</div>' +
+    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #fecaca">' +
+      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Ativas</div>' +
+      '<div style="font-size:26px;font-weight:700;color:#dc2626">' + ativas + '</div>' +
+    '</div>' +
+    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #bbf7d0">' +
+      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Resolvidas</div>' +
+      '<div style="font-size:26px;font-weight:700;color:#16a34a">' + resolvidas + '</div>' +
+    '</div>' +
+    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #fef08a">' +
+      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Dias Médio</div>' +
+      '<div style="font-size:26px;font-weight:700;color:#b45309">' + diasMedio + '</div>' +
+    '</div>';
+  var grafEl = document.getElementById('ruptGrafico');
+  if (grafEl) {
+    var countMap = {};
+    dados.filter(function(r){return r.status==='ativa';}).forEach(function(r){countMap[r.produto]=(countMap[r.produto]||0)+1;});
+    var sorted = Object.entries(countMap).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
+    var maxV = sorted[0] ? sorted[0][1] : 1;
+    if (!sorted.length) {
+      grafEl.innerHTML = '<p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">Sem dados para exibir</p>';
+    } else {
+      grafEl.innerHTML = sorted.map(function(entry) {
+        var nome = entry[0]; var count = entry[1];
+        var pct = Math.round((count / maxV) * 100);
+        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+          '<span style="font-size:11px;width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(nome) + '</span>' +
+          '<div style="flex:1;height:10px;background:#f1f5f9;border-radius:5px;overflow:hidden">' +
+            '<div style="height:100%;background:#dc2626;border-radius:5px;width:' + pct + '%"></div>' +
+          '</div>' +
+          '<span style="font-size:11px;color:#64748b;min-width:24px;text-align:right">' + count + 'x</span>' +
+        '</div>';
+      }).join('');
+    }
+  }
+  if (!dados.length) {
+    if (tbody) tbody.innerHTML = '';
+    if (semEl) semEl.classList.remove('hidden');
+    return;
+  }
+  if (semEl) semEl.classList.add('hidden');
+  var isAdmin = sessao && (sessao.role==='admin'||sessao.role==='diretor');
+  tbody.innerHTML = dados.map(function(r) {
+    var dias = _ruptDias(r);
+    var isAtiva = r.status === 'ativa';
+    var statusBadge = isAtiva
+      ? '<span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">ATIVA</span>'
+      : '<span style="background:#dcfce7;color:#166534;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px">RESOLVIDA</span>';
+    var acoes = isAdmin ? (
+      '<td style="white-space:nowrap">' +
+      (isAtiva ? '<button onclick="resolverRuptura(\'' + r.firestoreId + '\')" title="Marcar como resolvida" style="background:#16a34a;color:white;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;margin-right:4px"><i class="ti ti-check" style="font-size:11px"></i> Resolver</button>' : '') +
+      '<button onclick="excluirRuptura(\'' + r.firestoreId + '\')" title="Excluir" style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:2px 4px;border-radius:4px;font-size:15px;line-height:1" onmouseover="this.style.color=\'#ef4444\'" onmouseout="this.style.color=\'#94a3b8\'">&#x1f5d1;&#xfe0f;</button>' +
+      '</td>'
+    ) : '<td></td>';
+    return '<tr class="' + (isAtiva ? 'row-expired' : 'row-ok') + '">' +
+      '<td style="font-weight:600">' + esc(r.produto) + '</td>' +
+      '<td>' + esc(r.loja) + '</td>' +
+      '<td style="text-align:center">' + esc(r.uf) + '</td>' +
+      '<td>' + esc(r.rede) + '</td>' +
+      '<td>' + _ruptFmtDate(r.dataInicio) + '</td>' +
+      '<td style="text-align:center;font-weight:700;color:' + (dias>7?'#dc2626':'#b45309') + '">' + dias + 'd</td>' +
+      '<td>' + esc(r.promotor) + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      acoes +
+    '</tr>';
+  }).join('');
+}
+
+function renderRupturasHistorico() {
+  var dados = _ruptHFiltrar();
+  var tbody = document.getElementById('ruptHTableBody');
+  var semEl = document.getElementById('ruptHSemDados');
+  var cntEl = document.getElementById('ruptContadorHist');
+  if (cntEl) cntEl.textContent = dados.length + ' registros';
+  var total    = dados.length;
+  var diasTotal= dados.reduce(function(s,r){return s+_ruptDias(r);},0);
+  var diasMedio= total ? Math.round(diasTotal / total) : 0;
+  var statsEl = document.getElementById('ruptStatsHist');
+  if (statsEl) statsEl.innerHTML =
+    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #bfdbfe">' +
+      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Resolvidas</div>' +
+      '<div style="font-size:26px;font-weight:700;color:#1e3a5f">' + total + '</div>' +
+    '</div>' +
+    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #fef08a">' +
+      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Duração Média</div>' +
+      '<div style="font-size:26px;font-weight:700;color:#b45309">' + diasMedio + ' dias</div>' +
+    '</div>' +
+    '<div class="bg-white rounded-2xl shadow p-4" style="border:1px solid #e2e8f0">' +
+      '<div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Dias Totais</div>' +
+      '<div style="font-size:26px;font-weight:700;color:#475569">' + diasTotal + '</div>' +
+    '</div>';
+  var timelineEl = document.getElementById('ruptTimeline');
+  if (timelineEl) {
+    var hoje = new Date(); hoje.setHours(23,59,59,999);
+    var inicio60 = new Date(hoje); inicio60.setDate(hoje.getDate()-59); inicio60.setHours(0,0,0,0);
+    var span60 = hoje - inicio60;
+    var baseAll = _ruptGetBase();
+    var tlDados = baseAll.filter(function(r) {
+      var ini = r.dataInicio && r.dataInicio.toDate ? r.dataInicio.toDate() : new Date(r.dataInicio);
+      return ini <= hoje && (!r.dataFim || (r.dataFim && r.dataFim.toDate ? r.dataFim.toDate() : new Date(r.dataFim)) >= inicio60);
+    }).slice(0,30);
+    if (!tlDados.length) {
+      timelineEl.innerHTML = '<p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">Nenhuma ruptura nos últimos 60 dias</p>';
+    } else {
+      var meses = [];
+      for (var i=0;i<60;i+=15) {
+        var d2=new Date(inicio60); d2.setDate(d2.getDate()+i);
+        meses.push({pct:Math.round((i/59)*100),label:d2.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})});
+      }
+      var regraHtml = '<div style="position:relative;height:18px;margin-bottom:4px;border-bottom:1px solid #e2e8f0">' +
+        meses.map(function(m){return '<span style="position:absolute;left:'+m.pct+'%;font-size:9px;color:#94a3b8;transform:translateX(-50%)">'+m.label+'</span>';}).join('') +
+      '</div>';
+      var linhasHtml = tlDados.map(function(r) {
+        var ini = r.dataInicio && r.dataInicio.toDate ? r.dataInicio.toDate() : new Date(r.dataInicio);
+        var fim = r.dataFim && r.dataFim.toDate ? r.dataFim.toDate() : hoje;
+        var iniC = ini<inicio60 ? inicio60 : ini;
+        var fimC = fim>hoje ? hoje : fim;
+        var left  = Math.max(0,Math.min(100,((iniC-inicio60)/span60)*100));
+        var width = Math.max(0.5,Math.min(100-left,((fimC-iniC)/span60)*100));
+        var cor   = r.status==='ativa' ? '#dc2626' : '#f97316';
+        return '<div style="position:relative;height:22px;margin-bottom:4px;display:flex;align-items:center">' +
+          '<span style="font-size:10px;color:#64748b;min-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0">' + esc(r.produto) + ' · ' + esc(r.loja) + '</span>' +
+          '<div style="flex:1;height:12px;background:#f1f5f9;border-radius:4px;position:relative;overflow:hidden">' +
+            '<div style="position:absolute;top:0;left:'+left+'%;width:'+width+'%;height:100%;background:'+cor+';border-radius:4px" title="'+esc(r.produto)+' — '+_ruptFmtDate(r.dataInicio)+' a '+(r.dataFim?_ruptFmtDate(r.dataFim):'hoje')+'"></div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      timelineEl.innerHTML = regraHtml + linhasHtml;
+    }
+  }
+  if (!dados.length) {
+    if (tbody) tbody.innerHTML = '';
+    if (semEl) semEl.classList.remove('hidden');
+    return;
+  }
+  if (semEl) semEl.classList.add('hidden');
+  tbody.innerHTML = dados.map(function(r) {
+    var dias = _ruptDias(r);
+    return '<tr>' +
+      '<td style="font-weight:600">' + esc(r.produto) + '</td>' +
+      '<td>' + esc(r.loja) + '</td>' +
+      '<td style="text-align:center">' + esc(r.uf) + '</td>' +
+      '<td>' + esc(r.rede) + '</td>' +
+      '<td>' + _ruptFmtDate(r.dataInicio) + '</td>' +
+      '<td>' + _ruptFmtDate(r.dataFim) + '</td>' +
+      '<td style="text-align:center;font-weight:700;color:#b45309">' + dias + 'd</td>' +
+      '<td>' + esc(r.motivo||'—') + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function limparFiltrosRuptura() {
+  ['ruptFiltroRede','ruptFiltroVendedor','ruptFiltroUF','ruptFiltroLoja','ruptFiltroPromotor','ruptFiltroProduto','ruptFiltroStatus'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  _ruptPopularSelects();
+  renderRupturas();
+}
+
+function limparFiltrosRupturasHist() {
+  ['ruptHFiltroRede','ruptHFiltroVendedor','ruptHFiltroUF','ruptHFiltroLoja','ruptHFiltroPromotor','ruptHFiltroProduto','ruptHDataIni','ruptHDataFim'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  _ruptHPopularSelects();
+  renderRupturasHistorico();
+}
+
+function _ruptModalOnLojaChange() {
+  var selLoja = document.getElementById('ruptModalLoja');
+  var lojaSel = lojas.filter(function(l){return l.nome === (selLoja && selLoja.value);})[0];
+  if (lojaSel) {
+    var ufEl = document.getElementById('ruptModalUF'); if (ufEl) ufEl.value = lojaSel.uf || '';
+    var redeEl = document.getElementById('ruptModalRede'); if (redeEl) redeEl.value = lojaSel.rede || '';
+    var vendEl = document.getElementById('ruptModalVendedor'); if (vendEl) vendEl.value = lojaSel.vendedor || '';
   }
 }
 
-// ── Arranque ─────────────────────────────────
+function abrirModalRuptura(ruptId) {
+  var modal = document.getElementById('modalRuptura');
+  var idEl  = document.getElementById('ruptModalId');
+  if (idEl) idEl.value = ruptId || '';
+  var selProm = document.getElementById('ruptModalPromotor');
+  if (selProm) {
+    var proms = usuarios.filter(function(u){return u.role==='promotor';}).sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR');});
+    var presel = sessao && sessao.role === 'promotor' ? sessao.nome : '';
+    selProm.innerHTML = '<option value="">Selecione...</option>' + proms.map(function(u){return '<option value="'+esc(u.nome)+'"'+(u.nome===presel?' selected':'')+'>'+esc(u.nome)+'</option>';}).join('');
+    if (sessao && sessao.role === 'promotor') { selProm.value = sessao.nome; selProm.disabled = true; } else { selProm.disabled = false; }
+  }
+  var selLoja = document.getElementById('ruptModalLoja');
+  if (selLoja) {
+    var lojasDisp = lojas.slice().sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'','pt-BR');});
+    if (sessao && sessao.role === 'vendedor' && sessao.ufs && sessao.ufs.length) lojasDisp = lojasDisp.filter(function(l){return sessao.ufs.indexOf(l.uf) !== -1;});
+    if (sessao && sessao.role === 'promotor' && sessao.uf) lojasDisp = lojasDisp.filter(function(l){return l.uf===sessao.uf;});
+    selLoja.innerHTML = '<option value="">Selecione...</option>' + lojasDisp.map(function(l){return '<option value="'+esc(l.nome)+'">'+esc(l.nome)+(l.rede?' · '+esc(l.rede):'')+(l.uf?' ('+esc(l.uf)+')':'')+'</option>';}).join('');
+  }
+  var selProd = document.getElementById('ruptModalProduto');
+  if (selProd) {
+    var prods = [...new Set(catalogo.map(function(c){return c.nome;}).filter(Boolean))].sort();
+    selProd.innerHTML = '<option value="">Selecione...</option>' + prods.map(function(p){return '<option value="'+esc(p)+'">'+esc(p)+'</option>';}).join('');
+  }
+  if (ruptId) {
+    var r = rupturas.filter(function(x){return x.firestoreId===ruptId;})[0];
+    if (r) {
+      if (selProm) selProm.value = r.promotor || '';
+      if (selLoja) selLoja.value = r.loja || '';
+      if (selProd) selProd.value = r.produto || '';
+      var motEl = document.getElementById('ruptModalMotivo'); if (motEl) motEl.value = r.motivo || '';
+      var obsEl = document.getElementById('ruptModalObs'); if (obsEl) obsEl.value = r.observacao || '';
+    }
+  } else {
+    var motEl2 = document.getElementById('ruptModalMotivo'); if (motEl2) motEl2.value = '';
+    var obsEl2 = document.getElementById('ruptModalObs'); if (obsEl2) obsEl2.value = '';
+  }
+  modal.classList.remove('hidden');
+}
+
+async function salvarRuptura() {
+  var promotor = ((document.getElementById('ruptModalPromotor') || {}).value || '').trim();
+  var lojaNome = ((document.getElementById('ruptModalLoja') || {}).value || '').trim();
+  var produto  = ((document.getElementById('ruptModalProduto') || {}).value || '').trim();
+  var motivo   = ((document.getElementById('ruptModalMotivo') || {}).value || '').trim();
+  var obs      = ((document.getElementById('ruptModalObs') || {}).value || '').trim();
+  var ruptId   = (document.getElementById('ruptModalId') || {}).value || '';
+  if (!promotor || !lojaNome || !produto || !motivo) {
+    showToast('⚠️ Preencha todos os campos obrigatórios.', '#92400e');
+    return;
+  }
+  var lojaObj = lojas.filter(function(l){return l.nome===lojaNome;})[0];
+  var uf      = lojaObj && lojaObj.uf      || '';
+  var rede    = lojaObj && lojaObj.rede    || '';
+  var vendedor= lojaObj && lojaObj.vendedor|| '';
+  try {
+    if (ruptId) {
+      await FS_RUPTURAS.doc(ruptId).update({ produto: produto, motivo: motivo, observacao: obs });
+      showToast('✅ Ruptura atualizada!', '#166534');
+    } else {
+      var docData = {
+        produto: produto, loja: lojaNome, lojaId: lojaObj && lojaObj.id || '',
+        rede: rede, uf: uf, vendedor: vendedor, promotor: promotor,
+        dataInicio: firebase.firestore.FieldValue.serverTimestamp(),
+        dataFim: null, motivo: motivo, observacao: obs,
+        criadoPor: sessao && sessao.nome || '', status: 'ativa', firestoreId: ''
+      };
+      var ref = await FS_RUPTURAS.add(docData);
+      await FS_RUPTURAS.doc(ref.id).update({ firestoreId: ref.id });
+      showToast('✅ Ruptura registrada!', '#166534');
+    }
+    document.getElementById('modalRuptura').classList.add('hidden');
+  } catch(e) {
+    showToast('❌ Erro ao salvar: ' + e.message, '#dc2626');
+  }
+}
+
+async function resolverRuptura(firestoreId) {
+  if (!confirm('Marcar esta ruptura como resolvida?')) return;
+  try {
+    await FS_RUPTURAS.doc(firestoreId).update({
+      status: 'resolvida',
+      dataFim: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('✅ Ruptura resolvida!', '#166534');
+  } catch(e) {
+    showToast('❌ Erro: ' + e.message, '#dc2626');
+  }
+}
+
+async function excluirRuptura(firestoreId) {
+  if (!confirm('Excluir esta ruptura permanentemente?')) return;
+  try {
+    await FS_RUPTURAS.doc(firestoreId).delete();
+    showToast('🗑️ Ruptura excluída.', '#475569');
+  } catch(e) {
+    showToast('❌ Erro: ' + e.message, '#dc2626');
+  }
+}
+
+
 carregarDados();
 </script>
 </body>
