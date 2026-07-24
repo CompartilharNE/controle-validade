@@ -5693,6 +5693,14 @@ function _onDigitarProduto(input) {
   }
 }
 
+function _codRedeDoProduto(p, rede) {
+  if (!rede) return '';
+  const codes = p.codigosRedes || {};
+  const redeNorm = normTxt(rede);
+  const key = Object.keys(codes).find(k => normTxt(k) === redeNorm);
+  return key ? (codes[key] || '') : '';
+}
+
 function _filtrarSugestoesProduto(texto) {
   const drop = document.getElementById('produtoSugestoes');
   if (!drop) return;
@@ -5718,7 +5726,8 @@ function _filtrarSugestoesProduto(texto) {
   if (busca) lista = lista.filter(p =>
     normTxt(p.nome).includes(busca) ||
     normTxt(p.codigo || '').includes(busca) ||
-    (p.ean    || '').includes(busca)
+    (p.ean    || '').includes(busca) ||
+    normTxt(_codRedeDoProduto(p, rede) || '').includes(busca)
   );
   lista = lista.slice(0, 8);
 
@@ -14371,7 +14380,7 @@ function abrirEditEAN(id) {
   window._eeNovaFoto = null;
   var _eeListaRedes = document.getElementById('ee_redesLista');
   if (_eeListaRedes) {
-    var rds = item.redesCodigos || {};
+    var rds = item.codigosRedes || {};
     _eeListaRedes.innerHTML = Object.entries(rds).map(function(entry) {
       var r = entry[0]; var c = entry[1];
       return '<div data-rede="' + r + '" data-cod="' + c + '" class="flex items-center justify-between text-xs bg-white border border-slate-200 rounded px-2 py-1 mb-1">' +
@@ -14443,7 +14452,7 @@ function salvarEdicaoEAN() {
   if (idx < 0) return;
   var foto = window._eeNovaFoto || catalogo[idx].foto || '';
   window._eeNovaFoto = null;
-  catalogo[idx] = Object.assign({}, catalogo[idx], { ean: ean, nome: nome, codigo: codigo, und: und, qtde_caixa: qtde_caixa, shelfLife: shelfLife, fabrica: fabrica, foto: foto, redesCodigos: redesCodigos });
+  catalogo[idx] = Object.assign({}, catalogo[idx], { ean: ean, nome: nome, codigo: codigo, und: und, qtde_caixa: qtde_caixa, shelfLife: shelfLife, fabrica: fabrica, foto: foto, codigosRedes: redesCodigos });
   FS_CATALOGO.doc(String(id)).set(catalogo[idx]);
   document.getElementById('editEANModal').classList.add('hidden');
   renderCatalogo();
