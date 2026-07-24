@@ -2902,7 +2902,6 @@
       </div>
       <p class="text-xs text-slate-400 mb-4 leading-relaxed">Deseja substituir a <strong>quantidade</strong> e o <strong>preço</strong> do cadastro existente pelos valores acima ("Novo lançamento")?</p>
       <button id="btnAtualizarDuplicado" onclick="atualizarCadastroDuplicado()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold text-sm rounded-xl py-3 mb-2 transition">🔄 Substituir quantidade e preço</button>
-      <button onclick="irParaCadastroDuplicado()" class="w-full bg-slate-50 hover:bg-slate-100 text-slate-500 font-medium text-xs rounded-xl py-2 mb-2 transition">Editar cadastro completo</button>
       <button onclick="fecharModalDuplicado()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium text-sm rounded-xl py-2.5 transition">Cancelar</button>
     </div>
   </div>
@@ -7290,6 +7289,18 @@ function _msToggle(bodyId, chevId) {
 function fecharModalStatus() {
   document.getElementById('modalStatus').classList.add('hidden');
   document.body.style.overflow = '';
+}
+
+// Alerta automático ao entrar no app: se houver produtos "em atenção" (vencem em até 20 dias)
+// dentro do escopo do usuário logado, abre o mesmo painel do badge "Atenção" automaticamente.
+function verificarAlertaVencimento() {
+  let base = [...produtos];
+  if (sessao?.role === 'vendedor') base = base.filter(p => sessao.ufs?.includes(p.uf));
+  if (sessao?.role === 'promotor') base = base.filter(p => normTxt(p.promotor) === normTxt(sessao.nome||''));
+  const temAtencao = base.some(p => statusDe(diasRestantes(p.validade)) === 'warning');
+  if (temAtencao) {
+    setTimeout(() => abrirModalStatus('warning'), 700);
+  }
 }
 
 function abrirModalStatus(status) {
