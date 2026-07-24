@@ -13879,6 +13879,10 @@ function salvarEdicao() {
     const rede = (_maLojaObj && _maLojaObj.rede) || '';
     _maProdObj = {...p, _codRede: _maGetCodRede(p, rede)};
     _maProdConfirmado = false;
+    // Auto-preenche o chip de fábrica com a fábrica do produto escolhido
+    if (p.fabrica) {
+      _maSelecionarFabrica(p.fabrica);
+    }
     // Card verde: nome + fábrica (sem código)
     document.getElementById('ma-prod-sel-nome').textContent = _maProdObj.nome;
     document.getElementById('ma-prod-sel-sub').textContent  = _maProdObj.fabrica || '';
