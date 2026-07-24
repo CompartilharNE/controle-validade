@@ -5714,6 +5714,8 @@ function _onBlurProduto() {
     if (!(document.getElementById('f_produto').value||'').trim()) {
       const b = document.getElementById('f_produto_busca');
       if (b && b.value.trim()) {
+        // Campo perdeu o foco com um código numérico digitado: tenta confirmar antes de avisar erro
+        if (_tentarConfirmarCodigoExato(b)) return;
         b.style.borderColor='#ef4444'; b.style.backgroundColor='#fef2f2';
         document.getElementById('f_produto_sel_aviso').style.display = '';
       }
@@ -5744,30 +5746,43 @@ function _onDigitarProduto(input) {
 
   if (!v) { _fecharSugestoesProduto(); return; }
 
-  if (soNumeros) {
-    // Tenta correspondência exata: EAN, código de fábrica ou código cadastrado na rede da loja
-    const rede = _redeDaLojaSelecionada();
-    const exato = catalogo.find(p =>
-      p.ean === v ||
-      (p.codigo||'').trim() === v ||
-      _codRedeDoProduto(p, rede) === v
-    );
-    if (exato) {
-      _fecharSugestoesProduto();
+  if (soNumeros && v.length === 13) {
+    // EAN-13 completo: só nesse caso confirma (ou avisa não encontrado) enquanto ainda digita,
+    // pois um EAN de 13 dígitos já é, por definição, um código completo.
+    _fecharSugestoesProduto();
+    const cat = catalogo.find(p => p.ean === v);
+    if (cat) {
       input.style.borderColor = '#16a34a'; input.style.backgroundColor = '#f0fdf4';
-      mostrarConfirmacaoProduto(exato);
-      return;
-    }
-    if (v.length === 13) {
-      // EAN completo digitado/escaneado e não encontrado
-      _fecharSugestoesProduto();
+      mostrarConfirmacaoProduto(cat);
+    } else {
       input.style.borderColor = '#dc2626'; input.style.backgroundColor = '#fef2f2';
       showToast('⚠️ EAN não encontrado no catálogo.','#92400e');
-      return;
     }
+    return;
   }
-  // Busca parcial por nome, código de fábrica, EAN ou código de rede
+  // Nome, código de fábrica ou código de rede: só mostra sugestões enquanto digita.
+  // A confirmação (com foto) só aparece quando o produto é de fato selecionado
+  // (clique na sugestão, leitura pelo scanner ou ao sair do campo com um código completo).
   _filtrarSugestoesProduto(v);
+}
+
+// Tenta confirmar um código numérico (EAN, código de fábrica ou código de rede) já completo.
+// Usado quando a entrada é definitiva: leitura do scanner ou saída do campo (blur).
+function _tentarConfirmarCodigoExato(input) {
+  const vRaw = (input.value||'').trim();
+  const v = /^[\d\s]+$/.test(vRaw) ? vRaw.replace(/\s+/g, '') : vRaw;
+  if (!v || !/^\d+$/.test(v)) return false;
+  const rede = _redeDaLojaSelecionada();
+  const exato = catalogo.find(p =>
+    p.ean === v ||
+    (p.codigo||'').trim() === v ||
+    _codRedeDoProduto(p, rede) === v
+  );
+  if (!exato) return false;
+  _fecharSugestoesProduto();
+  input.style.borderColor = '#16a34a'; input.style.backgroundColor = '#f0fdf4';
+  mostrarConfirmacaoProduto(exato);
+  return true;
 }
 
 function _codRedeDoProduto(p, rede) {
@@ -6465,7 +6480,13 @@ function usarCodigoManual() {
 }
 function preencherProdutoApp(codigo) {
   const busca = document.getElementById('f_produto_busca');
-  if (busca) { busca.value = codigo; _onDigitarProduto(busca); }
+  if (!busca) return;
+  busca.value = codigo;
+  _onDigitarProduto(busca);
+  // Leitura do scanner é um código completo e definitivo (não é digitação parcial) — confirma direto
+  if (!(document.getElementById('f_produto').value||'').trim()) {
+    _tentarConfirmarCodigoExato(busca);
+  }
 }
 document.getElementById('scannerModal').addEventListener('click', function(e) {
   if (e.target===this) fecharScanner();
@@ -6507,6 +6528,16 @@ function mascaraData(input) {
   if (v.length>10) v=v.slice(0,10);
   input.value=v;
 }
+// Permite digitar o ano com 2 dígitos (ex.: 24/07/26) — ao sair do campo, completa para DD/MM/AAAA
+function _expandirAnoData(input) {
+  const m = (input.value||'').match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if (!m) return;
+  input.value = `${m[1]}/${m[2]}/20${m[3]}`;
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+document.querySelectorAll('input[oninput*="mascaraData"]').forEach(inp => {
+  inp.addEventListener('blur', () => _expandirAnoData(inp));
+});
 function dataParaISO(s) {
   const p=s.split('/');
   if (p.length!==3||p[2].length!==4) return '';
@@ -7760,24 +7791,32 @@ function renderTabela() {
 
 // ── Exportar XLSX (formato ACOMPANHAMENTO DE VENCIMENTOS) ────
 function _xlsxListaFiltrada() {
-  const fStatus   = document.getElementById('filtroStatus')?.value || 'todos';
-  const fUF       = document.getElementById('filtroUF')?.value || '';
-  const fFab      = document.getElementById('filtroFabrica')?.value || '';
-  const fPromotor = document.getElementById('filtroPromotor')?.value || '';
-  const fRede2    = document.getElementById('filtroRede')?.value || '';
-  const fProd     = document.getElementById('filtroProduto')?.value || '';
-  const busca     = normTxt(document.getElementById('busca')?.value?.trim() || '');
+  const fStatus    = document.getElementById('filtroStatus')?.value || 'todos';
+  const fUFs       = _msSel.uf || [];
+  const fFabs      = _msSel.fabrica || [];
+  const fPromotors = _msSel.promotorVend || [];
+  const fRedes     = _msSel.rede || [];
+  const fProds     = _msSel.produto || [];
+  const fLojas     = _msSel.loja || [];
+  const fVendedores= _msSel.vendedor || [];
+  const busca      = normTxt(document.getElementById('busca')?.value?.trim() || '');
+  const lojasFiltroNorm = fLojas.length ? new Set(fLojas.map(normTxt)) : null;
+  const vendedores = usuarios.filter(u => u.role === 'vendedor');
+  const ufsVendSel = new Set();
+  fVendedores.forEach(nome => { const v = vendedores.find(vv=>vv.nome===nome); (v?.ufs||[]).forEach(uf=>ufsVendSel.add(uf)); });
   let base = [...produtos];
   if (sessao?.role === 'vendedor') base = base.filter(p => sessao.ufs?.includes(p.uf));
   // diretor vê todos os UFs — sem filtro de base
   return base.filter(p => {
     const d = diasRestantes(p.validade), st = statusDe(d);
     if (fStatus !== 'todos' && st !== fStatus) return false;
-    if (fUF && p.uf !== fUF) return false;
-    if (fFab && p.fabrica !== fFab) return false;
-    if (fProd && p.produto !== fProd) return false;
-    if (fPromotor && p.promotor !== fPromotor) return false;
-    if (fRede2) { const lr=lojas.find(l=>normTxt(l.nome)===normTxt(p.loja)); if (!lr||lr.rede!==fRede2) return false; }
+    if (fUFs.length && !fUFs.includes(p.uf)) return false;
+    if (fFabs.length && !fFabs.includes(p.fabrica)) return false;
+    if (fProds.length && !fProds.includes(p.produto)) return false;
+    if (fPromotors.length && !fPromotors.includes(p.promotor)) return false;
+    if (fVendedores.length && ufsVendSel.size && !ufsVendSel.has(p.uf)) return false;
+    if (lojasFiltroNorm && !lojasFiltroNorm.has(normTxt(p.loja))) return false;
+    if (fRedes.length) { const lr=lojas.find(l=>normTxt(l.nome)===normTxt(p.loja)); if (!lr||!fRedes.includes(lr.rede)) return false; }
     if (busca && !normTxt([p.produto,p.promotor,p.loja,p.fabrica,p.uf].join(' ')).includes(busca)) return false;
     return true;
   });
@@ -8496,10 +8535,13 @@ function abrirModalExcel() {
   const modal = document.getElementById('xlsxFiltroModal');
   if (!modal) return;
 
-  // Sincronizar filtros ativos da página principal
+  // Sincronizar filtros ativos da página principal (multi-seleção → melhor esforço:
+  // só copia quando há exatamente 1 valor marcado, já que o modal de exportação usa campo único)
   const copiar = (src, dst) => {
-    const s = document.getElementById(src), d = document.getElementById(dst);
-    if (s && d) d.value = s.value;
+    const d = document.getElementById(dst);
+    if (!d) return;
+    const arr = _msSel[src] || [];
+    d.value = arr.length === 1 ? arr[0] : '';
   };
   // Sincronizar status: se a página principal tiver um status específico → marcar só ele;
   // caso contrário manter padrão Alerta + OK
@@ -8513,11 +8555,11 @@ function abrirModalExcel() {
     else if (statusPrincipal === 'ok')     { ckVenc.checked=false; ckAlert.checked=false; ckOK.checked=true;  }
     else { ckVenc.checked=false; ckAlert.checked=true; ckOK.checked=true; } // padrão: Alerta + OK
   }
-  copiar('filtroFabrica',  'xlsxFiltroFabrica');
-  copiar('filtroRede',     'xlsxFiltroRede');
-  copiar('filtroProduto',  'xlsxFiltroProduto');
-  copiar('filtroPromotor',  'xlsxFiltroPromotor');
-  copiar('filtroUF',        'xlsxFiltroUF');
+  copiar('fabrica',      'xlsxFiltroFabrica');
+  copiar('rede',         'xlsxFiltroRede');
+  copiar('produto',      'xlsxFiltroProduto');
+  copiar('promotorVend', 'xlsxFiltroPromotor');
+  copiar('uf',           'xlsxFiltroUF');
   // Datas: copiar do filtro principal (formato ISO) e converter para DD/MM/AAAA
   const _copiarData = (srcId, dstId) => {
     const src = document.getElementById(srcId);
