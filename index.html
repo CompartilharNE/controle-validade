@@ -1313,7 +1313,7 @@
           <option value="ok">OK</option>
         </select>
         <div class="flt-ms-wrap">
-          <button type="button" class="flt-ms-btn" onclick="_msToggle('fabrica')">
+          <button type="button" class="flt-ms-btn" onclick="_fmsToggle('fabrica')">
             <span id="msLabel_fabrica">Todas as Fábricas</span>
             <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
           </button>
@@ -1322,7 +1322,7 @@
         <div id="filtrosAdmin" class="hidden contents">
           <!-- Vendedor: vê filtro de Promotor -->
           <div class="flt-ms-wrap hidden" id="wrapPromotorVend">
-            <button type="button" class="flt-ms-btn" onclick="_msToggle('promotorVend')">
+            <button type="button" class="flt-ms-btn" onclick="_fmsToggle('promotorVend')">
               <span id="msLabel_promotorVend">Todos os Promotores</span>
               <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
             </button>
@@ -1330,14 +1330,14 @@
           </div>
           <!-- Admin e Diretor: veem filtro de Vendedor -->
           <div class="flt-ms-wrap" id="wrapVendedor">
-            <button type="button" class="flt-ms-btn" onclick="_msToggle('vendedor')">
+            <button type="button" class="flt-ms-btn" onclick="_fmsToggle('vendedor')">
               <span id="msLabel_vendedor">Todos os Vendedores</span>
               <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
             </button>
             <div id="msPanel_vendedor" class="flt-ms-panel"></div>
           </div>
           <div class="flt-ms-wrap">
-            <button type="button" class="flt-ms-btn" onclick="_msToggle('uf')">
+            <button type="button" class="flt-ms-btn" onclick="_fmsToggle('uf')">
               <span id="msLabel_uf">Todas as UFs</span>
               <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
             </button>
@@ -1345,21 +1345,21 @@
           </div>
         </div>
         <div class="flt-ms-wrap">
-          <button type="button" class="flt-ms-btn" onclick="_msToggle('rede')">
+          <button type="button" class="flt-ms-btn" onclick="_fmsToggle('rede')">
             <span id="msLabel_rede">Todas as Redes</span>
             <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
           </button>
           <div id="msPanel_rede" class="flt-ms-panel"></div>
         </div>
         <div class="flt-ms-wrap">
-          <button type="button" class="flt-ms-btn" onclick="_msToggle('loja')">
+          <button type="button" class="flt-ms-btn" onclick="_fmsToggle('loja')">
             <span id="msLabel_loja">Todas as Lojas</span>
             <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
           </button>
           <div id="msPanel_loja" class="flt-ms-panel"></div>
         </div>
         <div class="flt-ms-wrap">
-          <button type="button" class="flt-ms-btn" onclick="_msToggle('produto')">
+          <button type="button" class="flt-ms-btn" onclick="_fmsToggle('produto')">
             <span id="msLabel_produto">Todos os Produtos</span>
             <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
           </button>
@@ -2898,9 +2898,11 @@
         <div class="flex justify-between py-2"><span class="text-slate-400 text-xs">Loja</span><span id="dup_loja" class="font-medium text-slate-700 text-right max-w-[60%]"></span></div>
         <div class="flex justify-between py-2"><span class="text-slate-400 text-xs">Vencimento</span><span id="dup_validade" class="font-medium text-slate-700"></span></div>
         <div class="flex justify-between py-2"><span class="text-slate-400 text-xs">Cadastro atual</span><span id="dup_atual" class="text-xs font-semibold bg-yellow-100 text-yellow-800 rounded-full px-2 py-0.5"></span></div>
+        <div class="flex justify-between py-2"><span class="text-slate-400 text-xs">Novo lançamento</span><span id="dup_novo" class="text-xs font-semibold bg-green-100 text-green-800 rounded-full px-2 py-0.5"></span></div>
       </div>
-      <p class="text-xs text-slate-400 mb-4 leading-relaxed">Deseja ir ao cadastro existente para atualizar a <strong>quantidade</strong> e o <strong>preço</strong>?</p>
-      <button id="btnIrCadastro" onclick="irParaCadastroDuplicado()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold text-sm rounded-xl py-3 mb-2 transition">📋 Ir para o cadastro</button>
+      <p class="text-xs text-slate-400 mb-4 leading-relaxed">Deseja substituir a <strong>quantidade</strong> e o <strong>preço</strong> do cadastro existente pelos valores acima ("Novo lançamento")?</p>
+      <button id="btnAtualizarDuplicado" onclick="atualizarCadastroDuplicado()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold text-sm rounded-xl py-3 mb-2 transition">🔄 Substituir quantidade e preço</button>
+      <button onclick="irParaCadastroDuplicado()" class="w-full bg-slate-50 hover:bg-slate-100 text-slate-500 font-medium text-xs rounded-xl py-2 mb-2 transition">Editar cadastro completo</button>
       <button onclick="fecharModalDuplicado()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium text-sm rounded-xl py-2.5 transition">Cancelar</button>
     </div>
   </div>
@@ -7243,7 +7245,37 @@ function abrirModalDuplicado(p) {
   document.getElementById('dup_validade').textContent = fmtData(p.validade);
   document.getElementById('dup_atual').textContent    =
     `${p.quantidade||0}${undFmt?' '+undFmt:''} · ${fmtPreco(p.preco)||'sem preço'}`;
+  // Valores que acabaram de ser digitados no formulário (o que vai substituir o cadastro atual)
+  const novaQtde  = Number(document.getElementById('f_quantidade')?.value) || 0;
+  const novaUnd   = document.getElementById('f_und')?.value || p.und || '';
+  const novaUndFmt= novaUnd.charAt(0).toUpperCase()+novaUnd.slice(1).toLowerCase();
+  const novoPreco = _parsePrecoBR(document.getElementById('f_preco')?.value || '');
+  const elNovo = document.getElementById('dup_novo');
+  if (elNovo) elNovo.textContent = `${novaQtde}${novaUndFmt?' '+novaUndFmt:''} · ${fmtPreco(novoPreco)||'sem preço'}`;
   document.getElementById('modalDuplicado').classList.remove('hidden');
+}
+
+async function atualizarCadastroDuplicado() {
+  const id = _duplicadoId;
+  if (id === null) { fecharModalDuplicado(); return; }
+  const idx = produtos.findIndex(p => p.id === id);
+  if (idx < 0) { fecharModalDuplicado(); return; }
+
+  const novaQtde  = Number(document.getElementById('f_quantidade')?.value) || 0;
+  const novoPreco = _parsePrecoBR(document.getElementById('f_preco')?.value || '');
+  if (!novaQtde) { showToast('⚠️ Informe a quantidade.', '#92400e'); return; }
+
+  const antiga = Number(produtos[idx].quantidade) || 0;
+  const diff = novaQtde - antiga;
+  produtos[idx].quantidade = novaQtde;
+  produtos[idx].preco = novoPreco;
+  FS_PRODUTOS.doc(String(id)).update({ quantidade: novaQtde, preco: novoPreco });
+  renderTabela();
+  if (diff !== 0) _registrarMovimento(diff > 0 ? 'entrada' : 'saida', Math.abs(diff), produtos[idx], 'alteracao');
+
+  fecharModalDuplicado();
+  limparForm();
+  showToast('✅ Cadastro atualizado com a nova quantidade e preço!', '#166534');
 }
 
 function _msToggle(bodyId, chevId) {
@@ -7431,7 +7463,7 @@ function _limparFiltroData() {
 // ── Componente genérico: filtro de múltipla seleção (checkboxes) ──────
 let _msSel = { fabrica: [], vendedor: [], promotorVend: [], uf: [], rede: [], loja: [], produto: [] };
 let _msOptionsCache = {};
-const _msCfg = {
+const _fmsCfg = {
   fabrica:      { all: 'Todas as Fábricas',   plural: 'fábricas selecionadas' },
   vendedor:     { all: 'Todos os Vendedores', plural: 'vendedores selecionados' },
   promotorVend: { all: 'Todos os Promotores', plural: 'promotores selecionados' },
@@ -7443,7 +7475,7 @@ const _msCfg = {
 
 function _msLabelFor(key) {
   const arr = _msSel[key] || [];
-  const cfg = _msCfg[key] || { all: 'Todos', plural: 'selecionados' };
+  const cfg = _fmsCfg[key] || { all: 'Todos', plural: 'selecionados' };
   if (!arr.length) return cfg.all;
   if (arr.length === 1) return arr[0];
   return arr.length + ' ' + cfg.plural;
@@ -7494,7 +7526,7 @@ function _msLimparSel(key) {
   renderTabela();
 }
 
-function _msToggle(key) {
+function _fmsToggle(key) {
   const panel = document.getElementById('msPanel_' + key);
   if (!panel) return;
   const abrindo = !panel.classList.contains('open');
