@@ -90,6 +90,39 @@
     body.dark .ms-rede-group { border-color:#27272a; }
     body.dark .ms-prod-row { border-color:#27272a; }
 
+    /* Filtro de múltipla seleção (Controle de Filtro e telas de relatório) */
+    .flt-ms-wrap { position: relative; }
+    .flt-ms-btn {
+      border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 13px;
+      background: #fff; display: flex; align-items: center; justify-content: space-between;
+      gap: 6px; cursor: pointer; white-space: nowrap; min-width: 150px; color: #334155;
+    }
+    .flt-ms-btn:hover { background: #f8fafc; }
+    .flt-ms-panel {
+      display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 150;
+      background: #fff; border: 1px solid #cbd5e1; border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.12); min-width: 230px; max-width: 300px;
+      max-height: 280px; overflow-y: auto; padding: 6px;
+    }
+    .flt-ms-panel.open { display: block; }
+    .flt-ms-actions {
+      display: flex; justify-content: space-between; gap: 6px; padding: 2px 6px 8px;
+      border-bottom: 1px solid #f1f5f9; margin-bottom: 4px; position: sticky; top: 0; background: #fff;
+    }
+    .flt-ms-actions button { background: none; border: none; color: #1d4ed8; font-size: 11px; font-weight: 600; cursor: pointer; padding: 2px 4px; }
+    .flt-ms-actions button:hover { text-decoration: underline; }
+    .flt-ms-opt { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #334155; }
+    .flt-ms-opt:hover { background: #f8fafc; }
+    .flt-ms-opt input { accent-color: #1d4ed8; flex-shrink: 0; }
+    .flt-ms-opt span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .flt-ms-empty { padding: 10px; font-size: 12px; color: #94a3b8; text-align: center; }
+    body.dark .flt-ms-btn { background: #18181b !important; border-color: #3f3f46 !important; color: #e4e4e7 !important; }
+    body.dark .flt-ms-btn:hover { background: #27272a !important; }
+    body.dark .flt-ms-panel { background: #18181b !important; border-color: #3f3f46 !important; }
+    body.dark .flt-ms-actions { border-color: #3f3f46 !important; background: #18181b !important; }
+    body.dark .flt-ms-opt { color: #e4e4e7 !important; }
+    body.dark .flt-ms-opt:hover { background: #27272a !important; }
+
     /* Campo bloqueado (Promotor/UF fixos para perfil promotor) */
     .campo-bloqueado { border-left: 3px solid #f59e0b !important; background: #f8fafc !important; color: #64748b !important; cursor: not-allowed !important; }
     body.dark .campo-bloqueado { background: #27272a !important; color: #a1a1aa !important; border-left-color: #f59e0b !important; }
@@ -1117,7 +1150,7 @@
         </div>
 
         <div class="flex flex-col gap-1 col-span-2">
-          <label class="text-sm font-semibold" style="color:#272a4a">Nome do Produto ou EAN *</label>
+          <label class="text-sm font-semibold" style="color:#272a4a">Nome do Produto, EAN e Código *</label>
           <div id="f_filtro_rede_aviso" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:5px 9px;align-items:center;gap:5px">
             <i class="ti ti-filter" style="font-size:11px;color:#1d4ed8" aria-hidden="true"></i>
             <span id="f_filtro_rede_texto" style="font-size:11px;color:#1d4ed8"></span>
@@ -1126,20 +1159,21 @@
             <div style="position:relative;flex:1">
               <i id="f_produto_icon" class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:#94a3b8;pointer-events:none;" aria-hidden="true"></i>
               <input id="f_produto_busca" type="text"
-                placeholder="Nome do produto ou EAN-13..."
+                placeholder="Selecione a loja primeiro..."
                 oninput="_onDigitarProduto(this)"
                 onfocus="_onFocoProduto()"
                 onblur="_onBlurProduto()"
                 autocomplete="off"
-                class="border border-slate-300 rounded-lg py-2 text-sm w-full" style="padding-left:34px;padding-right:34px" />
-              <button type="button" id="micBtnProduto" onclick="iniciarVozCampo('f_produto_busca','micBtnProduto',_onDigitarProduto)" title="Falar nome do produto"
+                disabled
+                class="border border-slate-300 rounded-lg py-2 text-sm w-full" style="padding-left:34px;padding-right:34px;background:#f8fafc;color:#94a3b8" />
+              <button type="button" id="micBtnProduto" disabled onclick="iniciarVozCampo('f_produto_busca','micBtnProduto',_onDigitarProduto)" title="Falar nome do produto"
                 style="position:absolute;right:7px;top:50%;transform:translateY(-50%);width:24px;height:24px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px;overflow:visible;z-index:10">
                 <div id="micRippleProduto" style="display:none;position:absolute;width:24px;height:24px;border-radius:50%;background:rgba(220,38,38,0.2);animation:micPulse 1s infinite;pointer-events:none"></div>
                 <i id="micIconProduto" class="ti ti-microphone" style="font-size:15px;color:#94a3b8;position:relative;z-index:1;transition:color .15s" aria-hidden="true"></i>
               </button>
               <div id="produtoSugestoes" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:0.5px solid #cbd5e1;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.10);z-index:200;max-height:224px;overflow-y:auto"></div>
             </div>
-            <button type="button" onclick="abrirScanner(preencherProdutoApp)"
+            <button type="button" id="f_produto_scan_btn" disabled onclick="abrirScanner(preencherProdutoApp)"
               title="Escanear código de barras"
               class="shrink-0 bg-slate-700 hover:bg-slate-800 text-white rounded-lg px-3 py-2 transition"
               style="line-height:1"><i class="ti ti-camera" style="font-size:18px" aria-hidden="true"></i></button>
@@ -1278,31 +1312,59 @@
           <option value="warning">A vencer (≤20 dias)</option>
           <option value="ok">OK</option>
         </select>
-        <select id="filtroFabrica" onchange="renderTabela()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
-          <option value="">Todas as Fábricas</option>
-        </select>
+        <div class="flt-ms-wrap">
+          <button type="button" class="flt-ms-btn" onclick="_msToggle('fabrica')">
+            <span id="msLabel_fabrica">Todas as Fábricas</span>
+            <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+          </button>
+          <div id="msPanel_fabrica" class="flt-ms-panel"></div>
+        </div>
         <div id="filtrosAdmin" class="hidden contents">
           <!-- Vendedor: vê filtro de Promotor -->
-          <select id="filtroPromotorVend" onchange="renderTabela()" class="hidden border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
-            <option value="">Todos os Promotores</option>
-          </select>
+          <div class="flt-ms-wrap hidden" id="wrapPromotorVend">
+            <button type="button" class="flt-ms-btn" onclick="_msToggle('promotorVend')">
+              <span id="msLabel_promotorVend">Todos os Promotores</span>
+              <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+            </button>
+            <div id="msPanel_promotorVend" class="flt-ms-panel"></div>
+          </div>
           <!-- Admin e Diretor: veem filtro de Vendedor -->
-          <select id="filtroVendedor" onchange="renderTabela()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
-            <option value="">Todos os Vendedores</option>
-          </select>
-          <select id="filtroUF" onchange="renderTabela()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
-            <option value="">Todas as UFs</option>
-          </select>
+          <div class="flt-ms-wrap" id="wrapVendedor">
+            <button type="button" class="flt-ms-btn" onclick="_msToggle('vendedor')">
+              <span id="msLabel_vendedor">Todos os Vendedores</span>
+              <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+            </button>
+            <div id="msPanel_vendedor" class="flt-ms-panel"></div>
+          </div>
+          <div class="flt-ms-wrap">
+            <button type="button" class="flt-ms-btn" onclick="_msToggle('uf')">
+              <span id="msLabel_uf">Todas as UFs</span>
+              <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+            </button>
+            <div id="msPanel_uf" class="flt-ms-panel"></div>
+          </div>
         </div>
-        <select id="filtroRede" onchange="renderTabela()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
-          <option value="">Todas as Redes</option>
-        </select>
-        <select id="filtroLoja" onchange="renderTabela()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
-          <option value="">Todas as Lojas</option>
-        </select>
-        <select id="filtroProduto" onchange="renderTabela()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
-          <option value="">Todos os Produtos</option>
-        </select>
+        <div class="flt-ms-wrap">
+          <button type="button" class="flt-ms-btn" onclick="_msToggle('rede')">
+            <span id="msLabel_rede">Todas as Redes</span>
+            <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+          </button>
+          <div id="msPanel_rede" class="flt-ms-panel"></div>
+        </div>
+        <div class="flt-ms-wrap">
+          <button type="button" class="flt-ms-btn" onclick="_msToggle('loja')">
+            <span id="msLabel_loja">Todas as Lojas</span>
+            <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+          </button>
+          <div id="msPanel_loja" class="flt-ms-panel"></div>
+        </div>
+        <div class="flt-ms-wrap">
+          <button type="button" class="flt-ms-btn" onclick="_msToggle('produto')">
+            <span id="msLabel_produto">Todos os Produtos</span>
+            <i class="ti ti-chevron-down" style="font-size:12px;color:#94a3b8;flex-shrink:0" aria-hidden="true"></i>
+          </button>
+          <div id="msPanel_produto" class="flt-ms-panel"></div>
+        </div>
         <button onclick="limparFiltrosProdutos()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-500 hover:bg-slate-50 flex items-center gap-1" style="height:38px;white-space:nowrap">
           <i class="ti ti-x" style="font-size:13px" aria-hidden="true"></i> Limpar filtro
         </button>
@@ -5659,6 +5721,12 @@ function _onBlurProduto() {
   }, 150);
 }
 
+function _redeDaLojaSelecionada() {
+  const lojaVal = (document.getElementById('f_loja')?.value || '').trim();
+  const lojaObj = lojas.find(l => l.nome === lojaVal);
+  return lojaObj ? (lojaObj.rede || '') : '';
+}
+
 function _onDigitarProduto(input) {
   // Limpar confirmação anterior
   document.getElementById('f_produto').value = '';
@@ -5672,25 +5740,34 @@ function _onDigitarProduto(input) {
   if (v !== vRaw) input.value = v; // atualiza campo se removeu espaços
   const soNumeros = /^\d+$/.test(v);
 
-  if (soNumeros && v.length > 0) {
-    // Modo EAN
-    document.getElementById('f_produto_icon').className = 'ti ti-barcode';
-    _fecharSugestoesProduto();
-    if (v.length === 13) {
-      const cat = catalogo.find(p => p.ean === v);
-      if (cat) {
-        input.style.borderColor = '#16a34a'; input.style.backgroundColor = '#f0fdf4';
-        mostrarConfirmacaoProduto(cat);
-      } else {
-        input.style.borderColor = '#dc2626'; input.style.backgroundColor = '#fef2f2';
-        showToast('⚠️ EAN não encontrado no catálogo.','#92400e');
-      }
+  document.getElementById('f_produto_icon').className = soNumeros ? 'ti ti-barcode' : 'ti ti-search';
+
+  if (!v) { _fecharSugestoesProduto(); return; }
+
+  if (soNumeros) {
+    // Tenta correspondência exata: EAN, código de fábrica ou código cadastrado na rede da loja
+    const rede = _redeDaLojaSelecionada();
+    const exato = catalogo.find(p =>
+      p.ean === v ||
+      (p.codigo||'').trim() === v ||
+      _codRedeDoProduto(p, rede) === v
+    );
+    if (exato) {
+      _fecharSugestoesProduto();
+      input.style.borderColor = '#16a34a'; input.style.backgroundColor = '#f0fdf4';
+      mostrarConfirmacaoProduto(exato);
+      return;
     }
-  } else {
-    // Modo nome
-    document.getElementById('f_produto_icon').className = 'ti ti-search';
-    _filtrarSugestoesProduto(v);
+    if (v.length === 13) {
+      // EAN completo digitado/escaneado e não encontrado
+      _fecharSugestoesProduto();
+      input.style.borderColor = '#dc2626'; input.style.backgroundColor = '#fef2f2';
+      showToast('⚠️ EAN não encontrado no catálogo.','#92400e');
+      return;
+    }
   }
+  // Busca parcial por nome, código de fábrica, EAN ou código de rede
+  _filtrarSugestoesProduto(v);
 }
 
 function _codRedeDoProduto(p, rede) {
@@ -6090,6 +6167,7 @@ function _onDigitarLoja(input) {
   document.getElementById('f_loja_cnpj_erro').style.display = 'none';
   document.getElementById('f_loja_sel_aviso').style.display = 'none';
   input.style.borderColor = ''; input.style.backgroundColor = '';
+  _desabilitarCampoProduto();
 
   const raw = input.value.replace(/\D/g,'').slice(0,14);
   // Só ativa modo CNPJ com 14 dígitos completos
@@ -6188,6 +6266,24 @@ function _filtrarSugestoesLoja(texto) {
   drop.style.display = 'block';
 }
 
+function _habilitarCampoProduto() {
+  const prodBusca = document.getElementById('f_produto_busca');
+  if (prodBusca) { prodBusca.disabled = false; prodBusca.placeholder = 'Nome, EAN ou código do produto...'; prodBusca.style.backgroundColor = ''; prodBusca.style.color = ''; }
+  const scanBtn = document.getElementById('f_produto_scan_btn');
+  if (scanBtn) scanBtn.disabled = false;
+  const micBtn = document.getElementById('micBtnProduto');
+  if (micBtn) micBtn.disabled = false;
+}
+
+function _desabilitarCampoProduto() {
+  const prodBusca = document.getElementById('f_produto_busca');
+  if (prodBusca) { prodBusca.disabled = true; prodBusca.placeholder = 'Selecione a loja primeiro...'; prodBusca.style.backgroundColor = '#f8fafc'; prodBusca.style.color = '#94a3b8'; }
+  const scanBtn = document.getElementById('f_produto_scan_btn');
+  if (scanBtn) scanBtn.disabled = true;
+  const micBtn = document.getElementById('micBtnProduto');
+  if (micBtn) micBtn.disabled = true;
+}
+
 function _confirmarLoja(nome, rede, uf, cnpj) {
   document.getElementById('f_loja').value = nome;
   const busca = document.getElementById('f_loja_busca');
@@ -6209,6 +6305,7 @@ function _confirmarLoja(nome, rede, uf, cnpj) {
       aviso.style.display = 'none';
     }
   }
+  _habilitarCampoProduto();
   _verificarOutroPromotorAntecipado();
 }
 
@@ -6223,6 +6320,8 @@ function _limparLojaForm() {
   document.getElementById('f_loja_icon').className = 'ti ti-search';
   const aviso = document.getElementById('f_filtro_rede_aviso');
   if (aviso) aviso.style.display = 'none';
+  _desabilitarCampoProduto();
+  _limparProdutoForm();
   _fecharSugestoesLoja();
   setTimeout(() => { const b = document.getElementById('f_loja_busca'); if(b) b.focus(); }, 50);
 }
@@ -6667,6 +6766,7 @@ function _mesmaLojaSim() {
     document.getElementById('f_loja_card_info').textContent = _lojaSnapshot.cardInfo;
     document.getElementById('f_loja_card').style.display = 'flex';
     document.getElementById('f_loja_icon').className = 'ti ti-search';
+    _habilitarCampoProduto();
   }
   _lojaSnapshot = null;
   showToast('✅ Produto adicionado!','#166534');
@@ -6728,6 +6828,7 @@ async function _confirmarLancamentoSIM() {
     document.getElementById('f_loja_card_info').textContent = _lojaSnapshot.cardInfo;
     document.getElementById('f_loja_card').style.display = 'flex';
     document.getElementById('f_loja_icon').className = 'ti ti-search';
+    _habilitarCampoProduto();
   }
   _pendingConfirmacao = null;
   _lojaSnapshot = null;
@@ -7296,109 +7397,178 @@ function _limparFiltroData() {
   _atualizarFiltroData();
 }
 
+// ── Componente genérico: filtro de múltipla seleção (checkboxes) ──────
+let _msSel = { fabrica: [], vendedor: [], promotorVend: [], uf: [], rede: [], loja: [], produto: [] };
+let _msOptionsCache = {};
+const _msCfg = {
+  fabrica:      { all: 'Todas as Fábricas',   plural: 'fábricas selecionadas' },
+  vendedor:     { all: 'Todos os Vendedores', plural: 'vendedores selecionados' },
+  promotorVend: { all: 'Todos os Promotores', plural: 'promotores selecionados' },
+  uf:           { all: 'Todas as UFs',        plural: 'UFs selecionadas' },
+  rede:         { all: 'Todas as Redes',      plural: 'redes selecionadas' },
+  loja:         { all: 'Todas as Lojas',      plural: 'lojas selecionadas' },
+  produto:      { all: 'Todos os Produtos',   plural: 'produtos selecionados' },
+};
+
+function _msLabelFor(key) {
+  const arr = _msSel[key] || [];
+  const cfg = _msCfg[key] || { all: 'Todos', plural: 'selecionados' };
+  if (!arr.length) return cfg.all;
+  if (arr.length === 1) return arr[0];
+  return arr.length + ' ' + cfg.plural;
+}
+
+// options: array de strings, ou array de {value,label}
+function _msRenderPanel(key, options) {
+  const norm = (options||[]).map(o => typeof o === 'string' ? { value: o, label: o } : o);
+  _msOptionsCache[key] = norm.map(o => o.value);
+  const optSet = new Set(_msOptionsCache[key]);
+  _msSel[key] = (_msSel[key]||[]).filter(v => optSet.has(v));
+  const label = document.getElementById('msLabel_' + key);
+  if (label) label.textContent = _msLabelFor(key);
+  const panel = document.getElementById('msPanel_' + key);
+  if (!panel) return;
+  if (!norm.length) {
+    panel.innerHTML = '<div class="flt-ms-empty">Nenhuma opção disponível.</div>';
+    return;
+  }
+  const sel = new Set(_msSel[key]);
+  panel.innerHTML =
+    '<div class="flt-ms-actions">' +
+      '<button type="button" onclick="_msSelecionarTodos(\'' + key + '\')">Selecionar todos</button>' +
+      '<button type="button" onclick="_msLimparSel(\'' + key + '\')">Limpar</button>' +
+    '</div>' +
+    norm.map((o, idx) =>
+      '<label class="flt-ms-opt"><input type="checkbox" ' + (sel.has(o.value)?'checked':'') +
+      ' onchange="_msToggleIndex(\'' + key + '\', ' + idx + ')" /><span>' + esc(o.label) + '</span></label>'
+    ).join('');
+}
+
+function _msToggleIndex(key, idx) {
+  const val = (_msOptionsCache[key]||[])[idx];
+  if (val === undefined) return;
+  const arr = _msSel[key] || (_msSel[key] = []);
+  const i = arr.indexOf(val);
+  if (i === -1) arr.push(val); else arr.splice(i,1);
+  renderTabela();
+}
+
+function _msSelecionarTodos(key) {
+  _msSel[key] = [...(_msOptionsCache[key]||[])];
+  renderTabela();
+}
+
+function _msLimparSel(key) {
+  _msSel[key] = [];
+  renderTabela();
+}
+
+function _msToggle(key) {
+  const panel = document.getElementById('msPanel_' + key);
+  if (!panel) return;
+  const abrindo = !panel.classList.contains('open');
+  document.querySelectorAll('.flt-ms-panel').forEach(p => p.classList.remove('open'));
+  if (abrindo) panel.classList.add('open');
+}
+
+function _msFecharTodos() {
+  document.querySelectorAll('.flt-ms-panel').forEach(p => p.classList.remove('open'));
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.flt-ms-wrap')) _msFecharTodos();
+});
+
 function renderTabela() {
   const busca  =normTxt(document.getElementById('busca')?.value||'');
   const fStatus=document.getElementById('filtroStatus')?.value||'todos';
-  const fUF    =document.getElementById('filtroUF')?.value||'';
-  const fFab   =document.getElementById('filtroFabrica')?.value||'';
+  const fUFs   = _msSel.uf || [];
+  const fFabs  = _msSel.fabrica || [];
 
-  // Base de produtos filtrada pelas UFs do vendedor (para popular selects corretamente)
+  // Base de produtos filtrada pelas UFs do vendedor (para popular filtros corretamente)
   const isVendedorSessao = sessao && sessao.role === 'vendedor';
   const produtosBase = isVendedorSessao && sessao.ufs?.length
     ? produtos.filter(p => sessao.ufs.includes(p.uf))
     : produtos;
 
-  const fVendedor = document.getElementById('filtroVendedor')?.value || '';
-  const fRede     = document.getElementById('filtroRede')?.value     || '';
+  const fVendedores = _msSel.vendedor || [];
+  const fRedes       = _msSel.rede || [];
 
-  // Popular select de Vendedores (admin/diretor) — sempre todas as opções
+  // Vendedores (admin/diretor) — sempre todas as opções
   const vendedores = usuarios.filter(u => u.role === 'vendedor').sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  const sVend = document.getElementById('filtroVendedor');
-  if (sVend) {
-    const cur = sVend.value;
-    sVend.innerHTML = '<option value="">Todos os Vendedores</option>' +
-      vendedores.map(v => {
-        const ufsStr = (v.ufs||[]).join(' · ');
-        const label  = ufsStr ? `${v.nome} (${ufsStr})` : v.nome;
-        return `<option value="${v.nome}" ${v.nome===cur?'selected':''}>${label}</option>`;
-      }).join('');
-    if (vendedores.find(v=>v.nome===cur)) sVend.value=cur;
-  }
+  const vendedoresOpts = vendedores.map(v => {
+    const ufsStr = (v.ufs||[]).join(' · ');
+    return { value: v.nome, label: ufsStr ? `${v.nome} (${ufsStr})` : v.nome };
+  });
+  _msRenderPanel('vendedor', vendedoresOpts);
 
   // ── Filtros em cascata para Diretor/Admin ───────────────────────
   const isDirAdm = sessao?.role === 'diretor' || sessao?.role === 'admin';
-  const vendSel2  = fVendedor ? vendedores.find(v=>v.nome===fVendedor) : null;
-  const ufsVend2  = vendSel2?.ufs || [];
+  const ufsVend2 = new Set();
+  fVendedores.forEach(nome => { const v = vendedores.find(vv=>vv.nome===nome); (v?.ufs||[]).forEach(uf=>ufsVend2.add(uf)); });
 
   // Nível 1: produtos filtrados pelo Vendedor
-  const pN1 = isDirAdm && fVendedor && ufsVend2.length
-    ? produtosBase.filter(p => ufsVend2.includes(p.uf))
+  const pN1 = isDirAdm && fVendedores.length && ufsVend2.size
+    ? produtosBase.filter(p => ufsVend2.has(p.uf))
     : produtosBase;
 
   // Nível 2: produtos filtrados por Vendedor + Fábrica
-  const pN2 = fFab ? pN1.filter(p => p.fabrica === fFab) : pN1;
+  const pN2 = fFabs.length ? pN1.filter(p => fFabs.includes(p.fabrica)) : pN1;
 
   // Nível 3: produtos filtrados por Vendedor + Fábrica + UF
-  const pN3 = fUF ? pN2.filter(p => p.uf === fUF) : pN2;
+  const pN3 = fUFs.length ? pN2.filter(p => fUFs.includes(p.uf)) : pN2;
 
   // Nível 4: produtos filtrados por Vendedor + Fábrica + UF + Rede
-  const pN4 = fRede ? pN3.filter(p => { const lr=lojas.find(l=>normTxt(l.nome)===normTxt(p.loja)); return lr?.rede===fRede; }) : pN3;
+  const pN4 = fRedes.length ? pN3.filter(p => { const lr=lojas.find(l=>normTxt(l.nome)===normTxt(p.loja)); return lr && fRedes.includes(lr.rede); }) : pN3;
 
   // Popular Fábrica (baseado em N1: apenas Vendedor)
-  const sFab=document.getElementById('filtroFabrica');
   const fabsOpts = isDirAdm ? [...new Set(pN1.map(p=>p.fabrica))].sort() : [...new Set(produtosBase.map(p=>p.fabrica))].sort();
-  if (sFab) { const cur=sFab.value; sFab.innerHTML='<option value="">Todas as Fábricas</option>'+fabsOpts.map(f=>`<option ${f===cur?'selected':''}>${f}</option>`).join(''); }
+  _msRenderPanel('fabrica', fabsOpts);
 
   // Popular UF (baseado em N2: Vendedor + Fábrica)
-  const sUF=document.getElementById('filtroUF');
   const ufsOpts = isDirAdm ? [...new Set(pN2.map(p=>p.uf))].sort() : [...new Set(produtosBase.map(p=>p.uf))].sort();
-  if (sUF) { const cur=sUF.value; sUF.innerHTML='<option value="">Todas as UFs</option>'+ufsOpts.map(u=>`<option ${u===cur?'selected':''}>${u}</option>`).join(''); }
+  _msRenderPanel('uf', ufsOpts);
 
   // Popular Produto (baseado em N4: Vendedor + Fábrica + UF + Rede)
-  const sProd2=document.getElementById('filtroProduto');
   const prodsOpts = isDirAdm ? [...new Set(pN4.map(p=>p.produto))].sort() : [...new Set(produtosBase.map(p=>p.produto))].sort();
-  if (sProd2) { const cur=sProd2.value; sProd2.innerHTML='<option value="">Todos os Produtos</option>'+prodsOpts.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join(''); }
-  const fProd=sProd2?.value||'';
+  _msRenderPanel('produto', prodsOpts);
+  const fProds = _msSel.produto || [];
 
   // Popular Rede (baseado em N3: Vendedor + Fábrica + UF)
   const lojasNaBase = new Set((isDirAdm ? pN3 : produtosBase).map(p => normTxt(p.loja)));
   const redesUnicas = [...new Set(
     lojas.filter(l => lojasNaBase.has(normTxt(l.nome))).map(l=>l.rede).filter(Boolean)
   )].sort();
-  const sRede = document.getElementById('filtroRede');
-  if (sRede) { const cur=sRede.value; sRede.innerHTML='<option value="">Todas as Redes</option>'+redesUnicas.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join(''); }
+  _msRenderPanel('rede', redesUnicas);
 
   // Popular Loja (baseado em N4: Vendedor + Fábrica + UF + Rede)
-  const sLoja = document.getElementById('filtroLoja');
-  const fLoja = sLoja?.value || '';
   const lojasBase4 = isDirAdm ? pN4 : produtosBase;
   const lojasUnicas = [...new Set(lojasBase4.map(p => p.loja).filter(Boolean))].sort();
-  if (sLoja) { const cur=sLoja.value; sLoja.innerHTML='<option value="">Todas as Lojas</option>'+lojasUnicas.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join(''); }
-
-  // UFs do vendedor selecionado (para filtrar por UF)
-  const vendSel = fVendedor ? vendedores.find(v=>v.nome===fVendedor) : null;
-  const ufsVendSel = vendSel?.ufs || [];
+  _msRenderPanel('loja', lojasUnicas);
+  const fLojas = _msSel.loja || [];
 
   let listaBase = produtos;
   if (sessao && sessao.role === 'promotor') listaBase = produtos.filter(p => p.promotor === sessao.nome);
   if (sessao && sessao.role === 'vendedor') listaBase = produtos.filter(p => sessao.ufs && sessao.ufs.includes(p.uf));
   // diretor vê todos os UFs — sem filtro adicional
 
+  const lojasFiltroNorm = fLojas.length ? new Set(fLojas.map(normTxt)) : null;
+
   let lista=listaBase.filter(p=>{
     const d=diasRestantes(p.validade), st=statusDe(d);
     // Vencidos há mais de 5 dias: ocultos no padrão; aparecem só com filtro "Vencidos"
     if (fStatus==='todos' && d < -5) return false;
     if (fStatus!=='todos'&&st!==fStatus) return false;
-    if (fUF&&p.uf!==fUF) return false;
-    if (fFab&&p.fabrica!==fFab) return false;
-    if (fProd&&p.produto!==fProd) return false;
+    if (fUFs.length&&!fUFs.includes(p.uf)) return false;
+    if (fFabs.length&&!fFabs.includes(p.fabrica)) return false;
+    if (fProds.length&&!fProds.includes(p.produto)) return false;
     // Filtro por vendedor (admin/diretor): mostra todos os produtos das UFs dele
-    if (fVendedor && ufsVend2.length && !ufsVend2.includes(p.uf)) return false;
+    if (fVendedores.length && ufsVend2.size && !ufsVend2.has(p.uf)) return false;
     // Filtro por promotor (perfil vendedor)
-    const fPromV = document.getElementById('filtroPromotorVend')?.value || '';
-    if (fPromV && p.promotor !== fPromV) return false;
-    if (fRede) { const lr=lojas.find(l=>normTxt(l.nome)===normTxt(p.loja)); if (!lr||lr.rede!==fRede) return false; }
-    if (fLoja && normTxt(p.loja) !== normTxt(fLoja)) return false;
+    const fPromVs = _msSel.promotorVend || [];
+    if (fPromVs.length && !fPromVs.includes(p.promotor)) return false;
+    if (fRedes.length) { const lr=lojas.find(l=>normTxt(l.nome)===normTxt(p.loja)); if (!lr||!fRedes.includes(lr.rede)) return false; }
+    if (lojasFiltroNorm && !lojasFiltroNorm.has(normTxt(p.loja))) return false;
     if (busca&&!normTxt([p.produto,p.promotor,p.loja,p.fabrica,p.uf].join(' ')).includes(busca)) return false;
     const fDtI=dataParaISO(document.getElementById('filtroDataInicio')?.value||'');
     const fDtF=dataParaISO(document.getElementById('filtroDataFim')?.value||'');
@@ -7444,22 +7614,20 @@ function renderTabela() {
   const fAdmin = document.getElementById('filtrosAdmin');
   if (fAdmin) { if (isAdmin || isVendedor || isDiretor) fAdmin.classList.remove('hidden'); else fAdmin.classList.add('hidden'); }
   // Mostrar filtro correto por perfil
-  const selVend   = document.getElementById('filtroVendedor');
-  const selPromV  = document.getElementById('filtroPromotorVend');
-  if (selVend  && selPromV) {
+  const wrapVend  = document.getElementById('wrapVendedor');
+  const wrapPromV = document.getElementById('wrapPromotorVend');
+  if (wrapVend  && wrapPromV) {
     if (isVendedor) {
-      selVend.classList.add('hidden');
-      selPromV.classList.remove('hidden');
+      wrapVend.classList.add('hidden');
+      wrapPromV.classList.remove('hidden');
       // Popular promotores das UFs do vendedor logado
       const promsVend = [...new Set(
         produtos.filter(p => sessao.ufs?.includes(p.uf)).map(p=>p.promotor).filter(Boolean)
       )].sort();
-      const curPV = selPromV.value;
-      selPromV.innerHTML = '<option value="">Todos os Promotores</option>' +
-        promsVend.map(v=>`<option ${v===curPV?'selected':''}>${v}</option>`).join('');
+      _msRenderPanel('promotorVend', promsVend);
     } else {
-      selVend.classList.remove('hidden');
-      selPromV.classList.add('hidden');
+      wrapVend.classList.remove('hidden');
+      wrapPromV.classList.add('hidden');
     }
   }
 
@@ -13044,9 +13212,10 @@ function limparFiltrosHistorico() {
 
 function limparFiltrosProdutos() {
   const el = id => document.getElementById(id);
-  ['busca','filtroStatus','filtroFabrica','filtroPromotorVend','filtroVendedor','filtroUF','filtroRede','filtroLoja','filtroProduto'].forEach(id => {
-    const e = el(id); if (e) e.value = '';
-  });
+  const eBusca = el('busca'); if (eBusca) eBusca.value = '';
+  const eStatus = el('filtroStatus'); if (eStatus) eStatus.value = 'todos';
+  ['fabrica','promotorVend','vendedor','uf','rede','loja','produto'].forEach(key => { _msSel[key] = []; });
+  _msFecharTodos();
   _limparFiltroData();
 }
 
@@ -13337,7 +13506,7 @@ function iniciarVozCampo(inputId, btnId, onInputFn) {
   const btn  = document.getElementById(btnId);
   const icon = btn.querySelector('i');
   const rip  = btn.querySelector('div');
-  const placeholders = { 'f_produto_busca': 'Nome do produto ou EAN-13...', 'f_loja_busca': 'Nome da loja ou CNPJ...' };
+  const placeholders = { 'f_produto_busca': 'Nome, EAN ou código do produto...', 'f_loja_busca': 'Nome da loja ou CNPJ...' };
   if (!SR) { showToast('⚠️ Microfone não suportado. Use Chrome.','#92400e'); return; }
   const r = new SR();
   r.lang = 'pt-BR'; r.continuous = false; r.interimResults = true;
@@ -13556,12 +13725,20 @@ function salvarEdicao() {
   let _maAdicionarOutro = false;
 
   window.abrirMeAjuda = function() {
-    _maStep = 0; _maLojaObj = null; _maProdObj = null; _maProdConfirmado = false;
+    _maStep = 0; _maLojaObj = null; _maProdObj = null; _maProdConfirmado = false; _maFabricaSel = null;
     document.getElementById('ma-busca-loja').value = '';
     document.getElementById('ma-busca-prod').value = '';
     document.getElementById('ma-validade').value = '';
     document.getElementById('ma-qtde').value = '';
     document.getElementById('ma-preco').value = '';
+    // Limpar seleção visual da loja (não deve persistir ao reabrir — só continua marcada
+    // pelo fluxo "mesma loja?" ao final de um lançamento, via _maRestart)
+    const lojaSel = document.getElementById('ma-loja-sel');
+    if (lojaSel) lojaSel.style.display = 'none';
+    const lojaSearch = document.getElementById('ma-loja-search');
+    if (lojaSearch) lojaSearch.style.display = 'block';
+    const lojaLista = document.getElementById('ma-lista-lojas');
+    if (lojaLista) lojaLista.innerHTML = '';
     _maIrStep0();
     document.getElementById('meAjudaModal').classList.remove('hidden');
   };
